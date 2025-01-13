@@ -1,27 +1,21 @@
 /*
  * YukiHookAPI - An efficient Hook API and Xposed Module solution built in Kotlin.
- * Copyright (C) 2019-2023 HighCapable
- * https://github.com/fankes/YukiHookAPI
+ * Copyright (C) 2019 HighCapable
+ * https://github.com/HighCapable/YukiHookAPI
  *
- * MIT License
+ * Apache License Version 2.0
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  * This file is created by fankes on 2022/3/27.
  */
@@ -29,39 +23,49 @@
 
 package com.highcapable.yukihookapi.hook.core.finder.tools
 
-import android.util.ArrayMap
+import com.highcapable.yukihookapi.YukiHookAPI
 import com.highcapable.yukihookapi.hook.core.finder.base.data.BaseRulesData
 import com.highcapable.yukihookapi.hook.core.finder.classes.data.ClassRulesData
 import com.highcapable.yukihookapi.hook.core.finder.members.data.ConstructorRulesData
 import com.highcapable.yukihookapi.hook.core.finder.members.data.FieldRulesData
 import com.highcapable.yukihookapi.hook.core.finder.members.data.MemberRulesData
 import com.highcapable.yukihookapi.hook.core.finder.members.data.MethodRulesData
-import com.highcapable.yukihookapi.hook.factory.*
-import com.highcapable.yukihookapi.hook.log.yLoggerW
+import com.highcapable.yukihookapi.hook.factory.current
+import com.highcapable.yukihookapi.hook.factory.field
+import com.highcapable.yukihookapi.hook.factory.hasClass
+import com.highcapable.yukihookapi.hook.factory.hasExtends
+import com.highcapable.yukihookapi.hook.factory.toClass
+import com.highcapable.yukihookapi.hook.log.YLog
 import com.highcapable.yukihookapi.hook.type.defined.UndefinedType
 import com.highcapable.yukihookapi.hook.type.defined.VagueType
 import com.highcapable.yukihookapi.hook.type.java.DalvikBaseDexClassLoader
 import com.highcapable.yukihookapi.hook.type.java.NoClassDefFoundErrorClass
 import com.highcapable.yukihookapi.hook.type.java.NoSuchFieldErrorClass
 import com.highcapable.yukihookapi.hook.type.java.NoSuchMethodErrorClass
-import com.highcapable.yukihookapi.hook.utils.*
+import com.highcapable.yukihookapi.hook.utils.factory.conditions
+import com.highcapable.yukihookapi.hook.utils.factory.findLastIndex
+import com.highcapable.yukihookapi.hook.utils.factory.lastIndex
+import com.highcapable.yukihookapi.hook.utils.factory.let
+import com.highcapable.yukihookapi.hook.utils.factory.runOrFalse
+import com.highcapable.yukihookapi.hook.utils.factory.takeIf
+import com.highcapable.yukihookapi.hook.utils.factory.value
 import com.highcapable.yukihookapi.hook.xposed.parasitic.AppParasitics
 import dalvik.system.BaseDexClassLoader
+import java.lang.reflect.AccessibleObject
 import java.lang.reflect.Constructor
 import java.lang.reflect.Field
 import java.lang.reflect.Member
 import java.lang.reflect.Method
-import java.util.*
+import java.util.Enumeration
 import kotlin.math.abs
 
 /**
  * 这是一个对 [Class]、[Member] 查找的工具实现类
  */
-@PublishedApi
 internal object ReflectionTool {
 
     /** 当前工具类的标签 */
-    private const val TAG = "YukiHookAPI#ReflectionTool"
+    private const val TAG = "${YukiHookAPI.TAG}#ReflectionTool"
 
     /**
      * 当前工具类的 [ClassLoader]
@@ -75,10 +79,10 @@ internal object ReflectionTool {
     private object MemoryCache {
 
         /** 缓存的 [Class] 列表数组 */
-        val dexClassListData = ArrayMap<String, List<String>>()
+        val dexClassListData = mutableMapOf<String, List<String>>()
 
         /** 缓存的 [Class] 对象数组 */
-        val classData = ArrayMap<String, Class<*>?>()
+        val classData = mutableMapOf<String, Class<*>?>()
     }
 
     /**
@@ -114,7 +118,6 @@ internal object ReflectionTool {
      * @return [Class]
      * @throws NoClassDefFoundError 如果找不到 [Class] 或设置了错误的 [ClassLoader]
      */
-    @PublishedApi
     internal fun findClassByName(name: String, loader: ClassLoader?, initialize: Boolean = false): Class<*> {
         val uniqueCode = "[$name][$loader]"
 
@@ -142,12 +145,12 @@ internal object ReflectionTool {
      * 查找任意 [Class] 或一组 [Class]
      * @param loaderSet 类所在 [ClassLoader]
      * @param rulesData 规则查找数据
-     * @return [HashSet]<[Class]>
+     * @return [MutableList]<[Class]>
      * @throws IllegalStateException 如果 [loaderSet] 为 null 或未设置任何条件
      * @throws NoClassDefFoundError 如果找不到 [Class]
      */
     internal fun findClasses(loaderSet: ClassLoader?, rulesData: ClassRulesData) = rulesData.createResult {
-        hashSetOf<Class<*>>().also { classes ->
+        mutableListOf<Class<*>>().also { classes ->
             /**
              * 开始查找作业
              * @param instance 当前 [Class] 实例
@@ -193,7 +196,7 @@ internal object ReflectionTool {
                     fun MemberRulesData.exists(vararg type: Any?): Boolean {
                         if (type.isEmpty()) return true
                         for (i in type.indices) if (type[i] == UndefinedType) {
-                            yLoggerW(msg = "$objectName type[$i] mistake, it will be ignored in current conditions")
+                            YLog.innerW("$objectName type[$i] mistake, it will be ignored in current conditions")
                             return false
                         }
                         return true
@@ -285,14 +288,15 @@ internal object ReflectionTool {
      * 查找任意 [Field] 或一组 [Field]
      * @param classSet [Field] 所在类
      * @param rulesData 规则查找数据
-     * @return [HashSet]<[Field]>
+     * @return [MutableList]<[Field]>
      * @throws IllegalStateException 如果未设置任何条件或 [FieldRulesData.type] 目标类不存在
      * @throws NoSuchFieldError 如果找不到 [Field]
      */
-    internal fun findFields(classSet: Class<*>?, rulesData: FieldRulesData) = rulesData.createResult {
+    internal fun findFields(classSet: Class<*>?, rulesData: FieldRulesData) = rulesData.createResult { hasCondition ->
         if (type == UndefinedType) error("Field match type class is not found")
-        if (classSet == null) return@createResult hashSetOf()
-        hashSetOf<Field>().also { fields ->
+        if (classSet == null) return@createResult mutableListOf()
+        if (hasCondition.not()) return@createResult classSet.existFields?.toList()?.toAccessibleMembers() ?: mutableListOf()
+        mutableListOf<Field>().also { fields ->
             classSet.existFields?.also { declares ->
                 var iType = -1
                 var iName = -1
@@ -338,26 +342,27 @@ internal object ReflectionTool {
                             })
                         }
                         orderIndex.compare(index, declares.lastIndex()) { and(it) }
-                    }.finally { fields.add(instance.apply { isAccessible = true }) }
+                    }.finally { fields.add(instance) }
                 }
             }
-        }.takeIf { it.isNotEmpty() } ?: findSuperOrThrow(classSet)
+        }.takeIf { it.isNotEmpty() }?.toAccessibleMembers() ?: findSuperOrThrow(classSet)
     }
 
     /**
      * 查找任意 [Method] 或一组 [Method]
      * @param classSet [Method] 所在类
      * @param rulesData 规则查找数据
-     * @return [HashSet]<[Method]>
+     * @return [MutableList]<[Method]>
      * @throws IllegalStateException 如果未设置任何条件或 [MethodRulesData.paramTypes] 以及 [MethodRulesData.returnType] 目标类不存在
      * @throws NoSuchMethodError 如果找不到 [Method]
      */
-    internal fun findMethods(classSet: Class<*>?, rulesData: MethodRulesData) = rulesData.createResult {
+    internal fun findMethods(classSet: Class<*>?, rulesData: MethodRulesData) = rulesData.createResult { hasCondition ->
         if (returnType == UndefinedType) error("Method match returnType class is not found")
-        if (classSet == null) return@createResult hashSetOf()
+        if (classSet == null) return@createResult mutableListOf()
+        if (hasCondition.not()) return@createResult classSet.existMethods?.toList()?.toAccessibleMembers() ?: mutableListOf()
         paramTypes?.takeIf { it.isNotEmpty() }
             ?.forEachIndexed { p, it -> if (it == UndefinedType) error("Method match paramType[$p] class is not found") }
-        hashSetOf<Method>().also { methods ->
+        mutableListOf<Method>().also { methods ->
             classSet.existMethods?.also { declares ->
                 var iReturnType = -1
                 var iReturnTypeCds = -1
@@ -449,25 +454,26 @@ internal object ReflectionTool {
                             })
                         }
                         orderIndex.compare(index, declares.lastIndex()) { and(it) }
-                    }.finally { methods.add(instance.apply { isAccessible = true }) }
+                    }.finally { methods.add(instance) }
                 }
             }
-        }.takeIf { it.isNotEmpty() } ?: findSuperOrThrow(classSet)
+        }.takeIf { it.isNotEmpty() }?.toAccessibleMembers() ?: findSuperOrThrow(classSet)
     }
 
     /**
      * 查找任意 [Constructor] 或一组 [Constructor]
      * @param classSet [Constructor] 所在类
      * @param rulesData 规则查找数据
-     * @return [HashSet]<[Constructor]>
+     * @return [MutableList]<[Constructor]>
      * @throws IllegalStateException 如果未设置任何条件或 [ConstructorRulesData.paramTypes] 目标类不存在
      * @throws NoSuchMethodError 如果找不到 [Constructor]
      */
-    internal fun findConstructors(classSet: Class<*>?, rulesData: ConstructorRulesData) = rulesData.createResult {
-        if (classSet == null) return@createResult hashSetOf()
+    internal fun findConstructors(classSet: Class<*>?, rulesData: ConstructorRulesData) = rulesData.createResult { hasCondition ->
+        if (classSet == null) return@createResult mutableListOf()
+        if (hasCondition.not()) return@createResult classSet.existConstructors?.toList()?.toAccessibleMembers() ?: mutableListOf()
         paramTypes?.takeIf { it.isNotEmpty() }
             ?.forEachIndexed { p, it -> if (it == UndefinedType) error("Constructor match paramType[$p] class is not found") }
-        hashSetOf<Constructor<*>>().also { constructors ->
+        mutableListOf<Constructor<*>>().also { constructors ->
             classSet.existConstructors?.also { declares ->
                 var iParamTypes = -1
                 var iParamTypesCds = -1
@@ -525,10 +531,10 @@ internal object ReflectionTool {
                             })
                         }
                         orderIndex.compare(index, declares.lastIndex()) { and(it) }
-                    }.finally { constructors.add(instance.apply { isAccessible = true }) }
+                    }.finally { constructors.add(instance) }
                 }
             }
-        }.takeIf { it.isNotEmpty() } ?: findSuperOrThrow(classSet)
+        }.takeIf { it.isNotEmpty() }?.toAccessibleMembers() ?: findSuperOrThrow(classSet)
     }
 
     /**
@@ -559,16 +565,14 @@ internal object ReflectionTool {
      * @return [T]
      * @throws IllegalStateException 如果没有 [BaseRulesData.isInitialize]
      */
-    private inline fun <reified T, R : BaseRulesData> R.createResult(result: R.() -> T): T {
-        when (this) {
-            is FieldRulesData -> isInitialize.not()
-            is MethodRulesData -> isInitialize.not()
-            is ConstructorRulesData -> isInitialize.not()
-            is ClassRulesData -> isInitialize.not()
-            else -> true
-        }.takeIf { it }?.also { error("You must set a condition when finding a $objectName") }
-        return result(this)
-    }
+    private inline fun <reified T, R : BaseRulesData> R.createResult(result: R.(hasCondition: Boolean) -> T) =
+        result(when (this) {
+            is FieldRulesData -> isInitialize
+            is MethodRulesData -> isInitialize
+            is ConstructorRulesData -> isInitialize
+            is ClassRulesData -> isInitialize
+            else -> false
+        })
 
     /**
      * 在 [Class.getSuperclass] 中查找或抛出异常
@@ -651,13 +655,13 @@ internal object ReflectionTool {
      */
     private val Class<*>.existMembers
         get() = runCatching {
-            arrayListOf<Member>().apply {
+            mutableListOf<Member>().apply {
                 addAll(declaredFields.toList())
                 addAll(declaredMethods.toList())
                 addAll(declaredConstructors.toList())
             }.asSequence()
         }.onFailure {
-            yLoggerW(msg = "Failed to get the declared Members in [$this] because got an exception\n$it")
+            YLog.innerW("Failed to get the declared Members in [$this] because got an exception", it)
         }.getOrNull()
 
     /**
@@ -666,7 +670,7 @@ internal object ReflectionTool {
      */
     private val Class<*>.existFields
         get() = runCatching { declaredFields.asSequence() }.onFailure {
-            yLoggerW(msg = "Failed to get the declared Fields in [$this] because got an exception\n$it")
+            YLog.innerW("Failed to get the declared Fields in [$this] because got an exception", it)
         }.getOrNull()
 
     /**
@@ -675,7 +679,7 @@ internal object ReflectionTool {
      */
     private val Class<*>.existMethods
         get() = runCatching { declaredMethods.asSequence() }.onFailure {
-            yLoggerW(msg = "Failed to get the declared Methods in [$this] because got an exception\n$it")
+            YLog.innerW("Failed to get the declared Methods in [$this] because got an exception", it)
         }.getOrNull()
 
     /**
@@ -684,8 +688,22 @@ internal object ReflectionTool {
      */
     private val Class<*>.existConstructors
         get() = runCatching { declaredConstructors.asSequence() }.onFailure {
-            yLoggerW(msg = "Failed to get the declared Constructors in [$this] because got an exception\n$it")
+            YLog.innerW("Failed to get the declared Constructors in [$this] because got an exception", it)
         }.getOrNull()
+
+    /**
+     * 批量允许访问内部方法
+     * @return [MutableList]<[T]>
+     */
+    private inline fun <reified T : AccessibleObject> List<T>.toAccessibleMembers() =
+        mutableListOf<T>().also { list ->
+            forEach { member ->
+                runCatching {
+                    member.isAccessible = true
+                    list.add(member)
+                }.onFailure { YLog.innerW("Failed to access [$member] because got an exception", it) }
+            }
+        }
 
     /**
      * 判断两个方法、构造方法类型数组是否相等

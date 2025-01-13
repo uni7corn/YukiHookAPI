@@ -1,27 +1,21 @@
 /*
  * YukiHookAPI - An efficient Hook API and Xposed Module solution built in Kotlin.
- * Copyright (C) 2019-2023 HighCapable
- * https://github.com/fankes/YukiHookAPI
+ * Copyright (C) 2019 HighCapable
+ * https://github.com/HighCapable/YukiHookAPI
  *
- * MIT License
+ * Apache License Version 2.0
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  * This file is created by fankes on 2022/4/3.
  * This file is modified by fankes on 2023/1/9.
@@ -30,11 +24,10 @@ package com.highcapable.yukihookapi.hook.xposed.bridge
 
 import android.content.pm.ApplicationInfo
 import android.content.res.Resources
-import android.util.ArrayMap
 import com.highcapable.yukihookapi.YukiHookAPI
 import com.highcapable.yukihookapi.hook.core.api.compat.HookApiCategoryHelper
 import com.highcapable.yukihookapi.hook.factory.hasClass
-import com.highcapable.yukihookapi.hook.log.yLoggerE
+import com.highcapable.yukihookapi.hook.log.YLog
 import com.highcapable.yukihookapi.hook.param.PackageParam
 import com.highcapable.yukihookapi.hook.param.wrapper.PackageParamWrapper
 import com.highcapable.yukihookapi.hook.xposed.bridge.proxy.IYukiXposedModuleLifecycle
@@ -59,13 +52,13 @@ internal object YukiXposedModule : IYukiXposedModuleLifecycle {
     private var isInitializingZygote = false
 
     /** 当前 [PackageParam] 实例数组 */
-    private val packageParams = ArrayMap<String, PackageParam>()
+    private val packageParams = mutableMapOf<String, PackageParam>()
 
     /** 已在 [PackageParam] 中被装载的 APP 包名 */
-    private val loadedPackageNames = HashSet<String>()
+    private val loadedPackageNames = mutableSetOf<String>()
 
     /** 当前 [PackageParamWrapper] 实例数组 */
-    private val packageParamWrappers = ArrayMap<String, PackageParamWrapper>()
+    private val packageParamWrappers = mutableMapOf<String, PackageParamWrapper>()
 
     /** 当前 [PackageParam] 方法体回调 */
     internal var packageParamCallback: (PackageParam.() -> Unit)? = null
@@ -220,7 +213,7 @@ internal object YukiXposedModule : IYukiXposedModuleLifecycle {
                     AppParasitics.hookModuleAppRelated(it.appClassLoader, it.type)
                 if (it.type == HookEntryType.PACKAGE) AppParasitics.registerToAppLifecycle(it.packageName)
                 if (it.type == HookEntryType.RESOURCES) isSupportResourcesHook = true
-            }.onFailure { yLoggerE(msg = "An exception occurred in the Hooking Process of YukiHookAPI", e = it) }
+            }.onFailure { YLog.innerE("An exception occurred in the Hooking Process of YukiHookAPI", it) }
         }
     }
 }

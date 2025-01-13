@@ -1,41 +1,36 @@
 /*
  * YukiHookAPI - An efficient Hook API and Xposed Module solution built in Kotlin.
- * Copyright (C) 2019-2023 HighCapable
- * https://github.com/fankes/YukiHookAPI
+ * Copyright (C) 2019 HighCapable
+ * https://github.com/HighCapable/YukiHookAPI
  *
- * MIT License
+ * Apache License Version 2.0
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  * This file is created by fankes on 2022/2/8.
  */
-@file:Suppress("unused", "MemberVisibilityCanBePrivate", "StaticFieldLeak", "SetWorldReadable", "CommitPrefEdits", "UNCHECKED_CAST")
+@file:Suppress(
+    "unused", "MemberVisibilityCanBePrivate", "StaticFieldLeak", "SetWorldReadable",
+    "CommitPrefEdits", "UNCHECKED_CAST", "NON_PUBLIC_CALL_FROM_PUBLIC_INLINE"
+)
 
 package com.highcapable.yukihookapi.hook.xposed.prefs
 
 import android.content.Context
 import android.content.SharedPreferences
-import android.util.ArrayMap
 import androidx.preference.PreferenceFragmentCompat
 import com.highcapable.yukihookapi.YukiHookAPI
-import com.highcapable.yukihookapi.hook.log.yLoggerE
-import com.highcapable.yukihookapi.hook.log.yLoggerW
+import com.highcapable.yukihookapi.hook.log.YLog
 import com.highcapable.yukihookapi.hook.xposed.bridge.YukiXposedModule
 import com.highcapable.yukihookapi.hook.xposed.bridge.delegate.XSharedPreferencesDelegate
 import com.highcapable.yukihookapi.hook.xposed.parasitic.AppParasitics
@@ -49,13 +44,13 @@ import java.io.File
  *
  * 在不同环境智能选择存取使用的对象
  *
- * - ❗模块与宿主之前共享数据存储为实验性功能 - 仅在 LSPosed 环境测试通过 - EdXposed 理论也可以使用但不再推荐
+ * - 模块与宿主之前共享数据存储为实验性功能 - 仅在 LSPosed 环境测试通过 - EdXposed 理论也可以使用但不再推荐
  *
  * 对于在模块环境中使用 [PreferenceFragmentCompat] - [YukiHookAPI] 提供了 [ModulePreferenceFragment] 来实现同样的功能
  *
- * 详情请参考 [API 文档 - YukiHookPrefsBridge](https://fankes.github.io/YukiHookAPI/zh-cn/api/public/com/highcapable/yukihookapi/hook/xposed/prefs/YukiHookPrefsBridge)
+ * 详情请参考 [API 文档 - YukiHookPrefsBridge](https://highcapable.github.io/YukiHookAPI/zh-cn/api/public/com/highcapable/yukihookapi/hook/xposed/prefs/YukiHookPrefsBridge)
  *
- * For English version, see [API Document - YukiHookPrefsBridge](https://fankes.github.io/YukiHookAPI/en/api/public/com/highcapable/yukihookapi/hook/xposed/prefs/YukiHookPrefsBridge)
+ * For English version, see [API Document - YukiHookPrefsBridge](https://highcapable.github.io/YukiHookAPI/en/api/public/com/highcapable/yukihookapi/hook/xposed/prefs/YukiHookPrefsBridge)
  * @param context 上下文实例 - 默认空
  */
 class YukiHookPrefsBridge private constructor(private var context: Context? = null) {
@@ -66,10 +61,10 @@ class YukiHookPrefsBridge private constructor(private var context: Context? = nu
         private val isXposedEnvironment = YukiXposedModule.isXposedEnvironment
 
         /** 当前缓存的 [XSharedPreferencesDelegate] 实例数组 */
-        private val xPrefs = ArrayMap<String, XSharedPreferencesDelegate>()
+        private val xPrefs = mutableMapOf<String, XSharedPreferencesDelegate>()
 
         /** 当前缓存的 [SharedPreferences] 实例数组 */
-        private val sPrefs = ArrayMap<String, SharedPreferences>()
+        private val sPrefs = mutableMapOf<String, SharedPreferences>()
 
         /**
          * 创建 [YukiHookPrefsBridge] 对象
@@ -147,7 +142,7 @@ class YukiHookPrefsBridge private constructor(private var context: Context? = nu
                     makeWorldReadable()
                     reload()
                 }
-            }.onFailure { yLoggerE(msg = it.message ?: "Operating system not supported", e = it) }.getOrNull()
+            }.onFailure { YLog.innerE(it.message ?: "Operating system not supported", it) }.getOrNull()
                 ?: error("Cannot load the XSharedPreferences, maybe is your Hook Framework not support it")
         }
 
@@ -175,9 +170,9 @@ class YukiHookPrefsBridge private constructor(private var context: Context? = nu
     /**
      * 获取 [XSharedPreferences] 是否可读
      *
-     * - ❗此方法已弃用 - 在之后的版本中将直接被删除
+     * - 此方法已弃用 - 在之后的版本中将直接被删除
      *
-     * - ❗请现在转移到 [isPreferencesAvailable]
+     * - 请现在迁移到 [isPreferencesAvailable]
      * @return [Boolean]
      */
     @Deprecated(message = "请使用新方式来实现此功能", ReplaceWith("isPreferencesAvailable"))
@@ -186,9 +181,9 @@ class YukiHookPrefsBridge private constructor(private var context: Context? = nu
     /**
      * 获取 [YukiHookPrefsBridge] 是否正处于 EdXposed/LSPosed 的最高权限运行
      *
-     * - ❗此方法已弃用 - 在之后的版本中将直接被删除
+     * - 此方法已弃用 - 在之后的版本中将直接被删除
      *
-     * - ❗请现在转移到 [isPreferencesAvailable]
+     * - 请现在迁移到 [isPreferencesAvailable]
      * @return [Boolean]
      */
     @Deprecated(message = "请使用新方式来实现此功能", ReplaceWith("isPreferencesAvailable"))
@@ -224,9 +219,9 @@ class YukiHookPrefsBridge private constructor(private var context: Context? = nu
     /**
      * 忽略缓存直接读取键值
      *
-     * - ❗此方法及功能已被移除 - 在之后的版本中将直接被删除
+     * - 此方法及功能已被移除 - 在之后的版本中将直接被删除
      *
-     * - ❗键值的直接缓存功能已被移除 - 因为其存在内存溢出 (OOM) 问题
+     * - 键值的直接缓存功能已被移除 - 因为其存在内存溢出 (OOM) 问题
      * @return [YukiHookPrefsBridge]
      */
     @Deprecated(message = "此方法及功能已被移除，请删除此方法", ReplaceWith("this"))
@@ -267,10 +262,10 @@ class YukiHookPrefsBridge private constructor(private var context: Context? = nu
      *
      * - 建议使用 [PrefsData] 创建模板并使用 [get] 获取数据
      * @param key 键值名称
-     * @param value 默认数据 - [HashSet]<[String]>
+     * @param value 默认数据 - [MutableSet]<[String]>
      * @return [Set]<[String]>
      */
-    fun getStringSet(key: String, value: Set<String> = hashSetOf()) = makeWorldReadable {
+    fun getStringSet(key: String, value: Set<String> = mutableSetOf()) = makeWorldReadable {
         if (isXposedEnvironment && isUsingNativeStorage.not())
             currentXsp.getStringSet(key, value) ?: value
         else currentSp.getStringSet(key, value) ?: value
@@ -356,8 +351,7 @@ class YukiHookPrefsBridge private constructor(private var context: Context? = nu
      * @param value 默认值
      * @return [Any]
      */
-    @PublishedApi
-    internal fun getPrefsData(key: String, value: Any?): Any = when (value) {
+    private fun getPrefsData(key: String, value: Any?): Any = when (value) {
         is String -> getString(key, value)
         is Set<*> -> getStringSet(key, value as? Set<String> ?: error("Key-Value type ${value.javaClass.name} is not allowed"))
         is Int -> getInt(key, value)
@@ -383,10 +377,10 @@ class YukiHookPrefsBridge private constructor(private var context: Context? = nu
      *
      * - 智能识别对应环境读取键值数据
      *
-     * - ❗每次调用都会获取实时的数据 - 不受缓存控制 - 请勿在高并发场景中使用
-     * @return [HashMap] 全部类型的键值数组
+     * - 每次调用都会获取实时的数据 - 不受缓存控制 - 请勿在高并发场景中使用
+     * @return [MutableMap] 全部类型的键值数组
      */
-    fun all() = hashMapOf<String, Any?>().apply {
+    fun all() = mutableMapOf<String, Any?>().apply {
         if (isXposedEnvironment && isUsingNativeStorage.not())
             currentXsp.all.forEach { (k, v) -> this[k] = v }
         else currentSp.all.forEach { (k, v) -> this[k] = v }
@@ -395,115 +389,115 @@ class YukiHookPrefsBridge private constructor(private var context: Context? = nu
     /**
      * 移除全部包含 [key] 的存储数据
      *
-     * - ❗此方法已弃用 - 在之后的版本中将直接被删除
+     * - 此方法已弃用 - 在之后的版本中将直接被删除
      *
-     * - ❗请现在转移到 [edit] 方法
+     * - 请现在迁移到 [edit] 方法
      * @param key 键值名称
      */
-    @Deprecated(message = "此方法因为性能问题已被作废，请转移到新用法", ReplaceWith("edit { remove(key) }"))
+    @Deprecated(message = "此方法因为性能问题已被作废，请迁移到新用法", ReplaceWith("edit { remove(key) }"))
     fun remove(key: String) = edit { remove(key) }
 
     /**
      * 移除 [PrefsData.key] 的存储数据
      *
-     * - ❗此方法已弃用 - 在之后的版本中将直接被删除
+     * - 此方法已弃用 - 在之后的版本中将直接被删除
      *
-     * - ❗请现在转移到 [edit] 方法
+     * - 请现在迁移到 [edit] 方法
      * @param prefs 键值实例
      */
-    @Deprecated(message = "此方法因为性能问题已被作废，请转移到新用法", ReplaceWith("edit { remove(prefs) }"))
+    @Deprecated(message = "此方法因为性能问题已被作废，请迁移到新用法", ReplaceWith("edit { remove(prefs) }"))
     inline fun <reified T> remove(prefs: PrefsData<T>) = edit { remove(prefs) }
 
     /**
      * 移除全部存储数据
      *
-     * - ❗此方法已弃用 - 在之后的版本中将直接被删除
+     * - 此方法已弃用 - 在之后的版本中将直接被删除
      *
-     * - ❗请现在转移到 [edit] 方法
+     * - 请现在迁移到 [edit] 方法
      */
-    @Deprecated(message = "此方法因为性能问题已被作废，请转移到新用法", ReplaceWith("edit { clear() }"))
+    @Deprecated(message = "此方法因为性能问题已被作废，请迁移到新用法", ReplaceWith("edit { clear() }"))
     fun clear() = edit { clear() }
 
     /**
      * 存储 [String] 键值
      *
-     * - ❗此方法已弃用 - 在之后的版本中将直接被删除
+     * - 此方法已弃用 - 在之后的版本中将直接被删除
      *
-     * - ❗请现在转移到 [edit] 方法
+     * - 请现在迁移到 [edit] 方法
      * @param key 键值名称
      * @param value 键值数据
      */
-    @Deprecated(message = "此方法因为性能问题已被作废，请转移到新用法", ReplaceWith("edit { putString(key, value) }"))
+    @Deprecated(message = "此方法因为性能问题已被作废，请迁移到新用法", ReplaceWith("edit { putString(key, value) }"))
     fun putString(key: String, value: String) = edit { putString(key, value) }
 
     /**
      * 存储 [Set]<[String]> 键值
      *
-     * - ❗此方法已弃用 - 在之后的版本中将直接被删除
+     * - 此方法已弃用 - 在之后的版本中将直接被删除
      *
-     * - ❗请现在转移到 [edit] 方法
+     * - 请现在迁移到 [edit] 方法
      * @param key 键值名称
      * @param value 键值数据
      */
-    @Deprecated(message = "此方法因为性能问题已被作废，请转移到新用法", ReplaceWith("edit { putStringSet(key, value) }"))
+    @Deprecated(message = "此方法因为性能问题已被作废，请迁移到新用法", ReplaceWith("edit { putStringSet(key, value) }"))
     fun putStringSet(key: String, value: Set<String>) = edit { putStringSet(key, value) }
 
     /**
      * 存储 [Boolean] 键值
      *
-     * - ❗此方法已弃用 - 在之后的版本中将直接被删除
+     * - 此方法已弃用 - 在之后的版本中将直接被删除
      *
-     * - ❗请现在转移到 [edit] 方法
+     * - 请现在迁移到 [edit] 方法
      * @param key 键值名称
      * @param value 键值数据
      */
-    @Deprecated(message = "此方法因为性能问题已被作废，请转移到新用法", ReplaceWith("edit { putBoolean(key, value) }"))
+    @Deprecated(message = "此方法因为性能问题已被作废，请迁移到新用法", ReplaceWith("edit { putBoolean(key, value) }"))
     fun putBoolean(key: String, value: Boolean) = edit { putBoolean(key, value) }
 
     /**
      * 存储 [Int] 键值
      *
-     * - ❗此方法已弃用 - 在之后的版本中将直接被删除
+     * - 此方法已弃用 - 在之后的版本中将直接被删除
      *
-     * - ❗请现在转移到 [edit] 方法
+     * - 请现在迁移到 [edit] 方法
      * @param key 键值名称
      * @param value 键值数据
      */
-    @Deprecated(message = "此方法因为性能问题已被作废，请转移到新用法", ReplaceWith("edit { putInt(key, value) }"))
+    @Deprecated(message = "此方法因为性能问题已被作废，请迁移到新用法", ReplaceWith("edit { putInt(key, value) }"))
     fun putInt(key: String, value: Int) = edit { putInt(key, value) }
 
     /**
      * 存储 [Float] 键值
      *
-     * - ❗此方法已弃用 - 在之后的版本中将直接被删除
+     * - 此方法已弃用 - 在之后的版本中将直接被删除
      *
-     * - ❗请现在转移到 [edit] 方法
+     * - 请现在迁移到 [edit] 方法
      * @param key 键值名称
      * @param value 键值数据
      */
-    @Deprecated(message = "此方法因为性能问题已被作废，请转移到新用法", ReplaceWith("edit { putFloat(key, value) }"))
+    @Deprecated(message = "此方法因为性能问题已被作废，请迁移到新用法", ReplaceWith("edit { putFloat(key, value) }"))
     fun putFloat(key: String, value: Float) = edit { putFloat(key, value) }
 
     /**
      * 存储 [Long] 键值
      *
-     * - ❗此方法已弃用 - 在之后的版本中将直接被删除
+     * - 此方法已弃用 - 在之后的版本中将直接被删除
      *
-     * - ❗请现在转移到 [edit] 方法
+     * - 请现在迁移到 [edit] 方法
      * @param key 键值名称
      * @param value 键值数据
      */
-    @Deprecated(message = "此方法因为性能问题已被作废，请转移到新用法", ReplaceWith("edit { putLong(key, value) }"))
+    @Deprecated(message = "此方法因为性能问题已被作废，请迁移到新用法", ReplaceWith("edit { putLong(key, value) }"))
     fun putLong(key: String, value: Long) = edit { putLong(key, value) }
 
     /**
      * 智能存储指定类型的键值
      *
-     * - ❗此方法已弃用 - 在之后的版本中将直接被删除
+     * - 此方法已弃用 - 在之后的版本中将直接被删除
      *
-     * - ❗请现在转移到 [edit] 方法
+     * - 请现在迁移到 [edit] 方法
      */
-    @Deprecated(message = "此方法因为性能问题已被作废，请转移到新用法", ReplaceWith("edit { put(prefs, value) }"))
+    @Deprecated(message = "此方法因为性能问题已被作废，请迁移到新用法", ReplaceWith("edit { put(prefs, value) }"))
     inline fun <reified T> put(prefs: PrefsData<T>, value: T) = edit { put(prefs, value) }
 
     /**
@@ -511,7 +505,7 @@ class YukiHookPrefsBridge private constructor(private var context: Context? = nu
      *
      * - 在模块环境中或启用了 [isUsingNativeStorage] 后使用
      *
-     * - ❗在 (Xposed) 宿主环境下只读 - 无法使用
+     * - 在 (Xposed) 宿主环境下只读 - 无法使用
      * @return [Editor]
      */
     fun edit() = Editor()
@@ -523,7 +517,7 @@ class YukiHookPrefsBridge private constructor(private var context: Context? = nu
      *
      * - 在模块环境中或启用了 [isUsingNativeStorage] 后使用
      *
-     * - ❗在 (Xposed) 宿主环境下只读 - 无法使用
+     * - 在 (Xposed) 宿主环境下只读 - 无法使用
      * @param initiate 方法体
      */
     fun edit(initiate: Editor.() -> Unit) = edit().apply(initiate).apply()
@@ -531,9 +525,9 @@ class YukiHookPrefsBridge private constructor(private var context: Context? = nu
     /**
      * 清除 [YukiHookPrefsBridge] 中缓存的键值数据
      *
-     * - ❗此方法及功能已被移除 - 在之后的版本中将直接被删除
+     * - 此方法及功能已被移除 - 在之后的版本中将直接被删除
      *
-     * - ❗键值的直接缓存功能已被移除 - 因为其存在内存溢出 (OOM) 问题
+     * - 键值的直接缓存功能已被移除 - 因为其存在内存溢出 (OOM) 问题
      * @return [YukiHookPrefsBridge]
      */
     @Deprecated(message = "此方法及功能已被移除，请删除此方法")
@@ -543,11 +537,11 @@ class YukiHookPrefsBridge private constructor(private var context: Context? = nu
     /**
      * [YukiHookPrefsBridge] 的存储代理类
      *
-     * - ❗请使用 [edit] 方法来获取 [Editor]
+     * - 请使用 [edit] 方法来获取 [Editor]
      *
      * - 在模块环境中或启用了 [isUsingNativeStorage] 后使用
      *
-     * - ❗在 (Xposed) 宿主环境下只读 - 无法使用
+     * - 在 (Xposed) 宿主环境下只读 - 无法使用
      */
     inner class Editor internal constructor() {
 
@@ -650,8 +644,7 @@ class YukiHookPrefsBridge private constructor(private var context: Context? = nu
          * @param value 要存储的值 - 只能是 [String]、[Set]<[String]>、[Int]、[Float]、[Long]、[Boolean]
          * @return [Editor]
          */
-        @PublishedApi
-        internal fun putPrefsData(key: String, value: Any?) = when (value) {
+        private fun putPrefsData(key: String, value: Any?) = when (value) {
             is String -> putString(key, value)
             is Set<*> -> putStringSet(key, value as? Set<String> ?: error("Key-Value type ${value.javaClass.name} is not allowed"))
             is Int -> putInt(key, value)
@@ -679,7 +672,7 @@ class YukiHookPrefsBridge private constructor(private var context: Context? = nu
          */
         private inline fun specifiedScope(callback: () -> Unit): Editor {
             if (isXposedEnvironment.not() || isUsingNativeStorage) callback()
-            else yLoggerW(msg = "YukiHookPrefsBridge.Editor not allowed in Xposed Environment")
+            else YLog.innerW("YukiHookPrefsBridge.Editor not allowed in Xposed Environment")
             return this
         }
     }

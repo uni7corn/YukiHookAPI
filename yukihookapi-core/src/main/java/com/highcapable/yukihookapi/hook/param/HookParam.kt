@@ -1,27 +1,21 @@
 /*
  * YukiHookAPI - An efficient Hook API and Xposed Module solution built in Kotlin.
- * Copyright (C) 2019-2023 HighCapable
- * https://github.com/fankes/YukiHookAPI
+ * Copyright (C) 2019 HighCapable
+ * https://github.com/HighCapable/YukiHookAPI
  *
- * MIT License
+ * Apache License Version 2.0
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  * This file is created by fankes on 2022/2/2.
  */
@@ -30,13 +24,12 @@
 package com.highcapable.yukihookapi.hook.param
 
 import android.os.Bundle
-import android.util.ArrayMap
 import com.highcapable.yukihookapi.hook.core.YukiMemberHookCreator
 import com.highcapable.yukihookapi.hook.core.YukiMemberHookCreator.MemberHookCreator
 import com.highcapable.yukihookapi.hook.core.api.helper.YukiHookHelper
 import com.highcapable.yukihookapi.hook.core.api.proxy.YukiHookCallback
 import com.highcapable.yukihookapi.hook.factory.classOf
-import com.highcapable.yukihookapi.hook.log.yLoggerE
+import com.highcapable.yukihookapi.hook.log.YLog
 import java.lang.reflect.Constructor
 import java.lang.reflect.Member
 import java.lang.reflect.Method
@@ -47,7 +40,7 @@ import java.lang.reflect.Method
  * @param paramId 当前回调方法体 ID
  * @param param Hook 结果回调接口
  */
-class HookParam internal constructor(
+class HookParam private constructor(
     private val creatorInstance: YukiMemberHookCreator,
     private var paramId: String = "",
     private var param: YukiHookCallback.Param? = null
@@ -56,27 +49,25 @@ class HookParam internal constructor(
     internal companion object {
 
         /** 每个回调方法体的数据存储实例数据 */
-        private val dataExtras = ArrayMap<String, Bundle>()
+        private val dataExtras = mutableMapOf<String, Bundle>()
 
         /** [HookParam] 是否已经执行首次回调事件 */
         internal var isCallbackCalled = false
+
+        /**
+         * 创建新的 [HookParam]
+         * @param creatorInstance [YukiMemberHookCreator] 的实例对象
+         * @param paramId 当前回调方法体 ID
+         * @param param Hook 结果回调接口
+         * @return [HookParam]
+         */
+        internal fun create(creatorInstance: YukiMemberHookCreator, paramId: String, param: YukiHookCallback.Param) =
+            HookParam(creatorInstance, paramId, param)
 
         /** 设置 [HookParam] 执行首次回调事件 */
         internal fun invoke() {
             isCallbackCalled = true
         }
-    }
-
-    /**
-     * 在回调中设置 [HookParam] 使用的 [YukiHookCallback.Param]
-     * @param paramId 当前回调方法体 ID
-     * @param param Hook 结果回调接口
-     * @return [HookParam]
-     */
-    internal fun assign(paramId: String, param: YukiHookCallback.Param): HookParam {
-        this.paramId = paramId
-        this.param = param
-        return this
     }
 
     /**
@@ -91,7 +82,7 @@ class HookParam internal constructor(
     /**
      * 获取当前 Hook 实例的对象
      *
-     * - ❗如果你当前 Hook 的对象是一个静态 - 那么它将不存在实例的对象
+     * - 如果你当前 Hook 的对象是一个静态 - 那么它将不存在实例的对象
      *
      * - 如果你不确定当前实例的对象是否为 null - 你可以使用 [instanceOrNull]
      * @return [Any]
@@ -102,16 +93,18 @@ class HookParam internal constructor(
     /**
      * 获取当前 Hook 实例的对象
      *
-     * - ❗如果你当前 Hook 的对象是一个静态 - 那么它将不存在实例的对象
+     * - 如果你当前 Hook 的对象是一个静态 - 那么它将不存在实例的对象
      * @return [Any] or null
      */
     val instanceOrNull get() = param?.instance
 
     /**
      * 获取当前 Hook 实例的类对象
-     * @return [Class]
+     *
+     * - 如果你当前 Hook 的对象是一个静态 - 那么它将不存在实例的对象
+     * @return [Class] or null
      */
-    val instanceClass get() = param?.instance?.javaClass ?: creatorInstance.instanceClass
+    val instanceClass get() = param?.instance?.javaClass
 
     /**
      * 获取当前 Hook 对象的 [Member]
@@ -171,15 +164,15 @@ class HookParam internal constructor(
      *
      * 使用 [throwable] 获取当前设置的方法调用抛出异常
      *
-     * - 仅会在回调方法的 [MemberHookCreator.beforeHook] or [MemberHookCreator.afterHook] 中生效
+     * - 仅会在回调方法的 [MemberHookCreator.before] or [MemberHookCreator.after] 中生效
      *
-     * - ❗设置后会同时执行 [resultNull] 方法并将异常抛出给当前 Hook APP
+     * - 设置后会同时执行 [resultNull] 方法并将异常抛出给当前 Hook APP
      * @return [Throwable] or null
      * @throws Throwable
      */
     fun Throwable.throwToApp() {
         param?.throwable = this
-        yLoggerE(msg = message ?: "", e = this)
+        YLog.innerE(message ?: "", this)
     }
 
     /**
@@ -253,7 +246,7 @@ class HookParam internal constructor(
     /**
      * 设置当前 Hook 对象方法的 [result] 返回值为 true
      *
-     * - ❗请确保 [result] 类型为 [Boolean]
+     * - 请确保 [result] 类型为 [Boolean]
      */
     fun resultTrue() {
         result = true
@@ -262,7 +255,7 @@ class HookParam internal constructor(
     /**
      * 设置当前 Hook 对象方法的 [result] 返回值为 false
      *
-     * - ❗请确保 [result] 类型为 [Boolean]
+     * - 请确保 [result] 类型为 [Boolean]
      */
     fun resultFalse() {
         result = false
@@ -271,7 +264,7 @@ class HookParam internal constructor(
     /**
      * 设置当前 Hook 对象方法的 [result] 为 null
      *
-     * - ❗此方法将强制设置方法体的 [result] 为 null
+     * - 此方法将强制设置方法体的 [result] 为 null
      */
     fun resultNull() {
         result = null
@@ -280,7 +273,7 @@ class HookParam internal constructor(
     /**
      * 对方法参数的数组下标进行实例化类
      *
-     * - ❗请使用第一个 [args] 方法来获取 [ArgsIndexCondition]
+     * - 请使用第一个 [args] 方法来获取 [ArgsIndexCondition]
      */
     inner class ArgsIndexCondition internal constructor() {
 
@@ -300,7 +293,7 @@ class HookParam internal constructor(
     /**
      * 对方法参数的修改进行实例化类
      *
-     * - ❗请使用第二个 [args] 方法来获取 [ArgsModifyer]
+     * - 请使用第二个 [args] 方法来获取 [ArgsModifyer]
      * @param index 参数对象数组下标
      */
     inner class ArgsModifyer internal constructor(private val index: Int) {
@@ -314,7 +307,7 @@ class HookParam internal constructor(
         /**
          * 得到方法参数的实例对象 [Byte]
          *
-         * - ❗请确认目标参数的类型 - 发生错误会返回 null
+         * - 请确认目标参数的类型 - 发生错误会返回 null
          * @return [Byte] or null
          */
         fun byte() = cast<Byte?>()
@@ -322,7 +315,7 @@ class HookParam internal constructor(
         /**
          * 得到方法参数的实例对象 [Int]
          *
-         * - ❗请确认目标参数的类型 - 发生错误会返回默认值
+         * - 请确认目标参数的类型 - 发生错误会返回默认值
          * @return [Int] 取不到返回 0
          */
         fun int() = cast() ?: 0
@@ -330,7 +323,7 @@ class HookParam internal constructor(
         /**
          * 得到方法参数的实例对象 [Long]
          *
-         * - ❗请确认目标参数的类型 - 发生错误会返回默认值
+         * - 请确认目标参数的类型 - 发生错误会返回默认值
          * @return [Long] 取不到返回 0L
          */
         fun long() = cast() ?: 0L
@@ -338,7 +331,7 @@ class HookParam internal constructor(
         /**
          * 得到方法参数的实例对象 [Short]
          *
-         * - ❗请确认目标参数的类型 - 发生错误会返回默认值
+         * - 请确认目标参数的类型 - 发生错误会返回默认值
          * @return [Short] 取不到返回 0
          */
         fun short() = cast<Short?>() ?: 0
@@ -346,7 +339,7 @@ class HookParam internal constructor(
         /**
          * 得到方法参数的实例对象 [Double]
          *
-         * - ❗请确认目标参数的类型 - 发生错误会返回默认值
+         * - 请确认目标参数的类型 - 发生错误会返回默认值
          * @return [Double] 取不到返回 0.0
          */
         fun double() = cast() ?: 0.0
@@ -354,7 +347,7 @@ class HookParam internal constructor(
         /**
          * 得到方法参数的实例对象 [Float]
          *
-         * - ❗请确认目标参数的类型 - 发生错误会返回默认值
+         * - 请确认目标参数的类型 - 发生错误会返回默认值
          * @return [Float] 取不到返回 0f
          */
         fun float() = cast() ?: 0f
@@ -362,7 +355,7 @@ class HookParam internal constructor(
         /**
          * 得到方法参数的实例对象 [String]
          *
-         * - ❗请确认目标参数的类型 - 发生错误会返回默认值
+         * - 请确认目标参数的类型 - 发生错误会返回默认值
          * @return [String] 取不到返回 ""
          */
         fun string() = cast() ?: ""
@@ -370,7 +363,7 @@ class HookParam internal constructor(
         /**
          * 得到方法参数的实例对象 [Char]
          *
-         * - ❗请确认目标参数的类型 - 发生错误会返回默认值
+         * - 请确认目标参数的类型 - 发生错误会返回默认值
          * @return [Char] 取不到返回 ' '
          */
         fun char() = cast() ?: ' '
@@ -378,7 +371,7 @@ class HookParam internal constructor(
         /**
          * 得到方法参数的实例对象 [Boolean]
          *
-         * - ❗请确认目标参数的类型 - 发生错误会返回默认值
+         * - 请确认目标参数的类型 - 发生错误会返回默认值
          * @return [Boolean] 取不到返回 false
          */
         fun boolean() = cast() ?: false
@@ -392,7 +385,7 @@ class HookParam internal constructor(
         /**
          * 得到方法参数的实例对象 [Array] - 每项类型 [T]
          *
-         * - ❗请确认目标参数的类型 - 发生错误会返回空数组
+         * - 请确认目标参数的类型 - 发生错误会返回空数组
          * @return [Array] 取不到返回空数组
          */
         inline fun <reified T> array() = cast() ?: arrayOf<T>()
@@ -400,7 +393,7 @@ class HookParam internal constructor(
         /**
          * 得到方法参数的实例对象 [List] - 每项类型 [T]
          *
-         * - ❗请确认目标参数的类型 - 发生错误会返回空数组
+         * - 请确认目标参数的类型 - 发生错误会返回空数组
          * @return [List] 取不到返回空数组
          */
         inline fun <reified T> list() = cast() ?: listOf<T>()
@@ -427,19 +420,19 @@ class HookParam internal constructor(
         /**
          * 设置方法参数的实例对象为 true
          *
-         * - ❗请确保目标对象的类型是 [Boolean] 不然会发生意想不到的问题
+         * - 请确保目标对象的类型是 [Boolean] 不然会发生意想不到的问题
          */
         fun setTrue() = set(true)
 
         /**
          * 设置方法参数的实例对象为 false
          *
-         * - ❗请确保目标对象的类型是 [Boolean] 不然会发生意想不到的问题
+         * - 请确保目标对象的类型是 [Boolean] 不然会发生意想不到的问题
          */
         fun setFalse() = set(false)
 
         override fun toString() = "Args of index $index"
     }
 
-    override fun toString() = "HookParam by $param"
+    override fun toString() = "HookParam(${super.toString()}) by $param"
 }

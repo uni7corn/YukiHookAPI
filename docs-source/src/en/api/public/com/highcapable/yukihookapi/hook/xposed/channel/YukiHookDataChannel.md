@@ -142,7 +142,7 @@ fun allowSendTooLargeData(): NameSpace
 
 仅会在每次调用时生效，下一次没有调用此方法则此功能将被自动关闭。
 
-你还需要在整个调用域中声明注解 `CauseProblemsApi` 以消除警告。
+你还需要在整个调用域中声明注解 `SendTooLargeChannelData` 以消除警告。
 
 ::: danger
 
@@ -259,7 +259,7 @@ fun checkingVersionEquals(priority: ChannelPriority?, result: (Boolean) -> Unit)
 ### obtainLoggerInMemoryData <span class="symbol">- method</span>
 
 ```kotlin:no-line-numbers
-fun obtainLoggerInMemoryData(priority: ChannelPriority?, result: (ArrayList<YukiLoggerData>) -> Unit)
+fun obtainLoggerInMemoryData(priority: ChannelPriority?, result: (List<YLogData>) -> Unit)
 ```
 
 **Change Records**
@@ -272,13 +272,13 @@ fun obtainLoggerInMemoryData(priority: ChannelPriority?, result: (ArrayList<Yuki
 
 **Function Illustrate**
 
-> 获取模块与宿主之间的 `ArrayList<YukiLoggerData>` 数据。
+> 获取模块与宿主之间的 `List<YLogData>` 数据。
 
 由于模块与宿主处于不同的进程，我们可以使用数据通讯桥访问各自的调试日志数据。
 
 ::: danger
 
-模块与宿主必须启用 [YukiHookLogger.Configs.isRecord](../../log/LoggerFactory#isrecord-field) 才能获取到调试日志数据。
+模块与宿主必须启用 [YLog.Configs.isRecord](../../log/YLog#isrecord-field) 才能获取到调试日志数据。
 
 由于 Android 限制了数据传输大小的最大值，如果调试日志过多将会自动进行分段发送，数据越大速度越慢。
 

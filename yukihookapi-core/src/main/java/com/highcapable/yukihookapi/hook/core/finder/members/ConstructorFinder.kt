@@ -1,35 +1,28 @@
 /*
  * YukiHookAPI - An efficient Hook API and Xposed Module solution built in Kotlin.
- * Copyright (C) 2019-2023 HighCapable
- * https://github.com/fankes/YukiHookAPI
+ * Copyright (C) 2019 HighCapable
+ * https://github.com/HighCapable/YukiHookAPI
  *
- * MIT License
+ * Apache License Version 2.0
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  * This file is created by fankes on 2022/2/4.
  */
-@file:Suppress("unused", "MemberVisibilityCanBePrivate", "UNCHECKED_CAST", "KotlinConstantConditions")
+@file:Suppress("unused", "MemberVisibilityCanBePrivate", "UNCHECKED_CAST", "KotlinConstantConditions", "NON_PUBLIC_CALL_FROM_PUBLIC_INLINE")
 
 package com.highcapable.yukihookapi.hook.core.finder.members
 
-import com.highcapable.yukihookapi.annotation.YukiPrivateApi
 import com.highcapable.yukihookapi.hook.bean.VariousClass
 import com.highcapable.yukihookapi.hook.core.YukiMemberHookCreator
 import com.highcapable.yukihookapi.hook.core.finder.base.BaseFinder
@@ -41,11 +34,11 @@ import com.highcapable.yukihookapi.hook.core.finder.type.factory.CountConditions
 import com.highcapable.yukihookapi.hook.core.finder.type.factory.ModifierConditions
 import com.highcapable.yukihookapi.hook.core.finder.type.factory.ObjectsConditions
 import com.highcapable.yukihookapi.hook.factory.hasExtends
-import com.highcapable.yukihookapi.hook.log.yLoggerW
+import com.highcapable.yukihookapi.hook.log.YLog
 import com.highcapable.yukihookapi.hook.type.defined.UndefinedType
 import com.highcapable.yukihookapi.hook.type.defined.VagueType
-import com.highcapable.yukihookapi.hook.utils.runBlocking
-import com.highcapable.yukihookapi.hook.utils.unit
+import com.highcapable.yukihookapi.hook.utils.factory.runBlocking
+import com.highcapable.yukihookapi.hook.utils.factory.unit
 import java.lang.reflect.Constructor
 import java.lang.reflect.Member
 
@@ -55,10 +48,8 @@ import java.lang.reflect.Member
  * 可通过指定类型查找指定 [Constructor] 或一组 [Constructor]
  * @param classSet 当前需要查找的 [Class] 实例
  */
-class ConstructorFinder @PublishedApi internal constructor(@PublishedApi override val classSet: Class<*>? = null) :
-    MemberBaseFinder(tag = "Constructor", classSet) {
+class ConstructorFinder internal constructor(override val classSet: Class<*>? = null) : MemberBaseFinder(tag = "Constructor", classSet) {
 
-    @PublishedApi
     internal companion object {
 
         /**
@@ -67,12 +58,10 @@ class ConstructorFinder @PublishedApi internal constructor(@PublishedApi overrid
          * @param classSet 当前需要查找的 [Class] 实例
          * @return [ConstructorFinder]
          */
-        @PublishedApi
         internal fun fromHooker(hookInstance: YukiMemberHookCreator.MemberHookCreator, classSet: Class<*>? = null) =
             ConstructorFinder(classSet).apply { hookerManager.instance = hookInstance }
     }
 
-    @PublishedApi
     override var rulesData = ConstructorRulesData()
 
     /** 当前使用的 [classSet] */
@@ -98,7 +87,7 @@ class ConstructorFinder @PublishedApi internal constructor(@PublishedApi overrid
     /**
      * 设置 [Constructor] 标识符筛选条件
      *
-     * - ❗存在多个 [BaseFinder.IndexTypeCondition] 时除了 [order] 只会生效最后一个
+     * - 存在多个 [BaseFinder.IndexTypeCondition] 时除了 [order] 只会生效最后一个
      * @param conditions 条件方法体
      * @return [BaseFinder.IndexTypeCondition]
      */
@@ -133,17 +122,17 @@ class ConstructorFinder @PublishedApi internal constructor(@PublishedApi overrid
      * param(StringType, BooleanType, VagueType, IntType)
      * ```
      *
-     * - ❗无参 [Constructor] 请使用 [emptyParam] 设置查找条件
+     * - 无参 [Constructor] 请使用 [emptyParam] 设置查找条件
      *
-     * - ❗有参 [Constructor] 必须使用此方法设定参数或使用 [paramCount] 指定个数
+     * - 有参 [Constructor] 必须使用此方法设定参数或使用 [paramCount] 指定个数
      *
-     * - ❗存在多个 [BaseFinder.IndexTypeCondition] 时除了 [order] 只会生效最后一个
-     * @param paramType 参数类型数组 - ❗只能是 [Class]、[String]、[VariousClass]
+     * - 存在多个 [BaseFinder.IndexTypeCondition] 时除了 [order] 只会生效最后一个
+     * @param paramType 参数类型数组 - 只能是 [Class]、[String]、[VariousClass]
      * @return [BaseFinder.IndexTypeCondition]
      */
     fun param(vararg paramType: Any): IndexTypeCondition {
         if (paramType.isEmpty()) error("paramTypes is empty, please use emptyParam() instead")
-        rulesData.paramTypes = arrayListOf<Class<*>>().apply { paramType.forEach { add(it.compat() ?: UndefinedType) } }.toTypedArray()
+        rulesData.paramTypes = mutableListOf<Class<*>>().apply { paramType.forEach { add(it.compat() ?: UndefinedType) } }.toTypedArray()
         return IndexTypeCondition(IndexConfigType.MATCH)
     }
 
@@ -156,11 +145,11 @@ class ConstructorFinder @PublishedApi internal constructor(@PublishedApi overrid
      * param { it[1] == StringClass || it[2].name == "java.lang.String" }
      * ```
      *
-     * - ❗无参 [Constructor] 请使用 [emptyParam] 设置查找条件
+     * - 无参 [Constructor] 请使用 [emptyParam] 设置查找条件
      *
-     * - ❗有参 [Constructor] 必须使用此方法设定参数或使用 [paramCount] 指定个数
+     * - 有参 [Constructor] 必须使用此方法设定参数或使用 [paramCount] 指定个数
      *
-     * - ❗存在多个 [BaseFinder.IndexTypeCondition] 时除了 [order] 只会生效最后一个
+     * - 存在多个 [BaseFinder.IndexTypeCondition] 时除了 [order] 只会生效最后一个
      * @param conditions 条件方法体
      * @return [BaseFinder.IndexTypeCondition]
      */
@@ -182,7 +171,7 @@ class ConstructorFinder @PublishedApi internal constructor(@PublishedApi overrid
      *
      * 若参数个数小于零则忽略并使用 [param]
      *
-     * - ❗存在多个 [BaseFinder.IndexTypeCondition] 时除了 [order] 只会生效最后一个
+     * - 存在多个 [BaseFinder.IndexTypeCondition] 时除了 [order] 只会生效最后一个
      * @param num 个数
      * @return [BaseFinder.IndexTypeCondition]
      */
@@ -202,7 +191,7 @@ class ConstructorFinder @PublishedApi internal constructor(@PublishedApi overrid
      * paramCount(1..5)
      * ```
      *
-     * - ❗存在多个 [BaseFinder.IndexTypeCondition] 时除了 [order] 只会生效最后一个
+     * - 存在多个 [BaseFinder.IndexTypeCondition] 时除了 [order] 只会生效最后一个
      * @param numRange 个数范围
      * @return [BaseFinder.IndexTypeCondition]
      */
@@ -222,7 +211,7 @@ class ConstructorFinder @PublishedApi internal constructor(@PublishedApi overrid
      * paramCount { it >= 5 || it.isZero() }
      * ```
      *
-     * - ❗存在多个 [BaseFinder.IndexTypeCondition] 时除了 [order] 只会生效最后一个
+     * - 存在多个 [BaseFinder.IndexTypeCondition] 时除了 [order] 只会生效最后一个
      * @param conditions 条件方法体
      * @return [BaseFinder.IndexTypeCondition]
      */
@@ -234,7 +223,7 @@ class ConstructorFinder @PublishedApi internal constructor(@PublishedApi overrid
     /**
      * 设置在 [classSet] 的所有父类中查找当前 [Constructor]
      *
-     * - ❗若当前 [classSet] 的父类较多可能会耗时 - API 会自动循环到父类继承是 [Any] 前的最后一个类
+     * - 若当前 [classSet] 的父类较多可能会耗时 - API 会自动循环到父类继承是 [Any] 前的最后一个类
      * @param isOnlySuperClass 是否仅在当前 [classSet] 的父类中查找 - 若父类是 [Any] 则不会生效
      */
     fun superClass(isOnlySuperClass: Boolean = false) {
@@ -244,7 +233,7 @@ class ConstructorFinder @PublishedApi internal constructor(@PublishedApi overrid
 
     /**
      * 得到 [Constructor] 或一组 [Constructor]
-     * @return [HashSet]<[Constructor]>
+     * @return [MutableList]<[Constructor]>
      * @throws NoSuchMethodError 如果找不到 [Constructor]
      */
     private val result by lazy { ReflectionTool.findConstructors(usedClassSet, rulesData) }
@@ -253,7 +242,7 @@ class ConstructorFinder @PublishedApi internal constructor(@PublishedApi overrid
      * 设置实例
      * @param constructors 当前找到的 [Constructor] 数组
      */
-    private fun setInstance(constructors: HashSet<Constructor<*>>) {
+    private fun setInstance(constructors: MutableList<Constructor<*>>) {
         memberInstances.clear()
         constructors.takeIf { it.isNotEmpty() }?.onEach { memberInstances.add(it) }
             ?.first()?.apply { if (hookerManager.isMemberBinded) hookerManager.bindMember(member = this) }
@@ -265,33 +254,29 @@ class ConstructorFinder @PublishedApi internal constructor(@PublishedApi overrid
         runBlocking {
             setInstance(result)
         }.result { ms ->
-            memberInstances.takeIf { it.isNotEmpty() }?.forEach { onDebuggingMsg(msg = "Find Constructor [$it] takes ${ms}ms") }
+            memberInstances.takeIf { it.isNotEmpty() }?.forEach { debugMsg(msg = "Find Constructor [$it] takes ${ms}ms") }
         }
     }
 
-    @YukiPrivateApi
     override fun build() = runCatching {
         internalBuild()
         Result()
     }.getOrElse {
-        onFailureMsg(throwable = it)
+        errorMsg(e = it)
         Result(isNoSuch = true, it)
     }
 
-    @YukiPrivateApi
     override fun process() = runCatching {
         hookerManager.isMemberBinded = true
         internalBuild()
         Process()
     }.getOrElse {
-        onFailureMsg(throwable = it)
+        errorMsg(e = it)
         Process(isNoSuch = true, it)
     }
 
-    @YukiPrivateApi
     override fun failure(throwable: Throwable?) = Result(isNoSuch = true, throwable)
 
-    @YukiPrivateApi
     override fun denied(throwable: Throwable?) = Process(isNoSuch = true, throwable)
 
     /**
@@ -299,11 +284,10 @@ class ConstructorFinder @PublishedApi internal constructor(@PublishedApi overrid
      *
      * 可累计失败次数直到查找成功
      */
-    inner class RemedyPlan @PublishedApi internal constructor() {
+    inner class RemedyPlan internal constructor() {
 
         /** 失败尝试次数数组 */
-        @PublishedApi
-        internal val remedyPlans = HashSet<Pair<ConstructorFinder, Result>>()
+        private val remedyPlans = mutableSetOf<Pair<ConstructorFinder, Result>>()
 
         /**
          * 创建需要重新查找的 [Constructor]
@@ -320,39 +304,30 @@ class ConstructorFinder @PublishedApi internal constructor(@PublishedApi overrid
         }
 
         /** 开始重查找 */
-        @PublishedApi
         internal fun build() {
             if (classSet == null) return
-            if (remedyPlans.isNotEmpty()) run {
+            if (remedyPlans.isNotEmpty()) {
+                val errors = mutableListOf<Throwable>()
                 var isFindSuccess = false
-                var lastError: Throwable? = null
-                remedyPlans.forEachIndexed { p, it ->
+                remedyPlans.forEachIndexed { index, plan ->
                     runCatching {
                         runBlocking {
-                            setInstance(it.first.result)
+                            setInstance(plan.first.result)
                         }.result { ms ->
-                            memberInstances.takeIf { it.isNotEmpty() }?.forEach { onDebuggingMsg(msg = "Find Constructor [$it] takes ${ms}ms") }
+                            memberInstances.takeIf { it.isNotEmpty() }?.forEach { debugMsg(msg = "Find Constructor [$it] takes ${ms}ms") }
                         }
                         isFindSuccess = true
-                        it.second.onFindCallback?.invoke(memberInstances.constructors())
+                        plan.second.onFindCallback?.invoke(memberInstances.constructors())
                         remedyPlansCallback?.invoke()
                         memberInstances.takeIf { it.isNotEmpty() }
-                            ?.forEach { onDebuggingMsg(msg = "Constructor [$it] trying ${p + 1} times success by RemedyPlan") }
-                        return@run
-                    }.onFailure {
-                        lastError = it
-                        onFailureMsg(msg = "Trying ${p + 1} times by RemedyPlan --> $it", isAlwaysPrint = true)
-                    }
+                            ?.forEach { debugMsg(msg = "RemedyPlan successed after ${index + 1} attempts of Constructor [$it]") }
+                        return
+                    }.onFailure { errors.add(it) }
                 }
-                if (isFindSuccess.not()) {
-                    onFailureMsg(
-                        msg = "Trying ${remedyPlans.size} times and all failure by RemedyPlan",
-                        throwable = lastError,
-                        isAlwaysPrint = true
-                    )
-                    remedyPlans.clear()
-                }
-            } else yLoggerW(msg = "RemedyPlan is empty, forgot it?${hookerManager.tailTag}")
+                if (isFindSuccess) return
+                errorMsg(msg = "RemedyPlan failed after ${remedyPlans.size} attempts", es = errors, isAlwaysMode = true)
+                remedyPlans.clear()
+            } else YLog.innerW("RemedyPlan is empty, forgot it?")
         }
 
         /**
@@ -360,16 +335,16 @@ class ConstructorFinder @PublishedApi internal constructor(@PublishedApi overrid
          *
          * 可在这里处理是否成功的回调
          */
-        inner class Result @PublishedApi internal constructor() {
+        inner class Result internal constructor() {
 
             /** 找到结果时的回调 */
-            internal var onFindCallback: (HashSet<Constructor<*>>.() -> Unit)? = null
+            internal var onFindCallback: (MutableList<Constructor<*>>.() -> Unit)? = null
 
             /**
              * 当找到结果时
              * @param initiate 回调
              */
-            fun onFind(initiate: HashSet<Constructor<*>>.() -> Unit) {
+            fun onFind(initiate: MutableList<Constructor<*>>.() -> Unit) {
                 onFindCallback = initiate
             }
         }
@@ -381,8 +356,8 @@ class ConstructorFinder @PublishedApi internal constructor(@PublishedApi overrid
      * @param throwable 错误信息
      */
     inner class Process internal constructor(
-        @PublishedApi internal val isNoSuch: Boolean = false,
-        @PublishedApi internal val throwable: Throwable? = null
+        internal val isNoSuch: Boolean = false,
+        internal val throwable: Throwable? = null
     ) : BaseResult {
 
         /**
@@ -397,7 +372,7 @@ class ConstructorFinder @PublishedApi internal constructor(@PublishedApi overrid
          * @return [Process] 可继续向下监听
          */
         fun all(): Process {
-            fun HashSet<Member>.bind() = takeIf { it.isNotEmpty() }?.apply { hookerManager.bindMembers(members = this) }.unit()
+            fun MutableList<Member>.bind() = takeIf { it.isNotEmpty() }?.apply { hookerManager.bindMembers(members = this) }.unit()
             if (isUsingRemedyPlan)
                 remedyPlansCallback = { memberInstances.bind() }
             else memberInstances.bind()
@@ -440,8 +415,8 @@ class ConstructorFinder @PublishedApi internal constructor(@PublishedApi overrid
      * @param throwable 错误信息
      */
     inner class Result internal constructor(
-        @PublishedApi internal val isNoSuch: Boolean = false,
-        @PublishedApi internal val throwable: Throwable? = null
+        internal val isNoSuch: Boolean = false,
+        internal val throwable: Throwable? = null
     ) : BaseResult {
 
         /**
@@ -456,9 +431,9 @@ class ConstructorFinder @PublishedApi internal constructor(@PublishedApi overrid
          *
          * - 若有多个 [Constructor] 结果只会返回第一个
          *
-         * - ❗在 [memberInstances] 结果为空时使用此方法将无法获得对象
+         * - 在 [memberInstances] 结果为空时使用此方法将无法获得对象
          *
-         * - ❗若你设置了 [remedys] 请使用 [wait] 回调结果方法
+         * - 若你设置了 [remedys] 请使用 [wait] 回调结果方法
          * @return [Instance]
          */
         fun get() = Instance(give())
@@ -468,12 +443,12 @@ class ConstructorFinder @PublishedApi internal constructor(@PublishedApi overrid
          *
          * - 返回全部查找条件匹配的多个 [Constructor] 实例结果
          *
-         * - ❗在 [memberInstances] 结果为空时使用此方法将无法获得对象
+         * - 在 [memberInstances] 结果为空时使用此方法将无法获得对象
          *
-         * - ❗若你设置了 [remedys] 请使用 [waitAll] 回调结果方法
-         * @return [ArrayList]<[Instance]>
+         * - 若你设置了 [remedys] 请使用 [waitAll] 回调结果方法
+         * @return [MutableList]<[Instance]>
          */
-        fun all() = arrayListOf<Instance>().apply { giveAll().takeIf { it.isNotEmpty() }?.forEach { add(Instance(it)) } }
+        fun all() = mutableListOf<Instance>().apply { giveAll().takeIf { it.isNotEmpty() }?.forEach { add(Instance(it)) } }
 
         /**
          * 得到 [Constructor] 本身
@@ -490,19 +465,19 @@ class ConstructorFinder @PublishedApi internal constructor(@PublishedApi overrid
          *
          * - 返回全部查找条件匹配的多个 [Constructor] 实例
          *
-         * - 在查找条件找不到任何结果的时候将返回空的 [HashSet]
-         * @return [HashSet]<[Constructor]>
+         * - 在查找条件找不到任何结果的时候将返回空的 [MutableList]
+         * @return [MutableList]<[Constructor]>
          */
-        fun giveAll() = memberInstances.takeIf { it.isNotEmpty() }?.constructors() ?: HashSet()
+        fun giveAll() = memberInstances.takeIf { it.isNotEmpty() }?.constructors() ?: mutableListOf()
 
         /**
          * 获得 [Constructor] 实例处理类
          *
          * - 若有多个 [Constructor] 结果只会返回第一个
          *
-         * - ❗若你设置了 [remedys] 必须使用此方法才能获得结果
+         * - 若你设置了 [remedys] 必须使用此方法才能获得结果
          *
-         * - ❗若你没有设置 [remedys] 此方法将不会被回调
+         * - 若你没有设置 [remedys] 此方法将不会被回调
          * @param initiate 回调 [Instance]
          */
         fun wait(initiate: Instance.() -> Unit) {
@@ -515,12 +490,12 @@ class ConstructorFinder @PublishedApi internal constructor(@PublishedApi overrid
          *
          * - 返回全部查找条件匹配的多个 [Constructor] 实例结果
          *
-         * - ❗若你设置了 [remedys] 必须使用此方法才能获得结果
+         * - 若你设置了 [remedys] 必须使用此方法才能获得结果
          *
-         * - ❗若你没有设置 [remedys] 此方法将不会被回调
-         * @param initiate 回调 [ArrayList]<[Instance]>
+         * - 若你没有设置 [remedys] 此方法将不会被回调
+         * @param initiate 回调 [MutableList]<[Instance]>
          */
-        fun waitAll(initiate: ArrayList<Instance>.() -> Unit) {
+        fun waitAll(initiate: MutableList<Instance>.() -> Unit) {
             if (memberInstances.isNotEmpty()) initiate(all())
             else remedyPlansCallback = { initiate(all()) }
         }
@@ -557,20 +532,20 @@ class ConstructorFinder @PublishedApi internal constructor(@PublishedApi overrid
          *
          * - 若 [MemberBaseFinder.MemberHookerManager.isNotIgnoredNoSuchMemberFailure] 为 false 则自动忽略
          *
-         * - ❗此时若要监听异常结果 - 你需要手动实现 [onNoSuchConstructor] 方法
+         * - 此时若要监听异常结果 - 你需要手动实现 [onNoSuchConstructor] 方法
          * @return [Result] 可继续向下监听
          */
         fun ignored(): Result {
-            isShutErrorPrinting = true
+            isIgnoreErrorLogs = true
             return this
         }
 
         /**
          * 忽略异常并停止打印任何错误日志
          *
-         * - ❗此方法已弃用 - 在之后的版本中将直接被删除
+         * - 此方法已弃用 - 在之后的版本中将直接被删除
          *
-         * - ❗请现在转移到 [ignored]
+         * - 请现在迁移到 [ignored]
          * @return [Result] 可继续向下监听
          */
         @Deprecated(message = "请使用新的命名方法", ReplaceWith("ignored()"))
@@ -581,7 +556,7 @@ class ConstructorFinder @PublishedApi internal constructor(@PublishedApi overrid
          *
          * 调用与创建目标实例类对象
          *
-         * - ❗请使用 [get]、[wait]、[all]、[waitAll] 方法来获取 [Instance]
+         * - 请使用 [get]、[wait]、[all]、[waitAll] 方法来获取 [Instance]
          * @param constructor 当前 [Constructor] 实例对象
          */
         inner class Instance internal constructor(private val constructor: Constructor<*>?) {

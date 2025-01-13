@@ -33,6 +33,18 @@ Host Environment
 > 上方的结构换做代码将可写为如下形式。
 
 ```kotlin
+// 新版写法
+TargetClass.method { 
+    // Your code here.
+}.hook {
+    before {
+        // Your code here.
+    }
+    after {
+        // Your code here.
+    }
+}
+// 旧版写法
 TargetClass.hook { 
     injectMember { 
         method { 
@@ -46,6 +58,7 @@ TargetClass.hook {
         }
     }
 }
+// Resources Hook (2.0.0 将停止支持)
 resources().hook {
     injectResource {
         conditions {
@@ -60,9 +73,9 @@ resources().hook {
 
 > 你可以在下方找到 API 提供的 Demo 来学习 `YukiHookAPI` 的使用方法。
 
-- 宿主 APP Demo [点击这里查看](https://github.com/fankes/YukiHookAPI/tree/master/samples/demo-app)
+- 宿主 APP Demo [点击这里查看](https://github.com/HighCapable/YukiHookAPI/tree/master/samples/demo-app)
 
-- 模块 APP Demo [点击这里查看](https://github.com/fankes/YukiHookAPI/tree/master/samples/demo-module)
+- 模块 APP Demo [点击这里查看](https://github.com/HighCapable/YukiHookAPI/tree/master/samples/demo-module)
 
 同时安装宿主和模块 Demo，通过激活模块来测试宿主中被 Hook 的功能。
 
@@ -80,20 +93,17 @@ resources().hook {
 
 ```kotlin
 loadApp(name = "com.android.browser") {
-    ActivityClass.hook { 
-        injectMember { 
-            method { 
-                name = "onCreate"
-                param(BundleClass)
-                returnType = UnitType
-            }
-            afterHook {
-                AlertDialog.Builder(instance())
-                    .setTitle("Hooked")
-                    .setMessage("I am hook!")
-                    .setPositiveButton("OK", null)
-                    .show()
-            }
+    ActivityClass.method { 
+        name = "onCreate"
+        param(BundleClass)
+        returnType = UnitType
+    }.hook {
+        after {
+            AlertDialog.Builder(instance())
+                .setTitle("Hooked")
+                .setMessage("I am hook!")
+                .setPositiveButton("OK", null)
+                .show()
         }
     }
 }
@@ -103,20 +113,19 @@ loadApp(name = "com.android.browser") {
 
 那么，我想继续 Hook `onStart` 方法要怎么做呢？
 
-在刚刚的代码中，继续插入一个 `injectMember` 方法体即可。
+我们可以对 `ActivityClass` 使用 Kotlin 的 `apply` 方法创建一个调用空间。
 
 > 示例如下
 
 ```kotlin
 loadApp(name = "com.android.browser") {
-    ActivityClass.hook { 
-        injectMember { 
-            method { 
-                name = "onCreate"
-                param(BundleClass)
-                returnType = UnitType
-            }
-            afterHook {
+    ActivityClass.apply { 
+        method { 
+            name = "onCreate"
+            param(BundleClass)
+            returnType = UnitType
+        }.hook {
+            after {
                 AlertDialog.Builder(instance())
                     .setTitle("Hooked")
                     .setMessage("I am hook!")
@@ -124,13 +133,12 @@ loadApp(name = "com.android.browser") {
                     .show()
             }
         }
-        injectMember { 
-            method { 
-                name = "onStart"
-                emptyParam()
-                returnType = UnitType
-            }
-            afterHook {
+        method { 
+            name = "onStart"
+            emptyParam()
+            returnType = UnitType
+        }.hook {
+            after {
                 // Your code here.
             }
         }
@@ -138,18 +146,19 @@ loadApp(name = "com.android.browser") {
 }
 ```
 
-对于当前项目下没有的 `Class`，你可以使用 `stub` 方式或 `findClass` 方法来得到需要 Hook 的类。
+对于当前项目下没有的 `Class`，你可以使用 `stub` 方式或 `String.toClass(...)` 方法来得到需要 Hook 的类。
 
 比如，我要得到 `com.example.demo.TestClass`。
 
 > 示例如下
 
 ```kotlin
-findClass(name = "com.example.demo.TestClass").hook {
-    injectMember {
+"com.example.demo.TestClass".toClass()
+    .method {
+        // Your code here.
+    }.hook {
         // Your code here.
     }
-}
 ```
 
 若 `com.example.demo` 是你要 Hook 的 APP，那么写法可以更简单。
@@ -157,38 +166,31 @@ findClass(name = "com.example.demo.TestClass").hook {
 > 示例如下
 
 ```kotlin
-findClass(name = "$packageName.TestClass").hook {
-    injectMember {
+"$packageName.TestClass".toClass()
+    .method {
+        // Your code here.
+    }.hook {
         // Your code here.
     }
-}
 ```
 
-到这里有些同学可能就开始说了，在某些场景下 `findClass` 显得有些繁琐。
-
-因为可能有些同学有如下需求。
+若这个 `Class` 不是马上就能被得到的，你可以使用 `lazyClass(...)` 来定义它。
 
 > 示例如下
 
-```kotlin
-const val TestClass = "com.example.demo.TestClass"
+定义 `TestClass`。
 
-TestClass.hook {
-    injectMember {
-        // Your code here.
-    }
-}
+```kotlin
+val TestClass by lazyClass("com.example.demo.TestClass")
 ```
 
-没关系，你还可以使用字符串类名直接创建一个 Hook。
-
-> 示例如下
+在适当的时候使用它。
 
 ```kotlin
-"$packageName.TestClass".hook {
-    injectMember {
-        // Your code here.
-    }
+TestClass.method {
+    // Your code here.
+}.hook {
+    // Your code here.
 }
 ```
 
@@ -210,16 +212,13 @@ TestClass.hook {
 
 ```kotlin
 loadZygote {
-    ActivityClass.hook { 
-        injectMember { 
-            method { 
-                name = "onCreate"
-                param(BundleClass)
-                returnType = UnitType
-            }
-            afterHook {
-                // Your code here.
-            }
+    ActivityClass.method { 
+        name = "onCreate"
+        param(BundleClass)
+        returnType = UnitType
+    }.hook {
+        after {
+            // Your code here.
         }
     }
 }
@@ -243,10 +242,14 @@ loadZygote {
 
 ```kotlin
 loadSystem {
-    ApplicationInfoClass.hook {
+    ApplicationInfoClass.method {
+        // Your code here.
+    }.hook {
         // Your code here.
     }
-    PackageInfoClass.hook {
+    PackageInfoClass.method {
+        // Your code here.
+    }.hook {
         // Your code here.
     }
 }
@@ -259,6 +262,12 @@ loadSystem {
 :::
 
 ### Hook Resources
+
+::: warning
+
+此功能将在 **2.0.0** 版本停止支持并移除。
+
+:::
 
 假设，我们要 Hook `com.android.browser` 中 `string` 类型的 `app_name` 内容替换为 `123`。
 
@@ -331,15 +340,15 @@ loadZygote {
 
 ```kotlin
 // 设置一个变量保存当前实例
-val hookResult = injectMember { 
+val hookResult = 
     method { 
         name = "test"
         returnType = UnitType
+    }.hook {
+        after {
+            // ...
+        }
     }
-    afterHook {
-        // ...
-    }
-}
 // 在适当的时候调用如下方法即可
 hookResult.remove()
 ```
@@ -349,12 +358,11 @@ hookResult.remove()
 > 示例如下
 
 ```kotlin
-injectMember { 
-    method { 
-        name = "test"
-        returnType = UnitType
-    }
-    afterHook {
+method { 
+    name = "test"
+    returnType = UnitType
+}.hook {
+    after {
         // 直接调用如下方法即可
         removeSelf()
     }
@@ -378,7 +386,7 @@ injectMember {
 > 示例如下
 
 ```kotlin
-injectMember {
+hook {
     // Your code here.
 }.result {
     // 处理 Hook 开始时的异常
@@ -405,7 +413,7 @@ injectResource {
 }
 ```
 
-你还可以处理 Hook 的 `Class` 不存在时发生的异常。
+**(旧版本适用)** 你还可以处理 Hook 的 `Class` 不存在时发生的异常。
 
 > 示例如下
 
@@ -485,11 +493,10 @@ injectMember {
 > 示例如下
 
 ```kotlin
-injectMember {
-    method {
-        // ...
-    }
-    afterHook {
+method {
+    // ...
+}.hook {
+    after {
         RuntimeException("Exception Test").throwToApp()
     }
 }
@@ -500,11 +507,10 @@ injectMember {
 > 示例如下
 
 ```kotlin
-injectMember {
-    method {
-        // ...
-    }
-    afterHook {
+method {
+    // ...
+}.hook {
+    after {
         throw RuntimeException("Exception Test")
     }.onFailureThrowToApp()
 }
@@ -514,7 +520,7 @@ injectMember {
 
 ::: warning
 
-为了保证 Hook 调用域与宿主内调用域相互隔离，异常只有在 **beforeHook** 与 **afterHook** 回调方法体中才能抛给宿主。
+为了保证 Hook 调用域与宿主内调用域相互隔离，异常只有在 **before** 与 **after** 回调方法体中才能抛给宿主。
 
 :::
 
@@ -523,42 +529,6 @@ injectMember {
 更多功能请参考 [Throwable.throwToApp](../api/public/com/highcapable/yukihookapi/hook/param/HookParam#throwable-throwtoapp-i-ext-method)、[YukiMemberHookCreator.MemberMookCreator.HookCallback](../api/public/com/highcapable/yukihookapi/hook/core/YukiMemberHookCreator#hookcallback-class)。
 
 :::
-
-## 状态监听
-
-在使用 `XposedHelpers` 的同学往往会在 Hook 后打印 `Unhook` 的方法确定是否 Hook 成功。
-
-在 `YukiHookAPI` 中，你可以用以下方法方便地重新实现这个功能。
-
-首先我们可以监听 Hook 已经准备开始。
-
-> 示例如下
-
-```kotlin
-YourClass.hook {
-    // Your code here.
-}.onPrepareHook {
-    loggerD(msg = "$instanceClass hook start")
-}
-```
-
-::: danger
-
-**instanceClass** 建议只在 **onPrepareHook** 中使用，否则被 Hook 的 **Class** 不存在会抛出无法拦截的异常导致 Hook 进程“死掉”。
-
-:::
-
-然后，我们还可以对 Hook 的方法结果进行监听是否成功。
-
-> 示例如下
-
-```kotlin
-injectMember {
-    // Your code here.
-}.onHooked { member ->
-    loggerD(msg = "$member has hooked")
-}
-```
 
 ## 扩展用法
 
@@ -608,12 +578,24 @@ withProcess(name = "$packageName:tool") {
 
 ## 写法优化
 
-为了使代码更加简洁，你可以删去 `YukiHookAPI` 的名称，将你的 `onHook` 入口写作 `lambda` 形式。
+为了使代码更加简洁，你可以删去 `YukiHookAPI` 的名称，将你的 `onHook` 入口写作 **lambda** 形式。
 
 > 示例如下
 
 ```kotlin
 override fun onHook() = encase {
+    // Your code here.
+}
+```
+
+你还可以在仅需要一个 Hook 回调事件的时候简写 `hook { ... }` 方法体。
+
+> 示例如下
+
+```kotlin
+ActvityClass.method {
+    // Your code here.
+}.hook().after {
     // Your code here.
 }
 ```
@@ -726,7 +708,7 @@ val frameworkApiLevel = YukiHookAPI.Status.Executor.apiLevel
 
 **1.0.91** 版本后的 **YukiHookAPI** 修改了获取 Xposed 模块状态的逻辑判断方式，现在你可以在模块与 Hook APP (宿主) 中同时使用此 API；
 
-需要确保 **YukiHookAPI.Configs.isEnableHookModuleStatus** 是启用状态；
+需要确保 **InjectYukiHookWithXposed.isUsingXposedModuleStatus** 是启用状态；
 
 **YukiHookAPI** 仅对已知的获取方式进行了对接，除了提供标准 API 的 Hook Framework 之外，其它情况下模块可能都将无法判断自己是否被激活或是获取 Hook Framework 的相关信息。
 

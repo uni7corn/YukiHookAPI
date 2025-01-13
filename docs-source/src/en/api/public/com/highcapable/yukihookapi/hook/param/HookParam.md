@@ -13,7 +13,7 @@ You can use the **Chrome Translation Plugin** to translate entire pages for refe
 # HookParam <span class="symbol">- class</span>
 
 ```kotlin:no-line-numbers
-class HookParam internal constructor(
+class HookParam private constructor(
     private val creatorInstance: YukiMemberHookCreator,
     private var paramId: String,
     private var param: YukiHookCallback.Param?
@@ -33,6 +33,10 @@ class HookParam internal constructor(
 `v1.1.5` `modified`
 
 新增 `paramId` 参数
+
+`v1.2.0` `modified`
+
+不再开放构造方法
 
 **Function Illustrate**
 
@@ -119,16 +123,26 @@ val instanceOrNull: Any?
 ## instanceClass <span class="symbol">- field</span>
 
 ```kotlin:no-line-numbers
-val instanceClass: Class<*>
+val instanceClass: Class<*>?
 ```
 
 **Change Records**
 
 `v1.0` `first`
 
+`v1.2.0` `modified`
+
+加入可空类型 (空安全)
+
 **Function Illustrate**
 
 > 获取当前 Hook 实例的类对象。
+
+::: danger
+
+如果你当前 Hook 的对象是一个静态，那么它将不存在实例的对象。
+
+:::
 
 ## member <span class="symbol">- field</span>
 
@@ -248,7 +262,7 @@ fun Throwable.throwToApp()
 
 使用 `throwable` 获取当前设置的方法调用抛出异常。
 
-仅会在回调方法的 `MemberHookCreator.beforeHook` 或 `MemberHookCreator.afterHook` 中生效。
+仅会在回调方法的 `MemberHookCreator.before` 或 `MemberHookCreator.after` 中生效。
 
 ::: danger
 
@@ -265,11 +279,8 @@ Hook 过程中的异常仅会作用于 (Xposed) 宿主环境，目标 Hook APP �
 > The following example
 
 ```kotlin
-injectMember {
-    method {
-        // ...
-    }
-    beforeHook {
+hook {
+    before {
         RuntimeException("Test Exception").throwToApp()
     }
 }
@@ -479,20 +490,19 @@ fun <T> callOriginal(): T?
 
 此方法可以 `invoke` 原始未经 Hook 的 `Member` 对象，取决于原始 `Member` 的参数。
 
-调用自身原始的方法不会再经过当前 `beforeHook`、`afterHook` 以及 `replaceUnit`、`replaceAny`。
+调用自身原始的方法不会再经过当前 `before`、`after` 以及 `replaceUnit`、`replaceAny`。
 
 比如我们 Hook 的这个方法被这样调用 `test("test value")`，使用此方法会调用其中的 `"test value"` 作为参数。
 
 > The following example
 
 ```kotlin
-injectMember {
-    method {
-        name = "test"
-        param(StringClass)
-        returnType = StringClass
-    }
-    afterHook {
+method {
+    name = "test"
+    param(StringClass)
+    returnType = StringClass
+}.hook {
+    after {
         // <方案1> 不使用泛型，不获取方法执行结果，调用将使用原方法传入的 args 自动传参
         callOriginal()
         // <方案2> 使用泛型，已知方法执行结果参数类型进行 cast
@@ -530,20 +540,19 @@ fun <T> invokeOriginal(vararg args: Any?): T?
 
 此方法可以 `invoke` 原始未经 Hook 的 `Member` 对象，可自定义需要调用的参数内容。
 
-调用自身原始的方法不会再经过当前 `beforeHook`、`afterHook` 以及 `replaceUnit`、`replaceAny`。
+调用自身原始的方法不会再经过当前 `before`、`after` 以及 `replaceUnit`、`replaceAny`。
 
 比如我们 Hook 的这个方法被这样调用 `test("test value")`，使用此方法可自定义其中的 `args` 作为参数。
 
 > The following example
 
 ```kotlin
-injectMember {
-    method {
-        name = "test"
-        param(StringClass)
-        returnType = StringClass
-    }
-    afterHook {
+method {
+    name = "test"
+    param(StringClass)
+    returnType = StringClass
+}.hook {
+    after {
         // <方案1> 不使用泛型，不获取方法执行结果
         invokeOriginal("test value")
         // <方案2> 使用泛型，已知方法执行结果参数类型进行 cast，假设返回值为 String，失败会返回 null

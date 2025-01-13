@@ -1,35 +1,28 @@
 /*
  * YukiHookAPI - An efficient Hook API and Xposed Module solution built in Kotlin.
- * Copyright (C) 2019-2023 HighCapable
- * https://github.com/fankes/YukiHookAPI
+ * Copyright (C) 2019 HighCapable
+ * https://github.com/HighCapable/YukiHookAPI
  *
- * MIT License
+ * Apache License Version 2.0
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  * This file is created by fankes on 2022/2/4.
  */
-@file:Suppress("unused", "UNCHECKED_CAST", "MemberVisibilityCanBePrivate", "KotlinConstantConditions")
+@file:Suppress("unused", "UNCHECKED_CAST", "MemberVisibilityCanBePrivate", "KotlinConstantConditions", "NON_PUBLIC_CALL_FROM_PUBLIC_INLINE")
 
 package com.highcapable.yukihookapi.hook.core.finder.members
 
-import com.highcapable.yukihookapi.annotation.YukiPrivateApi
 import com.highcapable.yukihookapi.hook.bean.CurrentClass
 import com.highcapable.yukihookapi.hook.bean.VariousClass
 import com.highcapable.yukihookapi.hook.core.YukiMemberHookCreator
@@ -43,8 +36,8 @@ import com.highcapable.yukihookapi.hook.core.finder.type.factory.NameConditions
 import com.highcapable.yukihookapi.hook.core.finder.type.factory.ObjectConditions
 import com.highcapable.yukihookapi.hook.factory.current
 import com.highcapable.yukihookapi.hook.factory.hasExtends
-import com.highcapable.yukihookapi.hook.log.yLoggerW
-import com.highcapable.yukihookapi.hook.utils.runBlocking
+import com.highcapable.yukihookapi.hook.log.YLog
+import com.highcapable.yukihookapi.hook.utils.factory.runBlocking
 import java.lang.reflect.Field
 
 /**
@@ -53,10 +46,8 @@ import java.lang.reflect.Field
  * 可通过指定类型查找指定 [Field] 或一组 [Field]
  * @param classSet 当前需要查找的 [Class] 实例
  */
-class FieldFinder @PublishedApi internal constructor(@PublishedApi override val classSet: Class<*>? = null) :
-    MemberBaseFinder(tag = "Field", classSet) {
+class FieldFinder internal constructor(override val classSet: Class<*>? = null) : MemberBaseFinder(tag = "Field", classSet) {
 
-    @PublishedApi
     internal companion object {
 
         /**
@@ -65,12 +56,10 @@ class FieldFinder @PublishedApi internal constructor(@PublishedApi override val 
          * @param classSet 当前需要查找的 [Class] 实例
          * @return [FieldFinder]
          */
-        @PublishedApi
         internal fun fromHooker(hookInstance: YukiMemberHookCreator.MemberHookCreator, classSet: Class<*>? = null) =
             FieldFinder(classSet).apply { hookerManager.instance = hookInstance }
     }
 
-    @PublishedApi
     override var rulesData = FieldRulesData()
 
     /** 当前使用的 [classSet] */
@@ -82,7 +71,7 @@ class FieldFinder @PublishedApi internal constructor(@PublishedApi override val 
     /**
      * 设置 [Field] 名称
      *
-     * - ❗若不填写名称则必须存在一个其它条件
+     * - 若不填写名称则必须存在一个其它条件
      * @return [String]
      */
     var name
@@ -94,7 +83,7 @@ class FieldFinder @PublishedApi internal constructor(@PublishedApi override val 
     /**
      * 设置 [Field] 类型
      *
-     * - ❗只能是 [Class]、[String]、[VariousClass]
+     * - 只能是 [Class]、[String]、[VariousClass]
      *
      * - 可不填写类型
      * @return [Any] or null
@@ -110,7 +99,7 @@ class FieldFinder @PublishedApi internal constructor(@PublishedApi override val 
      *
      * - 可不设置筛选条件
      *
-     * - ❗存在多个 [BaseFinder.IndexTypeCondition] 时除了 [order] 只会生效最后一个
+     * - 存在多个 [BaseFinder.IndexTypeCondition] 时除了 [order] 只会生效最后一个
      * @param conditions 条件方法体
      * @return [BaseFinder.IndexTypeCondition]
      */
@@ -128,9 +117,9 @@ class FieldFinder @PublishedApi internal constructor(@PublishedApi override val 
     /**
      * 设置 [Field] 名称
      *
-     * - ❗若不填写名称则必须存在一个其它条件
+     * - 若不填写名称则必须存在一个其它条件
      *
-     * - ❗存在多个 [BaseFinder.IndexTypeCondition] 时除了 [order] 只会生效最后一个
+     * - 存在多个 [BaseFinder.IndexTypeCondition] 时除了 [order] 只会生效最后一个
      * @param value 名称
      * @return [BaseFinder.IndexTypeCondition]
      */
@@ -142,9 +131,9 @@ class FieldFinder @PublishedApi internal constructor(@PublishedApi override val 
     /**
      * 设置 [Field] 名称条件
      *
-     * - ❗若不填写名称则必须存在一个其它条件
+     * - 若不填写名称则必须存在一个其它条件
      *
-     * - ❗存在多个 [BaseFinder.IndexTypeCondition] 时除了 [order] 只会生效最后一个
+     * - 存在多个 [BaseFinder.IndexTypeCondition] 时除了 [order] 只会生效最后一个
      * @param conditions 条件方法体
      * @return [BaseFinder.IndexTypeCondition]
      */
@@ -158,8 +147,8 @@ class FieldFinder @PublishedApi internal constructor(@PublishedApi override val 
      *
      * - 可不填写类型
      *
-     * - ❗存在多个 [BaseFinder.IndexTypeCondition] 时除了 [order] 只会生效最后一个
-     * @param value 类型 - ❗只能是 [Class]、[String]、[VariousClass]
+     * - 存在多个 [BaseFinder.IndexTypeCondition] 时除了 [order] 只会生效最后一个
+     * @param value 类型 - 只能是 [Class]、[String]、[VariousClass]
      * @return [BaseFinder.IndexTypeCondition]
      */
     fun type(value: Any): IndexTypeCondition {
@@ -178,7 +167,7 @@ class FieldFinder @PublishedApi internal constructor(@PublishedApi override val 
      * type { it == StringClass || it.name == "java.lang.String" }
      * ```
      *
-     * - ❗存在多个 [BaseFinder.IndexTypeCondition] 时除了 [order] 只会生效最后一个
+     * - 存在多个 [BaseFinder.IndexTypeCondition] 时除了 [order] 只会生效最后一个
      * @param conditions 条件方法体
      * @return [BaseFinder.IndexTypeCondition]
      */
@@ -190,7 +179,7 @@ class FieldFinder @PublishedApi internal constructor(@PublishedApi override val 
     /**
      * 设置在 [classSet] 的所有父类中查找当前 [Field]
      *
-     * - ❗若当前 [classSet] 的父类较多可能会耗时 - API 会自动循环到父类继承是 [Any] 前的最后一个类
+     * - 若当前 [classSet] 的父类较多可能会耗时 - API 会自动循环到父类继承是 [Any] 前的最后一个类
      * @param isOnlySuperClass 是否仅在当前 [classSet] 的父类中查找 - 若父类是 [Any] 则不会生效
      */
     fun superClass(isOnlySuperClass: Boolean = false) {
@@ -200,7 +189,7 @@ class FieldFinder @PublishedApi internal constructor(@PublishedApi override val 
 
     /**
      * 得到 [Field] 或一组 [Field]
-     * @return [HashSet]<[Field]>
+     * @return [MutableList]<[Field]>
      * @throws NoSuchFieldError 如果找不到 [Field]
      */
     private val result get() = ReflectionTool.findFields(usedClassSet, rulesData)
@@ -209,7 +198,7 @@ class FieldFinder @PublishedApi internal constructor(@PublishedApi override val 
      * 设置实例
      * @param fields 当前找到的 [Field] 数组
      */
-    private fun setInstance(fields: HashSet<Field>) {
+    private fun setInstance(fields: MutableList<Field>) {
         memberInstances.clear()
         fields.takeIf { it.isNotEmpty() }?.forEach { memberInstances.add(it) }
     }
@@ -220,26 +209,22 @@ class FieldFinder @PublishedApi internal constructor(@PublishedApi override val 
         runBlocking {
             setInstance(result)
         }.result { ms ->
-            memberInstances.takeIf { it.isNotEmpty() }?.forEach { onDebuggingMsg(msg = "Find Field [$it] takes ${ms}ms") }
+            memberInstances.takeIf { it.isNotEmpty() }?.forEach { debugMsg(msg = "Find Field [$it] takes ${ms}ms") }
         }
     }
 
-    @YukiPrivateApi
     override fun build() = runCatching {
         internalBuild()
         Result()
     }.getOrElse {
-        onFailureMsg(throwable = it)
+        errorMsg(e = it)
         Result(isNoSuch = true, it)
     }
 
-    @YukiPrivateApi
     override fun process() = error("FieldFinder does not contain this usage")
 
-    @YukiPrivateApi
     override fun failure(throwable: Throwable?) = Result(isNoSuch = true, throwable)
 
-    @YukiPrivateApi
     override fun denied(throwable: Throwable?) = error("FieldFinder does not contain this usage")
 
     /**
@@ -247,11 +232,10 @@ class FieldFinder @PublishedApi internal constructor(@PublishedApi override val 
      *
      * 可累计失败次数直到查找成功
      */
-    inner class RemedyPlan @PublishedApi internal constructor() {
+    inner class RemedyPlan internal constructor() {
 
         /** 失败尝试次数数组 */
-        @PublishedApi
-        internal val remedyPlans = HashSet<Pair<FieldFinder, Result>>()
+        private val remedyPlans = mutableSetOf<Pair<FieldFinder, Result>>()
 
         /**
          * 创建需要重新查找的 [Field]
@@ -263,46 +247,36 @@ class FieldFinder @PublishedApi internal constructor(@PublishedApi override val 
          * @return [Result] 结果
          */
         inline fun field(initiate: FieldConditions) = Result().apply {
-            remedyPlans.add(Pair(FieldFinder(classSet).apply {
+            remedyPlans.add(FieldFinder(classSet).apply {
                 hookerManager = this@FieldFinder.hookerManager
-            }.apply(initiate), this))
+            }.apply(initiate) to this)
         }
 
         /** 开始重查找 */
-        @PublishedApi
         internal fun build() {
             if (classSet == null) return
-            if (remedyPlans.isNotEmpty()) run {
+            if (remedyPlans.isNotEmpty()) {
+                val errors = mutableListOf<Throwable>()
                 var isFindSuccess = false
-                var lastError: Throwable? = null
-                remedyPlans.forEachIndexed { p, it ->
+                remedyPlans.forEachIndexed { index, plan ->
                     runCatching {
                         runBlocking {
-                            setInstance(it.first.result)
+                            setInstance(plan.first.result)
                         }.result { ms ->
-                            memberInstances.takeIf { it.isNotEmpty() }
-                                ?.forEach { onDebuggingMsg(msg = "Find Field [$it] takes ${ms}ms") }
+                            memberInstances.takeIf { it.isNotEmpty() }?.forEach { debugMsg(msg = "Find Field [$it] takes ${ms}ms") }
                         }
                         isFindSuccess = true
-                        it.second.onFindCallback?.invoke(memberInstances.fields())
+                        plan.second.onFindCallback?.invoke(memberInstances.fields())
                         remedyPlansCallback?.invoke()
                         memberInstances.takeIf { it.isNotEmpty() }
-                            ?.forEach { onDebuggingMsg(msg = "Field [$it] trying ${p + 1} times success by RemedyPlan") }
-                        return@run
-                    }.onFailure {
-                        lastError = it
-                        onFailureMsg(msg = "Trying ${p + 1} times by RemedyPlan --> $it", isAlwaysPrint = true)
-                    }
+                            ?.forEach { debugMsg(msg = "RemedyPlan successed after ${index + 1} attempts of Field [$it]") }
+                        return
+                    }.onFailure { errors.add(it) }
                 }
-                if (isFindSuccess.not()) {
-                    onFailureMsg(
-                        msg = "Trying ${remedyPlans.size} times and all failure by RemedyPlan",
-                        throwable = lastError,
-                        isAlwaysPrint = true
-                    )
-                    remedyPlans.clear()
-                }
-            } else yLoggerW(msg = "RemedyPlan is empty, forgot it?${hookerManager.tailTag}")
+                if (isFindSuccess) return
+                errorMsg(msg = "RemedyPlan failed after ${remedyPlans.size} attempts", es = errors, isAlwaysMode = true)
+                remedyPlans.clear()
+            } else YLog.innerW("RemedyPlan is empty, forgot it?")
         }
 
         /**
@@ -310,16 +284,16 @@ class FieldFinder @PublishedApi internal constructor(@PublishedApi override val 
          *
          * 可在这里处理是否成功的回调
          */
-        inner class Result @PublishedApi internal constructor() {
+        inner class Result internal constructor() {
 
             /** 找到结果时的回调 */
-            internal var onFindCallback: (HashSet<Field>.() -> Unit)? = null
+            internal var onFindCallback: (MutableList<Field>.() -> Unit)? = null
 
             /**
              * 当找到结果时
              * @param initiate 回调
              */
-            fun onFind(initiate: HashSet<Field>.() -> Unit) {
+            fun onFind(initiate: MutableList<Field>.() -> Unit) {
                 onFindCallback = initiate
             }
         }
@@ -332,8 +306,8 @@ class FieldFinder @PublishedApi internal constructor(@PublishedApi override val 
      * @param throwable 错误信息
      */
     inner class Result internal constructor(
-        @PublishedApi internal val isNoSuch: Boolean = false,
-        private val throwable: Throwable? = null
+        internal val isNoSuch: Boolean = false,
+        internal val throwable: Throwable? = null
     ) : BaseResult {
 
         /**
@@ -348,11 +322,11 @@ class FieldFinder @PublishedApi internal constructor(@PublishedApi override val 
          *
          * - 若有多个 [Field] 结果只会返回第一个
          *
-         * - ❗在 [memberInstances] 结果为空时使用此方法将无法获得对象
+         * - 在 [memberInstances] 结果为空时使用此方法将无法获得对象
          *
-         * - ❗如果目标对象不是静态 - 你必须设置 [instance]
+         * - 如果目标对象不是静态 - 你必须设置 [instance]
          *
-         * - ❗若你设置了 [remedys] 请使用 [wait] 回调结果方法
+         * - 若你设置了 [remedys] 请使用 [wait] 回调结果方法
          * @param instance [Field] 所在的实例对象 - 如果是静态可不填 - 默认 null
          * @return [Instance]
          */
@@ -363,16 +337,16 @@ class FieldFinder @PublishedApi internal constructor(@PublishedApi override val 
          *
          * - 返回全部查找条件匹配的多个 [Field] 实例结果
          *
-         * - ❗在 [memberInstances] 结果为空时使用此方法将无法获得对象
+         * - 在 [memberInstances] 结果为空时使用此方法将无法获得对象
          *
-         * - ❗如果目标对象不是静态 - 你必须设置 [instance]
+         * - 如果目标对象不是静态 - 你必须设置 [instance]
          *
-         * - ❗若你设置了 [remedys] 请使用 [waitAll] 回调结果方法
+         * - 若你设置了 [remedys] 请使用 [waitAll] 回调结果方法
          * @param instance [Field] 所在的实例对象 - 如果是静态可不填 - 默认 null
-         * @return [ArrayList]<[Instance]>
+         * @return [MutableList]<[Instance]>
          */
         fun all(instance: Any? = null) =
-            arrayListOf<Instance>().apply { giveAll().takeIf { it.isNotEmpty() }?.forEach { add(Instance(instance, it)) } }
+            mutableListOf<Instance>().apply { giveAll().takeIf { it.isNotEmpty() }?.forEach { add(Instance(instance, it)) } }
 
         /**
          * 得到 [Field] 本身
@@ -389,19 +363,19 @@ class FieldFinder @PublishedApi internal constructor(@PublishedApi override val 
          *
          * - 返回全部查找条件匹配的多个 [Field] 实例
          *
-         * - 在查找条件找不到任何结果的时候将返回空的 [HashSet]
-         * @return [HashSet]<[Field]>
+         * - 在查找条件找不到任何结果的时候将返回空的 [MutableList]
+         * @return [MutableList]<[Field]>
          */
-        fun giveAll() = memberInstances.takeIf { it.isNotEmpty() }?.fields() ?: HashSet()
+        fun giveAll() = memberInstances.takeIf { it.isNotEmpty() }?.fields() ?: mutableListOf()
 
         /**
          * 获得 [Field] 实例处理类
          *
          * - 若有多个 [Field] 结果只会返回第一个
          *
-         * - ❗若你设置了 [remedys] 必须使用此方法才能获得结果
+         * - 若你设置了 [remedys] 必须使用此方法才能获得结果
          *
-         * - ❗若你没有设置 [remedys] 此方法将不会被回调
+         * - 若你没有设置 [remedys] 此方法将不会被回调
          * @param instance 所在实例
          * @param initiate 回调 [Instance]
          */
@@ -415,13 +389,13 @@ class FieldFinder @PublishedApi internal constructor(@PublishedApi override val 
          *
          * - 返回全部查找条件匹配的多个 [Field] 实例结果
          *
-         * - ❗若你设置了 [remedys] 必须使用此方法才能获得结果
+         * - 若你设置了 [remedys] 必须使用此方法才能获得结果
          *
-         * - ❗若你没有设置 [remedys] 此方法将不会被回调
+         * - 若你没有设置 [remedys] 此方法将不会被回调
          * @param instance 所在实例
-         * @param initiate 回调 [ArrayList]<[Instance]>
+         * @param initiate 回调 [MutableList]<[Instance]>
          */
-        fun waitAll(instance: Any? = null, initiate: ArrayList<Instance>.() -> Unit) {
+        fun waitAll(instance: Any? = null, initiate: MutableList<Instance>.() -> Unit) {
             if (memberInstances.isNotEmpty()) initiate(all(instance))
             else remedyPlansCallback = { initiate(all(instance)) }
         }
@@ -460,20 +434,20 @@ class FieldFinder @PublishedApi internal constructor(@PublishedApi override val 
          *
          * - 若 [MemberBaseFinder.MemberHookerManager.isNotIgnoredNoSuchMemberFailure] 为 false 则自动忽略
          *
-         * - ❗此时若要监听异常结果 - 你需要手动实现 [onNoSuchField] 方法
+         * - 此时若要监听异常结果 - 你需要手动实现 [onNoSuchField] 方法
          * @return [Result] 可继续向下监听
          */
         fun ignored(): Result {
-            isShutErrorPrinting = true
+            isIgnoreErrorLogs = true
             return this
         }
 
         /**
          * 忽略异常并停止打印任何错误日志
          *
-         * - ❗此方法已弃用 - 在之后的版本中将直接被删除
+         * - 此方法已弃用 - 在之后的版本中将直接被删除
          *
-         * - ❗请现在转移到 [ignored]
+         * - 请现在迁移到 [ignored]
          * @return [Result] 可继续向下监听
          */
         @Deprecated(message = "请使用新的命名方法", ReplaceWith("ignored()"))
@@ -482,7 +456,7 @@ class FieldFinder @PublishedApi internal constructor(@PublishedApi override val 
         /**
          * [Field] 实例处理类
          *
-         * - ❗请使用 [get]、[all] 方法来获取 [Instance]
+         * - 请使用 [get]、[all] 方法来获取 [Instance]
          * @param instance 当前 [Field] 所在类的实例对象
          * @param field 当前 [Field] 实例对象
          */
@@ -494,9 +468,7 @@ class FieldFinder @PublishedApi internal constructor(@PublishedApi override val 
              * - 若要直接获取不确定的实例对象 - 请调用 [any] 方法
              * @return [Any] or null
              */
-            @PublishedApi
-            internal val self
-                get() = field?.get(instance)
+            private val self get() = field?.get(instance)
 
             /**
              * 获得当前 [Field] 自身 [self] 实例的类操作对象
@@ -522,7 +494,7 @@ class FieldFinder @PublishedApi internal constructor(@PublishedApi override val 
             /**
              * 得到当前 [Field] 的 [Byte] 实例
              *
-             * - ❗请确认目标 [Field] 的类型 - 发生错误会返回 null
+             * - 请确认目标 [Field] 的类型 - 发生错误会返回 null
              * @return [Byte] or null
              */
             fun byte() = cast<Byte?>()
@@ -530,7 +502,7 @@ class FieldFinder @PublishedApi internal constructor(@PublishedApi override val 
             /**
              * 得到当前 [Field] 的 [Int] 实例
              *
-             * - ❗请确认目标 [Field] 的类型 - 发生错误会返回默认值
+             * - 请确认目标 [Field] 的类型 - 发生错误会返回默认值
              * @return [Int] 取不到返回 0
              */
             fun int() = cast() ?: 0
@@ -538,7 +510,7 @@ class FieldFinder @PublishedApi internal constructor(@PublishedApi override val 
             /**
              * 得到当前 [Field] 的 [Long] 实例
              *
-             * - ❗请确认目标 [Field] 的类型 - 发生错误会返回默认值
+             * - 请确认目标 [Field] 的类型 - 发生错误会返回默认值
              * @return [Long] 取不到返回 0L
              */
             fun long() = cast() ?: 0L
@@ -546,7 +518,7 @@ class FieldFinder @PublishedApi internal constructor(@PublishedApi override val 
             /**
              * 得到当前 [Field] 的 [Short] 实例
              *
-             * - ❗请确认目标 [Field] 的类型 - 发生错误会返回默认值
+             * - 请确认目标 [Field] 的类型 - 发生错误会返回默认值
              * @return [Short] 取不到返回 0
              */
             fun short() = cast<Short?>() ?: 0
@@ -554,7 +526,7 @@ class FieldFinder @PublishedApi internal constructor(@PublishedApi override val 
             /**
              * 得到当前 [Field] 的 [Double] 实例
              *
-             * - ❗请确认目标 [Field] 的类型 - 发生错误会返回默认值
+             * - 请确认目标 [Field] 的类型 - 发生错误会返回默认值
              * @return [Double] 取不到返回 0.0
              */
             fun double() = cast() ?: 0.0
@@ -562,7 +534,7 @@ class FieldFinder @PublishedApi internal constructor(@PublishedApi override val 
             /**
              * 得到当前 [Field] 的 [Float] 实例
              *
-             * - ❗请确认目标 [Field] 的类型 - 发生错误会返回默认值
+             * - 请确认目标 [Field] 的类型 - 发生错误会返回默认值
              * @return [Float] 取不到返回 0f
              */
             fun float() = cast() ?: 0f
@@ -570,7 +542,7 @@ class FieldFinder @PublishedApi internal constructor(@PublishedApi override val 
             /**
              * 得到当前 [Field] 的 [String] 实例
              *
-             * - ❗请确认目标 [Field] 的类型 - 发生错误会返回默认值
+             * - 请确认目标 [Field] 的类型 - 发生错误会返回默认值
              * @return [String] 取不到返回 ""
              */
             fun string() = cast() ?: ""
@@ -578,7 +550,7 @@ class FieldFinder @PublishedApi internal constructor(@PublishedApi override val 
             /**
              * 得到当前 [Field] 的 [Char] 实例
              *
-             * - ❗请确认目标 [Field] 的类型 - 发生错误会返回默认值
+             * - 请确认目标 [Field] 的类型 - 发生错误会返回默认值
              * @return [Char] 取不到返回 ' '
              */
             fun char() = cast() ?: ' '
@@ -586,7 +558,7 @@ class FieldFinder @PublishedApi internal constructor(@PublishedApi override val 
             /**
              * 得到当前 [Field] 的 [Boolean] 实例
              *
-             * - ❗请确认目标 [Field] 的类型 - 发生错误会返回默认值
+             * - 请确认目标 [Field] 的类型 - 发生错误会返回默认值
              * @return [Boolean] 取不到返回 false
              */
             fun boolean() = cast() ?: false
@@ -600,7 +572,7 @@ class FieldFinder @PublishedApi internal constructor(@PublishedApi override val 
             /**
              * 得到当前 [Field] 的 [Array] 实例 - 每项类型 [T]
              *
-             * - ❗请确认目标 [Field] 的类型 - 发生错误会返回空数组
+             * - 请确认目标 [Field] 的类型 - 发生错误会返回空数组
              * @return [Array] 取不到返回空数组
              */
             inline fun <reified T> array() = cast() ?: arrayOf<T>()
@@ -608,7 +580,7 @@ class FieldFinder @PublishedApi internal constructor(@PublishedApi override val 
             /**
              * 得到当前 [Field] 的 [List] 实例 - 每项类型 [T]
              *
-             * - ❗请确认目标 [Field] 的类型 - 发生错误会返回空数组
+             * - 请确认目标 [Field] 的类型 - 发生错误会返回空数组
              * @return [List] 取不到返回空数组
              */
             inline fun <reified T> list() = cast() ?: listOf<T>()
@@ -622,14 +594,14 @@ class FieldFinder @PublishedApi internal constructor(@PublishedApi override val 
             /**
              * 设置当前 [Field] 实例为 true
              *
-             * - ❗请确保示例对象类型为 [Boolean]
+             * - 请确保示例对象类型为 [Boolean]
              */
             fun setTrue() = set(true)
 
             /**
              * 设置当前 [Field] 实例为 true
              *
-             * - ❗请确保示例对象类型为 [Boolean]
+             * - 请确保示例对象类型为 [Boolean]
              */
             fun setFalse() = set(false)
 

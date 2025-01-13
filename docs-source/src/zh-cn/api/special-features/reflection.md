@@ -2,7 +2,7 @@
 
 > `YukiHookAPI` 为开发者封装了一套接近零反射写法的反射 API，它几乎可以完全取代原生 Java 的反射 API 相关用法。
 
-此功能的核心部分已被解耦合为 [YukiReflection](https://github.com/fankes/YukiReflection) 项目，它可以独立使用于任何 Java、Android 项目中。
+此功能的核心部分已被解耦合为 [YukiReflection](https://github.com/HighCapable/YukiReflection) 项目，它可以独立使用于任何 Java、Android 项目中。
 
 现在 `YukiReflection` 作为核心依赖集成于 `YukiHookAPI`。
 
@@ -74,6 +74,52 @@ var instance = classOf<Test>(customClassLoader)
 
 :::
 
+### 延迟装载
+
+假设我们要得到一个不能直接调用的 `Class`，但是我们也不是立刻就需要这个 `Class`。
+
+这个时候，你可以使用 `lazyClass` 来完成这个功能。
+
+> 示例如下
+
+```kotlin
+// 延迟装载这个 Class
+// 如果当前正处于 PackageParam 环境，那么你可以不需要考虑 ClassLoader
+val instance by lazyClass("com.demo.Test")
+// 自定义 Class 所在的 ClassLoader
+val customClassLoader: ClassLoader? = ... // 假设这个就是你的 ClassLoader
+val instance by lazyClass("com.demo.Test") { customClassLoader }
+// 在适当的时候调用这个 Class
+instance.method { 
+    // ...   
+}
+```
+
+如果当前 `Class` 并不存在，使用上述方法会抛出异常，如果你不确定 `Class` 是否存在，可以参考下面的解决方案。
+
+> 示例如下
+
+```kotlin
+// 延迟装载这个 Class
+// 如果当前正处于 PackageParam 环境，那么你可以不需要考虑 ClassLoader
+// 得不到时结果会为 null 但不会抛出异常
+val instance by lazyClassOrNull("com.demo.Test")
+// 自定义 Class 所在的 ClassLoader
+val customClassLoader: ClassLoader? = ... // 假设这个就是你的 ClassLoader
+// 得不到时结果会为 null 但不会抛出异常
+val instance by lazyClassOrNull("com.demo.Test") { customClassLoader }
+// 在适当的时候调用这个 Class
+instance?.method { 
+    // ...   
+}
+```
+
+::: tip
+
+更多功能请参考 [lazyClass](../public/com/highcapable/yukihookapi/hook/factory/ReflectionFactory#lazyclass-method)、[lazyClassOrNull](../public/com/highcapable/yukihookapi/hook/factory/ReflectionFactory#lazyclassornull-method)、[PackageParam → lazyClass](../public/com/highcapable/yukihookapi/hook/param/PackageParam#lazyclass-method)、[PackageParam → lazyClassOrNull](../public/com/highcapable/yukihookapi/hook/param/PackageParam#lazyclassornull-method) 方法。
+
+:::
+
 ### 存在判断
 
 假设我们要判断一个 `Class` 是否存在，通常情况下，我们可以使用标准的反射 API 去查找这个 `Class` 通过异常来判断是否存在。
@@ -127,7 +173,7 @@ var isExist = "com.demo.Test".hasClass(customClassLoader)
 
 ::: warning
 
-目前 **DexClassFinder** 的功能尚在试验阶段，由于仅通过 Java 层实现查找功能，在宿主 **Class** 过多时性能可能不能达到最佳水平，如果发生查找不到、定位有误的问题欢迎向我们反馈。
+目前 **DexClassFinder** 的功能尚在实验阶段，由于仅通过 Java 层实现查找功能，在宿主 **Class** 过多时性能可能不能达到最佳水平，如果发生查找不到、定位有误的问题欢迎向我们反馈。
 
 由于是反射层面的 API，目前它只能通过**类与成员**的特征来定位指定的 **Class**，不能通过指定字节码中的字符串和方法内容特征来进行定位。
 
@@ -137,7 +183,7 @@ var isExist = "com.demo.Test".hasClass(customClassLoader)
 
 ::: danger
 
-在 **YukiHookAPI** 发布 2.x.x 版本后，此功能将被标记为作废，且不再会迁移到 [YukiReflection](https://github.com/fankes/YukiReflection)。
+在 **YukiHookAPI** 发布 **2.0.0** 版本后，此功能将被标记为作废，且不再会迁移到 [YukiReflection](https://github.com/HighCapable/YukiReflection)。
 
 我们欢迎各位开发者开始使用 [DexKit](https://github.com/LuckyPray/DexKit)，它是一个使用 C++ 实现的 **Dex** 高性能运行时解析库，在性能方面比 Java 层更加高效与优秀，目前尚在开发阶段，欢迎提出宝贵建议。
 
@@ -1120,7 +1166,7 @@ instance.current {
         name = "stop"
         emptyParam()
     }.call()
-// ❗注意，因为 current() 返回的是 CurrentClass 自身对象，所以不能像下面这样调用
+// 注意，因为 current() 返回的是 CurrentClass 自身对象，所以不能像下面这样调用
 instance.current().current()
 ```
 
@@ -1245,15 +1291,12 @@ public class Test {
 > 示例如下
 
 ```kotlin
-Test::class.java.hook {
-    injectMember {
-        method {
-            name = "getString"
-            emptyParam()
-            returnType = StringClass
-        }
-        replaceTo("Hooked")
-    }
+Test::class.java.method {
+    name = "getString"
+    emptyParam()
+    returnType = StringClass
+}.hook {
+    replaceTo("Hooked")
 }
 ```
 
@@ -1394,33 +1437,7 @@ Test::class.java.method {
 }
 ```
 
-以当前 `Class` 举例，若 [多重查找](#多重查找) 结合 `RemedyPlan` 在创建 Hook 的时候使用，你需要稍微改变一下用法。
-
-> 示例如下
-
-```kotlin
-injectMember {
-    method {
-        name = "doTask"
-        emptyParam()
-    }.remedys {
-        method {
-            name = "doTask"
-            paramCount(0..1)
-        }
-        method {
-            name = "doTask"
-            paramCount(1..2)
-        }
-    }.all()
-    beforeHook {}
-    afterHook {}
-}
-```
-
 ::: tip
-
-在创建 Hook 的时候使用可参考 [MethodFinder.Process.all](../public/com/highcapable/yukihookapi/hook/core/finder/members/MethodFinder#all-method)、[ConstructorFinder.Process.all](../public/com/highcapable/yukihookapi/hook/core/finder/members/ConstructorFinder#all-method) 方法。
 
 更多功能请参考 [MethodFinder.RemedyPlan](../public/com/highcapable/yukihookapi/hook/core/finder/members/MethodFinder#remedyplan-class)、[ConstructorFinder.RemedyPlan](../public/com/highcapable/yukihookapi/hook/core/finder/members/ConstructorFinder#remedyplan-class)、[FieldFinder.RemedyPlan](../public/com/highcapable/yukihookapi/hook/core/finder/members/FieldFinder#remedyplan-class)。
 
@@ -1525,15 +1542,7 @@ VariousClass("com.demo.ATest", "com.demo.BTest").toClass().method {
 
 若在创建 Hook 的时候使用，可以更加方便，还可以自动拦截找不到 `Class` 的异常。
 
-> 示例如下
-
-```kotlin
-findClass("com.demo.ATest", "com.demo.BTest").hook {
-    // Your code here.
-}
-```
-
-你还可以把这个 `Class` 定义为一个常量类型来使用。
+你可以把这个 `Class` 定义为一个常量类型来使用。
 
 > 示例如下
 
@@ -1545,12 +1554,6 @@ ABTestClass.hook {
     // Your code here.
 }
 ```
-
-::: tip
-
-更多功能请参考 [PackageParam.findClass](../public/com/highcapable/yukihookapi/hook/param/PackageParam#findclass-method) 方法。
-
-:::
 
 ### 调用泛型
 
@@ -1626,11 +1629,7 @@ TestGeneric::class.java.generic()?.argument()?.method {
 
 #### 限制性查找条件
 
-::: danger
-
-在查找条件中，除了 **order** 你只能使用一次 **index** 功能。
-
-:::
+在查找条件中，除了 `order` 你<u>**只能**</u>使用一次 `index` 功能。
 
 > 示例如下
 
@@ -1638,7 +1637,7 @@ TestGeneric::class.java.generic()?.argument()?.method {
 method {
     name = "test"
     param(BooleanType).index(num = 2)
-    // ❗错误的使用方法，请仅保留一个 index 方法
+    // 错误的使用方法，请仅保留一个 index 方法
     returnType(StringClass).index(num = 1)
 }
 ```
@@ -1657,11 +1656,7 @@ method {
 
 #### 必要的查找条件
 
-::: danger
-
 在普通方法查找条件中，<u>**即使是无参的方法也需要设置查找条件**</u>。
-
-:::
 
 假设我们有如下的 `Class`。
 
@@ -1718,9 +1713,7 @@ TestFoo::class.java.method {
 
 :::
 
-#### 可简写查找条件
-
-> 在构造方法查找条件中，<u>**无参的构造方法可以不需要填写查找条件**</u>。
+在构造方法查找条件中，<u>**即使是无参的构造方法也需要设置查找条件**</u>。
 
 假设我们有如下的 `Class`。
 
@@ -1735,7 +1728,7 @@ public class TestFoo {
 }
 ```
 
-我们要得到其中的 `public TestFoo()` 构造方法，可以写作如下形式。
+我们要得到其中的 `public TestFoo()` 构造方法，必须写作如下形式。
 
 > 示例如下
 
@@ -1743,15 +1736,9 @@ public class TestFoo {
 TestFoo::class.java.constructor { emptyParam() }
 ```
 
-上面的例子可以成功获取到 `public TestFoo()` 构造方法，但是感觉有一些繁琐。
+上面的例子可以成功获取到 `public TestFoo()` 构造方法。
 
-与普通方法不同，由于构造方法不需要考虑 `name` 名称，当构造方法没有参数的时候，我们可以省略 `emptyParam` 参数。
-
-> 示例如下
-
-```kotlin
-TestFoo::class.java.constructor()
-```
+如果你写作 `constructor()` 而丢失了 `emptyParam()`，此时查找到的结果会是按照字节码顺序排列的的第一位，<u>**可能并不是无参的**</u>。
 
 ::: tip 兼容性说明
 
@@ -1759,13 +1746,43 @@ TestFoo::class.java.constructor()
 
 :::
 
-#### 字节码类型
+::: danger API 行为变更
 
-::: danger
-
-在字节码调用结果中，**cast** 方法只能指定字节码对应的类型。
+在 **1.2.0** 及之后的版本中，**constructor()** 的行为不再是 **constructor { emptyParam() }** 而是 **constructor {}**，请注意行为变更合理调整查找参数。
 
 :::
+
+#### 不设置查找条件
+
+在不设置查找条件的情况下，使用 `field()`、`constructor()`、`method()` 将返回当前 `Class` 下的所有成员对象。
+
+使用 `get(...)` 或 `give()` 的方式获取将只能得到按照字节码顺序排列的的第一位。
+
+> 示例如下
+
+```kotlin
+Test::class.java.field().get(...)
+Test::class.java.method().give()
+```
+
+如果你想得到全部成员对象，你可以使用 `all(...)` 或 `giveAll()`
+
+> 示例如下
+
+```kotlin
+Test::class.java.field().all(...)
+Test::class.java.method().giveAll()
+```
+
+::: tip 兼容性说明
+
+在过往历史版本的 API 中，不设置查找条件将抛出异常，此特性在 **1.2.0** 及之后的版本中加入。
+
+:::
+
+#### 字节码类型
+
+在字节码调用结果中，**cast** 方法<u>**只能**</u>指定字节码对应的类型。
 
 例如我们想得到一个 `Boolean` 类型的变量，把他转换为 `String`。
 
@@ -1777,7 +1794,7 @@ TestFoo::class.java.constructor()
 field {
     name = "test"
     type = BooleanType
-}.get().string() // ❗错误的使用方法，必须 cast 为字节码目标类型
+}.get().string() // 错误的使用方法，必须 cast 为字节码目标类型
 ```
 
 以下是正确的使用方法。
@@ -1804,7 +1821,7 @@ field {
 }
 ```
 
-在 `Kotlin` 中表达出 `Boolean::class.javaPrimitiveType` 这个类型的写法很长，感觉并不方便。
+在 Kotlin 中表达出 `Boolean::class.javaPrimitiveType` 这个类型的写法很长，感觉并不方便。
 
 因此，`YukiHookAPI` 为开发者封装了常见的类型调用，其中包含了 Android 的相关类型和 Java 的常见类型与**原始类型关键字**。
 

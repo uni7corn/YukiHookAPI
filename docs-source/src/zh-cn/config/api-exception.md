@@ -46,14 +46,14 @@ You cannot load a hooker in "onInit" or "onXposedEvent" method! Aborted
 object HookEntry : IYukiHookXposedInit {
 
     override fun onInit() {
-        // ❗错误的使用方法
+        // 错误的使用方法
         YukiHookAPI.encase {
             // Your code here.
         }
     }
 
     override fun onXposedEvent() {
-        // ❗错误的使用方法
+        // 错误的使用方法
         YukiHookAPI.encase {
             // Your code here.
         }
@@ -210,7 +210,7 @@ Hook 目标方法、构造方法时发生错误。
 
 ::: danger loggerE
 
-Hooked Member with a finding error by **CLASS**
+Hooked Member with a finding error / by **CLASS**
 
 :::
 
@@ -226,7 +226,7 @@ Hooked Member with a finding error by **CLASS**
 
 ::: danger loggerE
 
-Hooked Member cannot be non-null by **CLASS**
+Hooked Member cannot be null / by **CLASS**
 
 :::
 
@@ -239,7 +239,7 @@ Hooked Member cannot be non-null by **CLASS**
 ```kotlin
 injectMember {
     // 这里并没有设置需要 Hook 的方法、构造方法的查找条件
-    afterHook {
+    after {
         // ...
     }
 }
@@ -257,7 +257,7 @@ injectMember {
     method {
         // Your code here.
     }
-    afterHook {
+    after {
         // ...
     }
 }
@@ -286,13 +286,12 @@ private boolean test()
 下面是一个错误的案列。
 
 ```kotlin
-injectMember {
-    method {
-        name = "test"
-        emptyParam()
-    }
+method {
+    name = "test"
+    emptyParam()
+}.hook {
     // <情景1> 设置了错误的类型，原类型为 Boolean
-    beforeHook {
+    before {
         result = 0
     }
     // <情景2> 返回了错误的类型，原类型为 Boolean
@@ -306,7 +305,7 @@ injectMember {
 
 ::: warning
 
-若上述场景在 **beforeHook** 或 **afterHook** 中发生，则会造成被 Hook 的 APP (宿主) 由 **XposedBridge** 抛出异常 (会对其暴露被 Hook 的事实)。
+若上述场景在 **before** 或 **after** 中发生，则会造成被 Hook 的 APP (宿主) 由 **XposedBridge** 抛出异常 (会对其暴露被 Hook 的事实)。
 
 :::
 
@@ -318,7 +317,7 @@ injectMember {
 
 ::: danger loggerE
 
-Hook initialization failed because got an Exception
+Hook initialization failed because got an exception
 
 :::
 
@@ -334,7 +333,7 @@ Hook initialization failed because got an Exception
 
 ::: danger loggerE
 
-Try to hook **NAME**\[**NAME**\] got an Exception
+Try to hook **NAME**\[**NAME**\] got an exception
 
 :::
 
@@ -363,15 +362,15 @@ Method/Constructor/Field match type "**TYPE**" not allowed
 ```kotlin
 // 查找一个方法
 method {
-    // ❗设置了无效的类型举例
+    // 设置了无效的类型举例
     param(false, 1, 0)
-    // ❗设置了无效的类型举例
+    // 设置了无效的类型举例
     returnType = false
 }
 
 // 查找一个变量
 field {
-    // ❗设置了无效的类型举例
+    // 设置了无效的类型举例
     type = false
 }
 ```
@@ -431,30 +430,6 @@ Trying **COUNT** times and all failure by RemedyPlan
 **解决方案**
 
 请确认你设置的 `RemedyPlan` 参数以及宿主内存在的 `Class`，再试一次。
-
-###### exception
-
-::: danger loggerE
-
-You must set a condition when finding a Method/Constructor/Field
-
-:::
-
-**异常原因**
-
-在查找方法、构造方法以及变量时并未设置任何条件。
-
-> 示例如下
-
-```kotlin
-method {
-    // 这里没有设置任何条件
-}
-```
-
-**解决方案**
-
-请将查找条件补充完整并再试一次。
 
 ###### exception
 
@@ -630,6 +605,32 @@ Invoke original Member \[**MEMBER**\] failed
 
 ::: danger loggerE
 
+Failed to got Host Resources
+
+:::
+
+**异常原因**
+
+在查找 Resources 时使用 `replaceTo { ... }` 或 `replaceToModuleResource { ... }` 时未能获取到宿主的原始 Resources 实例对象。
+
+> 示例如下
+
+```kotlin
+conditions {
+    name = "test"
+    string()
+}
+replaceTo { "${it}_some_text" }
+```
+
+**解决方案**
+
+一般情况下，此错误基本上不会发生，若发生此错误，可能为当前使用的 Hook Framework 问题，排除自身代码的问题后，请携带详细日志进行反馈。
+
+###### exception
+
+::: danger loggerE
+
 Resources Hook condition name/type cannot be empty \[**TAG**\]
 
 :::
@@ -676,7 +677,7 @@ Resources Hook type is invalid \[**TAG**\]
 
 ::: danger loggerE
 
-Resources Hook got an Exception \[**TAG**\]
+Resources Hook got an exception \[**TAG**\]
 
 :::
 
@@ -850,7 +851,7 @@ You cannot inject module resources into yourself
 
 ::: danger loggerE
 
-Activity Proxy initialization failed because got an Exception
+Activity Proxy initialization failed because got an exception
 
 :::
 
@@ -866,7 +867,7 @@ Activity Proxy initialization failed because got an Exception
 
 ::: danger loggerE
 
-Activity Proxy got an Exception in msg.what \[**WHAT**\]
+Activity Proxy got an exception in msg.what \[**WHAT**\]
 
 :::
 
@@ -893,7 +894,7 @@ This proxy \[**TYPE**\] type is not allowed
 > 示例如下
 
 ```kotlin
-// ❗ 这里填入的内容仅为举例，其中 proxy 填入了不能理解的无效参数
+//  这里填入的内容仅为举例，其中 proxy 填入了不能理解的无效参数
 registerModuleAppActivities(proxy = false)
 ```
 
@@ -1013,48 +1014,6 @@ YukiHookAPI cannot support current Hook API or cannot found any available Hook A
 **解决方案**
 
 请确认你在正确的地方装载了 `YukiHookAPI` 的 `encase` 方法，详情请参考 [作为 Xposed 模块使用的相关配置](../config/xposed-using) 以及 [作为 Hook API 使用的相关配置](../config/api-using)。
-
-###### exception
-
-::: danger UnsupportedOperationException
-
-!!!DANGEROUS!!! Hook \[**CLASS**\] Class is a dangerous behavior! \[**CONTENT**\] \[**SOLVE**\]
-
-:::
-
-**异常原因**
-
-你尝试 Hook 了处于危险行为列表中的 `Class` 对象，例如 `Class`、`ClassLoader`、`Method`。
-
-> 示例如下
-
-```kotlin
-// <情景1>
-JavaClassLoader.hook {
-    // ...
-}
-// <情景2>
-JavaClass.hook {
-    // ...
-}
-// <情景3>
-JavaMethod.hook {
-    // ...
-}
-// ...
-```
-
-**解决方案**
-
-这些功能是系统内部的，<u>**它们不应该被 Hook，在部分 Hook Framework 上可能不被支持，还会引发其它错误**</u>，请尝试更换 Hook 点。
-
-::: tip
-
-若你仍要使用此功能，请参考 [YukiMemberHookCreator.useDangerousOperation](../api/public/com/highcapable/yukihookapi/hook/core/YukiMemberHookCreator#usedangerousoperation-method) 方法。
-
-但是**强烈建议不要这样做，发生问题请不要反馈，<u>自行承担一切后果</u>**。
-
-:::
 
 ###### exception
 
@@ -1182,7 +1141,7 @@ class MyApplication : Application() {
 
     override fun attachBaseContext(base: Context?) {
         YukiHookAPI.encase(base) {
-            // ❗不能在这种情况下使用 prefs
+            // 不能在这种情况下使用 prefs
             prefs.getBoolean("test_data")
         }
         super.attachBaseContext(base)
@@ -1238,7 +1197,7 @@ class MyApplication : Application() {
 
     override fun attachBaseContext(base: Context?) {
         YukiHookAPI.encase(base) {
-            // ❗不能在这种情况下使用 dataChannel
+            // 不能在这种情况下使用 dataChannel
             dataChannel.wait(key = "test_data") {
                 // ...
             }
@@ -1287,7 +1246,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // ❗错误的使用方法
+        // 错误的使用方法
         // 构造方法已在 API 1.0.88 及以后的版本中设置为 private
         YukiHookPrefsBridge().getBoolean("test_data")
     }
@@ -1426,7 +1385,7 @@ Custom Hooking Members is empty
 injectMember {
     // 括号里的方法参数被留空了
     members()
-    afterHook {
+    after {
         // ...
     }
 }
@@ -1453,7 +1412,7 @@ HookParam Method args index must be >= 0
 ```kotlin
 injectMember {
     // ...
-    afterHook {
+    after {
         // 假设 param 是空的
         args().last()...
         // 设置了小于 0 的 index
@@ -1483,7 +1442,7 @@ HookParam instance got null! Is this a static member?
 ```kotlin
 injectMember {
     // ...
-    afterHook {
+    after {
         // 调用了此变量
         instance...
         // 调用了此方法
@@ -1513,7 +1472,7 @@ Current hooked Member args is null
 ```kotlin
 injectMember {
     // ...
-    afterHook {
+    after {
         // 调用了此变量
         args...
     }
@@ -1541,7 +1500,7 @@ Current hooked Member is null
 ```kotlin
 injectMember {
     // ...
-    afterHook {
+    after {
         // 调用了此变量
         member...
     }
@@ -1569,7 +1528,7 @@ Current hooked Member is not a Method
 ```kotlin
 injectMember {
     // ...
-    afterHook {
+    after {
         // 调用了此变量
         method...
     }
@@ -1597,7 +1556,7 @@ Current hooked Member is not a Constructor
 ```kotlin
 injectMember {
     // ...
-    afterHook {
+    after {
         // 调用了此变量
         constructor...
     }
@@ -1625,7 +1584,7 @@ HookParam instance cannot cast to **TYPE**
 ```kotlin
 injectMember {
     // ...
-    afterHook {
+    after {
         // 类型被 cast 为 Activity 但假设当前实例的类型并非此类型
         instance<Activity>()...
     }
@@ -1653,7 +1612,7 @@ HookParam Method args is empty, mabe not has args
 ```kotlin
 injectMember {
     // ...
-    afterHook {
+    after {
         // 调用了此方法
         args(...).set(...)
     }
@@ -1681,7 +1640,7 @@ HookParam Method args index out of bounds, max is **NUMBER**
 ```kotlin
 injectMember {
     // ...
-    afterHook {
+    after {
         // 下标从 0 开始，假设原始的参数下标是 5 个，但是这里填写了 6
         args(index = 6).set(...)
     }
@@ -1759,6 +1718,38 @@ TargetClass.hook {
 在 `hook` 内直接使用 `instanceClass` 是很危险的，若 Class 不存在则会直接导致 Hook 进程“死掉”。
 
 详情请参考 [状态监听](../guide/example#状态监听)。
+
+###### exception
+
+::: danger IllegalStateException 
+
+Use of searchClass { ... }.hook { ... } is an error, please use like searchClass { ... }.get()?.hook { ... }
+
+:::
+
+**异常原因**
+
+使用 `searchClass { ... }.hook { ... }` 方式直接创建了 Hook 实例。
+
+**解决方案**
+
+请使用 `searchClass { ... }.get()?.hook { ... }` 方式创建 Hook 实例。
+
+###### exception
+
+::: danger IllegalStateException 
+
+This type \[**TYPE**\] not support to hook, supported are Constructors and Methods
+
+:::
+
+**异常原因**
+
+使用 `Member.hook { ... }` 时创建了不支持 Hook 的成员对象，例如 `Field`。
+
+**解决方案**
+
+你只能 Hook `Constructor` 和 `Method`。
 
 ###### exception
 

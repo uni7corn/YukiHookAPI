@@ -1,27 +1,21 @@
 /*
  * YukiHookAPI - An efficient Hook API and Xposed Module solution built in Kotlin.
- * Copyright (C) 2019-2023 HighCapable
- * https://github.com/fankes/YukiHookAPI
+ * Copyright (C) 2019 HighCapable
+ * https://github.com/HighCapable/YukiHookAPI
  *
- * MIT License
+ * Apache License Version 2.0
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  * This file is created by fankes on 2022/9/12.
  */
@@ -44,7 +38,7 @@ import java.lang.reflect.Constructor
  * [Constructor] 查找条件实现类
  * @param rulesData 当前查找条件规则数据
  */
-class ConstructorRules internal constructor(@PublishedApi internal val rulesData: ConstructorRulesData) : BaseRules() {
+class ConstructorRules internal constructor(private val rulesData: ConstructorRulesData) : BaseRules() {
 
     /**
      * 设置 [Constructor] 参数个数
@@ -94,15 +88,15 @@ class ConstructorRules internal constructor(@PublishedApi internal val rulesData
      * param(StringType, BooleanType, VagueType, IntType)
      * ```
      *
-     * - ❗无参 [Constructor] 请使用 [emptyParam] 设置查找条件
+     * - 无参 [Constructor] 请使用 [emptyParam] 设置查找条件
      *
-     * - ❗有参 [Constructor] 必须使用此方法设定参数或使用 [paramCount] 指定个数
-     * @param paramType 参数类型数组 - ❗只能是 [Class]、[String]、[VariousClass]
+     * - 有参 [Constructor] 必须使用此方法设定参数或使用 [paramCount] 指定个数
+     * @param paramType 参数类型数组 - 只能是 [Class]、[String]、[VariousClass]
      */
     fun param(vararg paramType: Any) {
         if (paramType.isEmpty()) error("paramTypes is empty, please use emptyParam() instead")
         rulesData.paramTypes =
-            arrayListOf<Class<*>>().apply { paramType.forEach { add(it.compat(tag = "Constructor") ?: UndefinedType) } }.toTypedArray()
+            mutableListOf<Class<*>>().apply { paramType.forEach { add(it.compat(tag = "Constructor") ?: UndefinedType) } }.toTypedArray()
     }
 
     /**
@@ -114,9 +108,9 @@ class ConstructorRules internal constructor(@PublishedApi internal val rulesData
      * param { it[1] == StringClass || it[2].name == "java.lang.String" }
      * ```
      *
-     * - ❗无参 [Constructor] 请使用 [emptyParam] 设置查找条件
+     * - 无参 [Constructor] 请使用 [emptyParam] 设置查找条件
      *
-     * - ❗有参 [Constructor] 必须使用此方法设定参数或使用 [paramCount] 指定个数
+     * - 有参 [Constructor] 必须使用此方法设定参数或使用 [paramCount] 指定个数
      * @param conditions 条件方法体
      */
     fun param(conditions: ObjectsConditions) {
@@ -159,6 +153,5 @@ class ConstructorRules internal constructor(@PublishedApi internal val rulesData
      * 返回结果实现类
      * @return [MemberRulesResult]
      */
-    @PublishedApi
     internal fun build() = MemberRulesResult(rulesData)
 }

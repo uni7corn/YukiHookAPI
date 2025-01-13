@@ -1,27 +1,21 @@
 /*
  * YukiHookAPI - An efficient Hook API and Xposed Module solution built in Kotlin.
- * Copyright (C) 2019-2023 HighCapable
- * https://github.com/fankes/YukiHookAPI
+ * Copyright (C) 2019 HighCapable
+ * https://github.com/HighCapable/YukiHookAPI
  *
- * MIT License
+ * Apache License Version 2.0
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  * This file is created by fankes on 2022/2/2.
  */
@@ -77,9 +71,9 @@ fun IYukiHookXposedInit.encase(vararg hooker: YukiBaseHooker) = YukiHookAPI.enca
 /**
  * 获取模块的存取对象
  *
- * - ❗此方法已弃用 - 在之后的版本中将直接被删除
+ * - 此方法已弃用 - 在之后的版本中将直接被删除
  *
- * - ❗请现在转移到 [Context.prefs] 方法
+ * - 请现在迁移到 [Context.prefs] 方法
  * @return [YukiHookPrefsBridge]
  */
 @Deprecated(message = "请使用新的命名方法", ReplaceWith("prefs()"))
@@ -88,9 +82,9 @@ val Context.modulePrefs get() = prefs()
 /**
  * 获取模块的存取对象
  *
- * - ❗此方法已弃用 - 在之后的版本中将直接被删除
+ * - 此方法已弃用 - 在之后的版本中将直接被删除
  *
- * - ❗请现在转移到 [Context.prefs] 方法
+ * - 请现在迁移到 [Context.prefs] 方法
  * @return [YukiHookPrefsBridge]
  */
 @Deprecated(message = "请使用新的命名方法", ReplaceWith("prefs(name)"))
@@ -112,7 +106,7 @@ fun Context.prefs(name: String = "") = YukiHookPrefsBridge.from(context = this).
 /**
  * 获取 [YukiHookDataChannel] 对象
  *
- * - ❗只能在模块环境使用此功能 - 其它环境下使用将不起作用
+ * - 只能在模块环境使用此功能 - 其它环境下使用将不起作用
  * @param packageName 目标 Hook APP (宿主) 包名
  * @return [YukiHookDataChannel.NameSpace]
  */
@@ -139,11 +133,11 @@ val Context.processName
  *
  * 注入的资源作用域仅限当前 [Context] - 你需要在每个用到宿主 [Context] 的地方重复调用此方法进行注入才能使用
  *
- * 详情请参考 [注入模块资源 (Resources)](https://fankes.github.io/YukiHookAPI/zh-cn/api/special-features/host-inject#%E6%B3%A8%E5%85%A5%E6%A8%A1%E5%9D%97%E8%B5%84%E6%BA%90-resources)
+ * 详情请参考 [注入模块资源 (Resources)](https://highcapable.github.io/YukiHookAPI/zh-cn/api/special-features/host-inject#%E6%B3%A8%E5%85%A5%E6%A8%A1%E5%9D%97%E8%B5%84%E6%BA%90-resources)
  *
- * For English version, see [Inject Module App's Resources](https://fankes.github.io/YukiHookAPI/en/api/special-features/host-inject#inject-module-app-s-resources)
+ * For English version, see [Inject Module App's Resources](https://highcapable.github.io/YukiHookAPI/en/api/special-features/host-inject#inject-module-app-s-resources)
  *
- * - ❗只能在 (Xposed) 宿主环境使用此功能 - 其它环境下使用将不生效且会打印警告信息
+ * - 只能在 (Xposed) 宿主环境使用此功能 - 其它环境下使用将不生效且会打印警告信息
  */
 fun Context.injectModuleAppResources() = resources?.injectModuleAppResources()
 
@@ -154,11 +148,11 @@ fun Context.injectModuleAppResources() = resources?.injectModuleAppResources()
  *
  * 注入的资源作用域仅限当前 [Resources] - 你需要在每个用到宿主 [Resources] 的地方重复调用此方法进行注入才能使用
  *
- * 详情请参考 [注入模块资源 (Resources)](https://fankes.github.io/YukiHookAPI/zh-cn/api/special-features/host-inject#%E6%B3%A8%E5%85%A5%E6%A8%A1%E5%9D%97%E8%B5%84%E6%BA%90-resources)
+ * 详情请参考 [注入模块资源 (Resources)](https://highcapable.github.io/YukiHookAPI/zh-cn/api/special-features/host-inject#%E6%B3%A8%E5%85%A5%E6%A8%A1%E5%9D%97%E8%B5%84%E6%BA%90-resources)
  *
- * For English version, see [Inject Module App's Resources](https://fankes.github.io/YukiHookAPI/en/api/special-features/host-inject#inject-module-app-s-resources)
+ * For English version, see [Inject Module App's Resources](https://highcapable.github.io/YukiHookAPI/en/api/special-features/host-inject#inject-module-app-s-resources)
  *
- * - ❗只能在 (Xposed) 宿主环境使用此功能 - 其它环境下使用将不生效且会打印警告信息
+ * - 只能在 (Xposed) 宿主环境使用此功能 - 其它环境下使用将不生效且会打印警告信息
  */
 fun Resources.injectModuleAppResources() = AppParasitics.injectModuleAppResources(hostResources = this)
 
@@ -171,13 +165,13 @@ fun Resources.injectModuleAppResources() = AppParasitics.injectModuleAppResource
  *
  * - 你要将需要在宿主启动的 [Activity] 继承于 [ModuleAppActivity] or [ModuleAppCompatActivity]
  *
- * 详情请参考 [注册模块 Activity](https://fankes.github.io/YukiHookAPI/zh-cn/api/special-features/host-inject#%E6%B3%A8%E5%86%8C%E6%A8%A1%E5%9D%97-activity)
+ * 详情请参考 [注册模块 Activity](https://highcapable.github.io/YukiHookAPI/zh-cn/api/special-features/host-inject#%E6%B3%A8%E5%86%8C%E6%A8%A1%E5%9D%97-activity)
  *
- * For English version, see [Register Module App's Activity](https://fankes.github.io/YukiHookAPI/en/api/special-features/host-inject#register-module-app-s-activity)
+ * For English version, see [Register Module App's Activity](https://highcapable.github.io/YukiHookAPI/en/api/special-features/host-inject#register-module-app-s-activity)
  *
- * - ❗只能在 (Xposed) 宿主环境使用此功能 - 其它环境下使用将不生效且会打印警告信息
+ * - 只能在 (Xposed) 宿主环境使用此功能 - 其它环境下使用将不生效且会打印警告信息
  *
- * - ❗最低支持 Android 7.0 (API 24)
+ * - 最低支持 Android 7.0 (API 24)
  * @param proxy 代理的 [Activity] - 必须存在于宿主的 AndroidMainifest 清单中 - 不填使用默认 [Activity]
  */
 @RequiresApi(Build.VERSION_CODES.N)
@@ -190,9 +184,9 @@ fun Context.registerModuleAppActivities(proxy: Any? = null) = AppParasitics.regi
  *
  * - 如果在 Hook APP (宿主) 中使用此方法发生 [ClassCastException] - 请手动设置新的 [configuration]
  *
- * 详情请参考 [创建 ContextThemeWrapper 代理](https://fankes.github.io/YukiHookAPI/zh-cn/api/special-features/host-inject#%E5%88%9B%E5%BB%BA-contextthemewrapper-%E4%BB%A3%E7%90%86)
+ * 详情请参考 [创建 ContextThemeWrapper 代理](https://highcapable.github.io/YukiHookAPI/zh-cn/api/special-features/host-inject#%E5%88%9B%E5%BB%BA-contextthemewrapper-%E4%BB%A3%E7%90%86)
  *
- * For English version, see [Create ContextThemeWrapper Proxy](https://fankes.github.io/YukiHookAPI/en/api/special-features/host-inject#create-contextthemewrapper-proxy)
+ * For English version, see [Create ContextThemeWrapper Proxy](https://highcapable.github.io/YukiHookAPI/en/api/special-features/host-inject#create-contextthemewrapper-proxy)
  * @param theme 主题资源 ID
  * @param configuration 使用的 [Configuration] - 默认空
  * @return [ModuleContextThemeWrapper]

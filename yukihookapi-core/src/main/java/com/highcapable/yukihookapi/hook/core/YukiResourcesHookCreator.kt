@@ -1,42 +1,36 @@
 /*
  * YukiHookAPI - An efficient Hook API and Xposed Module solution built in Kotlin.
- * Copyright (C) 2019-2023 HighCapable
- * https://github.com/fankes/YukiHookAPI
+ * Copyright (C) 2019 HighCapable
+ * https://github.com/HighCapable/YukiHookAPI
  *
- * MIT License
+ * Apache License Version 2.0
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  * This file is created by fankes on 2022/5/1.
  */
-@file:Suppress("unused", "MemberVisibilityCanBePrivate")
+@file:Suppress(
+    "unused", "MemberVisibilityCanBePrivate", "NON_PUBLIC_CALL_FROM_PUBLIC_INLINE",
+    "DiscouragedApi", "UseCompatLoadingForDrawables", "DEPRECATION"
+)
 
 package com.highcapable.yukihookapi.hook.core
 
 import android.content.res.Resources
-import android.util.ArrayMap
 import com.highcapable.yukihookapi.YukiHookAPI
 import com.highcapable.yukihookapi.hook.bean.HookResources
 import com.highcapable.yukihookapi.hook.core.api.compat.HookApiCategoryHelper
-import com.highcapable.yukihookapi.hook.log.yLoggerE
-import com.highcapable.yukihookapi.hook.log.yLoggerI
-import com.highcapable.yukihookapi.hook.log.yLoggerW
+import com.highcapable.yukihookapi.hook.log.YLog
 import com.highcapable.yukihookapi.hook.param.PackageParam
 import com.highcapable.yukihookapi.hook.xposed.bridge.resources.YukiResources
 import com.highcapable.yukihookapi.hook.xposed.bridge.type.HookEntryType
@@ -47,14 +41,10 @@ import com.highcapable.yukihookapi.hook.xposed.bridge.type.HookEntryType
  * @param packageParam 需要传入 [PackageParam] 实现方法调用
  * @param hookResources 要 Hook 的 [HookResources] 实例
  */
-class YukiResourcesHookCreator @PublishedApi internal constructor(
-    @PublishedApi internal val packageParam: PackageParam,
-    @PublishedApi internal val hookResources: HookResources
-) {
+class YukiResourcesHookCreator internal constructor(internal val packageParam: PackageParam, internal val hookResources: HookResources) {
 
     /** 设置要 Hook 的 Resources */
-    @PublishedApi
-    internal var preHookResources = ArrayMap<String, ResourcesHookCreator>()
+    private var preHookResources = mutableMapOf<String, ResourcesHookCreator>()
 
     /**
      * 注入要 Hook 的 Resources
@@ -66,12 +56,11 @@ class YukiResourcesHookCreator @PublishedApi internal constructor(
         ResourcesHookCreator(tag).apply(initiate).apply { preHookResources[toString()] = this }.build()
 
     /** Hook 执行入口 */
-    @PublishedApi
     internal fun hook() {
         if (HookApiCategoryHelper.hasAvailableHookApi.not()) return
         /** 过滤 [HookEntryType.ZYGOTE] 与 [HookEntryType.RESOURCES] */
         if (packageParam.wrapper?.type == HookEntryType.PACKAGE) return
-        if (preHookResources.isEmpty()) return yLoggerW(msg = "Hook Resources is empty, hook aborted")
+        if (preHookResources.isEmpty()) return YLog.innerW("Hook Resources is empty, hook aborted")
         preHookResources.forEach { (_, r) -> r.hook() }
     }
 
@@ -81,7 +70,7 @@ class YukiResourcesHookCreator @PublishedApi internal constructor(
      * 查找和处理需要 Hook 的 Resources
      * @param tag 当前设置的标签
      */
-    inner class ResourcesHookCreator @PublishedApi internal constructor(private val tag: String) {
+    inner class ResourcesHookCreator internal constructor(private val tag: String) {
 
         /** 是否已经执行 Hook */
         private var isHooked = false
@@ -93,18 +82,22 @@ class YukiResourcesHookCreator @PublishedApi internal constructor(
         private inner class ModuleResFwd(var resId: Int)
 
         /** 是否对当前 [ResourcesHookCreator] 禁止执行 Hook 操作 */
-        @PublishedApi
-        internal var isDisableCreatorRunHook = false
+        private var isDisableCreatorRunHook = false
 
         /** 当前的查找条件 */
-        @PublishedApi
-        internal var conditions: ConditionFinder? = null
+        private var conditions: ConditionFinder? = null
 
         /** Hook 出现错误回调 */
         private var onHookFailureCallback: ((Throwable) -> Unit)? = null
 
         /** 当前的替换值实例 */
         private var replaceInstance: Any? = null
+
+        /** 当前的替换值回调 */
+        private var replaceCallback: ((Any) -> Any?)? = null
+
+        /** 当前的替换值回调 */
+        private var replaceFwdCallback: ((Any) -> Int)? = null
 
         /** 当前的布局注入实例 */
         private var layoutInstance: (YukiResources.LayoutInflatedParam.() -> Unit)? = null
@@ -133,14 +126,14 @@ class YukiResourcesHookCreator @PublishedApi internal constructor(
         /**
          * 替换指定 Resources 为 true
          *
-         * - ❗确保目标替换 Resources 的类型为 [Boolean]
+         * - 确保目标替换 Resources 的类型为 [Boolean]
          */
         fun replaceToTrue() = replaceTo(any = true)
 
         /**
          * 替换指定 Resources 为 false
          *
-         * - ❗确保目标替换 Resources 的类型为 [Boolean]
+         * - 确保目标替换 Resources 的类型为 [Boolean]
          */
         fun replaceToFalse() = replaceTo(any = false)
 
@@ -152,6 +145,32 @@ class YukiResourcesHookCreator @PublishedApi internal constructor(
          */
         fun replaceToModuleResource(resId: Int) {
             replaceInstance = ModuleResFwd(resId)
+        }
+
+        /**
+         * 替换指定 Resources 为指定的值
+         *
+         * - 此方法只支持部分类型 - 例如 [String]、[Boolean]
+         *
+         * - 此方法不支持在 [HookEntryType.ZYGOTE] 时使用
+         * @param result 回调原始值、返回需要替换的类型
+         */
+        fun replaceTo(result: (original: Any) -> Any?) {
+            replaceCallback = result
+        }
+
+        /**
+         * 替换为当前 Xposed 模块的 Resources
+         *
+         * 你可以直接使用模块的 R.string.xxx、R.mipmap.xxx、R.drawable.xxx 替换 Hook APP 的 Resources
+         *
+         * - 此方法只支持部分类型 - 例如 [String]、[Boolean]
+         *
+         * - 此方法不支持在 [HookEntryType.ZYGOTE] 时使用
+         * @param result 回调原始值、返回需要替换的当前 Xposed 模块的 Resources Id
+         */
+        fun replaceToModuleResource(result: (original: Any) -> Int) {
+            replaceFwdCallback = result
         }
 
         /**
@@ -173,35 +192,46 @@ class YukiResourcesHookCreator @PublishedApi internal constructor(
          * Hook 创建入口
          * @return [Result]
          */
-        @PublishedApi
         internal fun build() = Result()
 
         /** Hook 执行入口 */
-        @PublishedApi
         internal fun hook() {
             if (isHooked) return
             isHooked = true
             if (isDisableCreatorRunHook.not()) runCatching {
                 when {
-                    conditions == null -> yLoggerE(msg = "You must set the conditions before hook a Resources [$tag]")
-                    replaceInstance == null && layoutInstance == null -> yLoggerE(msg = "Resources Hook got null replaceInstance [$tag]")
+                    conditions == null -> YLog.innerE("You must set the conditions before hook a Resources [$tag]")
+                    replaceInstance == null && replaceCallback == null && replaceFwdCallback == null && layoutInstance == null ->
+                        YLog.innerE("Resources Hook got null replaceInstance [$tag]")
                     packageParam.wrapper?.type == HookEntryType.RESOURCES && hookResources.instance != null ->
                         if (resourceId == -1) when {
                             layoutInstance != null ->
                                 hookResources.instance?.hookLayout(
                                     packageParam.packageName, conditions!!.type,
                                     conditions!!.name, layoutInstance!!
-                                ) { onHookLogMsg(msg = "Hook Resources Layout $conditions done [$tag]") }
+                                ) { YLog.innerD("Hook Resources Layout $conditions done [$tag]") }
+                            replaceCallback != null -> conditionsResValue?.let {
+                                hookResources.instance?.setReplacement(
+                                    packageParam.packageName, conditions!!.type,
+                                    conditions!!.name, compat(replaceCallback!!(it))
+                                ) { YLog.innerD("Hook Resources Value $conditions done [$tag]") }
+                            } ?: YLog.innerW("Resources type \"${conditions!!.type}\" not support replaceTo { ... } function")
+                            replaceFwdCallback != null -> conditionsResValue?.let {
+                                hookResources.instance?.setReplacement(
+                                    packageParam.packageName, conditions!!.type,
+                                    conditions!!.name, compat(ModuleResFwd(replaceFwdCallback!!(it)))
+                                ) { YLog.innerD("Hook Resources Value $conditions done [$tag]") }
+                            } ?: YLog.innerW("Resources type \"${conditions!!.type}\" not support replaceToModuleResource { ... } function")
                             else -> hookResources.instance?.setReplacement(
                                 packageParam.packageName, conditions!!.type,
                                 conditions!!.name, compat(replaceInstance)
-                            ) { onHookLogMsg(msg = "Hook Resources Value $conditions done [$tag]") }
+                            ) { YLog.innerD("Hook Resources Value $conditions done [$tag]") }
                         } else when {
                             layoutInstance != null -> hookResources.instance?.hookLayout(resourceId, layoutInstance!!) {
-                                onHookLogMsg(msg = "Hook Resources Layout Id $resourceId done [$tag]")
+                                YLog.innerD("Hook Resources Layout Id $resourceId done [$tag]")
                             }
                             else -> hookResources.instance?.setReplacement(resourceId, compat(replaceInstance)) {
-                                onHookLogMsg(msg = "Hook Resources Value Id $resourceId done [$tag]")
+                                YLog.innerD("Hook Resources Value Id $resourceId done [$tag]")
                             }
                         }
                     packageParam.wrapper?.type == HookEntryType.ZYGOTE ->
@@ -210,40 +240,57 @@ class YukiResourcesHookCreator @PublishedApi internal constructor(
                                 YukiResources.hookSystemWideLayout(
                                     packageParam.packageName, conditions!!.type,
                                     conditions!!.name, layoutInstance!!
-                                ) { onHookLogMsg(msg = "Hook Wide Resources Layout $conditions done [$tag]") }
+                                ) { YLog.innerD("Hook Wide Resources Layout $conditions done [$tag]") }
+                            replaceCallback != null -> YLog.innerW("Zygote not support replaceTo { ... } function")
+                            replaceFwdCallback != null -> YLog.innerW("Zygote not support replaceToModuleResource { ... } function")
                             else -> YukiResources.setSystemWideReplacement(
                                 packageParam.packageName, conditions!!.type,
                                 conditions!!.name, compat(replaceInstance)
-                            ) { onHookLogMsg(msg = "Hook Wide Resources Value $conditions done [$tag]") }
+                            ) { YLog.innerD("Hook Wide Resources Value $conditions done [$tag]") }
                         } else when {
                             layoutInstance != null -> YukiResources.hookSystemWideLayout(resourceId, layoutInstance!!) {
-                                onHookLogMsg(msg = "Hook Wide Resources Layout Id $resourceId done [$tag]")
+                                YLog.innerD("Hook Wide Resources Layout Id $resourceId done [$tag]")
                             }
                             else -> YukiResources.setSystemWideReplacement(resourceId, compat(replaceInstance)) {
-                                onHookLogMsg(msg = "Hook Wide Resources Value Id $resourceId done [$tag]")
+                                YLog.innerD("Hook Wide Resources Value Id $resourceId done [$tag]")
                             }
                         }
-                    else -> yLoggerE(msg = "Resources Hook type is invalid [$tag]")
+                    else -> YLog.innerE("Resources Hook type is invalid [$tag]")
                 }
             }.onFailure {
                 if (onHookFailureCallback == null)
-                    yLoggerE(msg = "Resources Hook got an Exception [$tag]", e = it)
+                    YLog.innerE("Resources Hook got an exception [$tag]", it)
                 else onHookFailureCallback?.invoke(it)
             }
         }
 
         /**
-         * Hook 过程中开启了 [YukiHookAPI.Configs.isDebug] 输出调试信息
-         * @param msg 调试日志内容
+         * 获得查找条件中的宿主原始 [Resources]
+         * @return [Any] or null
          */
-        private fun onHookLogMsg(msg: String) {
-            if (YukiHookAPI.Configs.isDebug) yLoggerI(msg = msg)
+        private val conditionsResValue get(): Any? {
+            val appResources = packageParam.appResources ?: error("Failed to got Host Resources")
+            val original = runCatching {
+                appResources.getIdentifier(conditions!!.name, conditions!!.type, packageParam.packageName)
+            }.getOrNull() ?: -1
+            return when (conditions!!.type) {
+                "anim" -> appResources.getAnimation(original)
+                "bool" -> appResources.getBoolean(original)
+                "color" -> appResources.getColor(original)
+                "dimen" -> appResources.getDimension(original)
+                "drawable", "mipmap" -> appResources.getDrawable(original)
+                "integer" -> appResources.getInteger(original)
+                "layout" -> appResources.getLayout(original)
+                "string" -> appResources.getString(original)
+                "xml" -> appResources.getXml(original)
+                else -> null
+            }
         }
 
         /**
          * Resources 查找条件实现类
          */
-        inner class ConditionFinder @PublishedApi internal constructor() {
+        inner class ConditionFinder internal constructor() {
 
             /** Resources 类型 */
             internal var type = ""
@@ -321,7 +368,6 @@ class YukiResourcesHookCreator @PublishedApi internal constructor(
              * @return [ConditionFinder]
              * @throws IllegalStateException 如果没有设置 [name] or [type]
              */
-            @PublishedApi
             internal fun build(): ConditionFinder {
                 when {
                     name.isBlank() -> error("Resources Hook condition name cannot be empty [$tag]")

@@ -1,27 +1,21 @@
 /*
  * YukiHookAPI - An efficient Hook API and Xposed Module solution built in Kotlin.
- * Copyright (C) 2019-2023 HighCapable
- * https://github.com/fankes/YukiHookAPI
+ * Copyright (C) 2019 HighCapable
+ * https://github.com/HighCapable/YukiHookAPI
  *
- * MIT License
+ * Apache License Version 2.0
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  * This file is created by fankes on 2023/1/9.
  */
@@ -30,51 +24,36 @@
 package com.highcapable.yukihookapi.hook.xposed.bridge.caller
 
 import android.content.pm.ApplicationInfo
-import com.highcapable.yukihookapi.annotation.YukiGenerateApi
-import com.highcapable.yukihookapi.hook.log.yLoggerE
+import com.highcapable.yukihookapi.hook.log.YLog
 import com.highcapable.yukihookapi.hook.xposed.bridge.YukiXposedModule
 import com.highcapable.yukihookapi.hook.xposed.bridge.resources.YukiResources
 import com.highcapable.yukihookapi.hook.xposed.bridge.type.HookEntryType
 
 /**
  * Xposed 模块核心功能调用类
- *
- * - ❗装载代码将自动生成 - 请勿手动调用
  */
-@YukiGenerateApi
-object YukiXposedModuleCaller {
+internal object YukiXposedModuleCaller {
 
     /**
      * 模块是否装载了 Xposed 回调方法
-     *
-     * - ❗装载代码将自动生成 - 你不应该手动使用此方法装载 Xposed 模块事件
      * @return [Boolean]
      */
-    @YukiGenerateApi
-    val isXposedCallbackSetUp get() = YukiXposedModule.isXposedCallbackSetUp
+    internal val isXposedCallbackSetUp get() = YukiXposedModule.isXposedCallbackSetUp
 
     /**
      * 标识 Xposed 模块开始装载
-     *
-     * - ❗装载代码将自动生成 - 你不应该手动使用此方法装载 Xposed 模块事件
      * @param packageName 当前 Xposed 模块包名
      * @param appFilePath 当前 Xposed 模块自身 APK 路径
      */
-    @YukiGenerateApi
-    fun callOnStartLoadModule(packageName: String, appFilePath: String) = YukiXposedModule.onStartLoadModule(packageName, appFilePath)
+    internal fun callOnStartLoadModule(packageName: String, appFilePath: String) = YukiXposedModule.onStartLoadModule(packageName, appFilePath)
 
     /**
      * 标识 Xposed 模块装载完成
-     *
-     * - ❗装载代码将自动生成 - 你不应该手动使用此方法装载 Xposed 模块事件
      */
-    @YukiGenerateApi
-    fun callOnFinishLoadModule() = YukiXposedModule.onFinishLoadModule()
+    internal fun callOnFinishLoadModule() = YukiXposedModule.onFinishLoadModule()
 
     /**
      * 标识可用的 Hook APP (宿主) 开始装载
-     *
-     * - ❗装载代码将自动生成 - 你不应该手动使用此方法装载 Xposed 模块事件
      * @param type 当前正在进行的 Hook 类型
      * @param packageName 宿主包名
      * @param processName 宿主进程名
@@ -82,8 +61,7 @@ object YukiXposedModuleCaller {
      * @param appInfo 宿主 [ApplicationInfo]
      * @param appResources 宿主 [YukiResources]
      */
-    @YukiGenerateApi
-    fun callOnPackageLoaded(
+    internal fun callOnPackageLoaded(
         type: HookEntryType,
         packageName: String?,
         processName: String? = "",
@@ -93,12 +71,9 @@ object YukiXposedModuleCaller {
     ) = YukiXposedModule.onPackageLoaded(type, packageName, processName, appClassLoader, appInfo, appResources)
 
     /**
-     * 打印内部 E 级别的日志
-     *
-     * - ❗装载代码将自动生成 - 请勿手动调用
+     * 打印 Error 级别 Log
      * @param msg 日志打印的内容
      * @param e 异常堆栈信息 - 默认空
      */
-    @YukiGenerateApi
-    fun internalLoggerE(msg: String, e: Throwable? = null) = yLoggerE(msg = msg, e = e)
+    internal fun callLogError(msg: String, e: Throwable? = null) = YLog.innerE(msg, e)
 }

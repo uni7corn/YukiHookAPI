@@ -1,27 +1,21 @@
 /*
  * YukiHookAPI - An efficient Hook API and Xposed Module solution built in Kotlin.
- * Copyright (C) 2019-2023 HighCapable
- * https://github.com/fankes/YukiHookAPI
+ * Copyright (C) 2019 HighCapable
+ * https://github.com/HighCapable/YukiHookAPI
  *
- * MIT License
+ * Apache License Version 2.0
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  * This file is created by fankes on 2022/2/2.
  */
@@ -71,9 +65,9 @@ fun ArrayClass(type: Class<*>) = JavaArray.newInstance(type, 0).javaClass as Cla
 /**
  * 获得 [Any] 类型
  *
- * - ❗此方法已弃用 - 在之后的版本中将直接被删除
+ * - 此方法已弃用 - 在之后的版本中将直接被删除
  *
- * - ❗请现在转移到 [AnyClass]
+ * - 请现在迁移到 [AnyClass]
  * @return [Class]<[Any]>
  */
 @Deprecated(message = "请使用新的命名方法", ReplaceWith("AnyClass"))
@@ -242,9 +236,9 @@ val UnitClass get() = classOf<Void>()
 /**
  * 获得 [String] 类型
  *
- * - ❗此方法已弃用 - 在之后的版本中将直接被删除
+ * - 此方法已弃用 - 在之后的版本中将直接被删除
  *
- * - ❗请现在转移到 [StringClass]
+ * - 请现在迁移到 [StringClass]
  * @return [Class]<[String]>
  */
 @Deprecated(message = "请使用新的命名方法", ReplaceWith("StringClass"))
@@ -253,9 +247,9 @@ val StringType get() = StringClass
 /**
  * 获得 [CharSequence] 类型
  *
- * - ❗此方法已弃用 - 在之后的版本中将直接被删除
+ * - 此方法已弃用 - 在之后的版本中将直接被删除
  *
- * - ❗请现在转移到 [CharSequenceClass]
+ * - 请现在迁移到 [CharSequenceClass]
  * @return [Class]<[CharSequence]>
  */
 @Deprecated(message = "请使用新的命名方法", ReplaceWith("CharSequenceClass"))
@@ -326,9 +320,9 @@ val ShortArrayType get() = ArrayClass(ShortType)
 /**
  * 获得 [Short] - [Array] 类型
  *
- * - ❗此方法已弃用 - 在之后的版本中将直接被删除
+ * - 此方法已弃用 - 在之后的版本中将直接被删除
  *
- * - ❗请现在转移到 [ShortArrayType]
+ * - 请现在迁移到 [ShortArrayType]
  * @return [Class]<[JavaArray]>
  */
 @Deprecated(message = "请使用修复后的命名方法", ReplaceWith("ShortArrayType"))
@@ -597,7 +591,7 @@ val ThreadClass get() = classOf<Thread>()
 /**
  * 获得 [Base64] 类型
  *
- * - ❗在 Android O (26) 及以上系统加入
+ * - 在 Android O (26) 及以上系统加入
  * @return [Class]<[Base64]> or null
  */
 val Base64Class_Java get() = if (Build.VERSION.SDK_INT >= 26) classOf<Base64>() else null

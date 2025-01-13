@@ -24,7 +24,7 @@ class DexClassFinder internal constructor(
 
 ::: warning
 
-此功能尚在试验阶段，性能与稳定性可能仍然存在问题，使用过程遇到问题请向我们报告并帮助我们改进。
+此功能尚实验阶段，性能与稳定性可能仍然存在问题，使用过程遇到问题请向我们报告并帮助我们改进。
 
 :::
 
@@ -433,7 +433,7 @@ fun enclosing(vararg name: String)
 ## FromPackageRules <span class="symbol">- class</span>
 
 ```kotlin:no-line-numbers
-inner class FromPackageRules internal constructor(private val packages: ArrayList<ClassRulesData.PackageRulesData>)
+inner class FromPackageRules internal constructor(private val packages: MutableList<ClassRulesData.PackageRulesData>)
 ```
 
 **变更记录**
@@ -617,12 +617,16 @@ fun get(): Class<*>?
 ### all <span class="symbol">- method</span>
 
 ```kotlin:no-line-numbers
-fun all(): HashSet<Class<*>>
+fun all(): MutableList<Class<*>>
 ```
 
 **变更记录**
 
 `v1.1.0` `新增`
+
+`v1.2.0` `修改`
+
+返回值类型由 `HashSet` 修改为 `MutableList`
 
 **功能描述**
 
@@ -630,7 +634,7 @@ fun all(): HashSet<Class<*>>
 
 返回全部查找条件匹配的多个 `Class` 实例。
 
-在查找条件找不到任何结果的时候将返回空的 `HashSet`。
+在查找条件找不到任何结果的时候将返回空的 `MutableList`。
 
 若你设置了 `async` 请使用 [waitAll](#waitall-method) 方法。
 
@@ -677,12 +681,16 @@ fun wait(result: (Class<*>?) -> Unit): Result
 ### waitAll <span class="symbol">- method</span>
 
 ```kotlin:no-line-numbers
-fun waitAll(result: (HashSet<Class<*>>) -> Unit): Result
+fun waitAll(result: (MutableList<Class<*>>) -> Unit): Result
 ```
 
 **变更记录**
 
 `v1.1.0` `新增`
+
+`v1.2.0` `修改`
+
+`result` 类型由 `HashSet` 修改为 `MutableList`
 
 **功能描述**
 
@@ -690,7 +698,7 @@ fun waitAll(result: (HashSet<Class<*>>) -> Unit): Result
 
 回调全部查找条件匹配的多个 `Class` 实例。
 
-在查找条件找不到任何结果的时候将回调空的 `HashSet`。
+在查找条件找不到任何结果的时候将回调空的 `MutableList`。
 
 你需要设置 `async` 后此方法才会被回调，否则请使用 [all](#all-method) 方法。
 

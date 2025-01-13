@@ -6,7 +6,7 @@
 
 > 作为 Xposed 模块，`YukiHookAPI` 提供了一个自动处理程序。
 
-你需要在你的 `build.gradle` 中集成 `com.highcapable.yukihookapi:ksp-xposed` 依赖的最新版本。
+你需要在你的构建脚本中集成 `com.highcapable.yukihookapi:ksp-xposed` 依赖的最新版本。
 
 ## 自定义处理程序
 
@@ -19,6 +19,7 @@ annotation class InjectYukiHookWithXposed(
     val sourcePath: String,
     val modulePackageName: String,
     val entryClassName: String,
+    val isUsingXposedModuleStatus: Boolean,
     val isUsingResourcesHook: Boolean
 )
 ```
@@ -61,6 +62,32 @@ annotation class InjectYukiHookWithXposed(
 
 :::
 
+::: danger
+
+在 Android Gradle Plugin **8+** 版本中，你需要手动在项目的 **build.gradle** 或 **build.gradle.kts** 中启用 **buildConfig**。
+
+> Groovy DSL
+
+```groovy
+android {
+    buildFeatures {
+        buildConfig true
+    }
+}
+```
+
+> Kotlin DSL
+
+```kt
+android {
+    buildFeatures {
+        buildConfig = true
+    }
+}
+```
+
+:::
+
 示例命名空间 `com.example.demo`，以下定义方式任选其一。
 
 以下定义方式仅供参考，通常情况下**只要你的项目能够正常生成 `BuildConfig.java` 文件，就不需要做额外操作**。
@@ -95,6 +122,12 @@ android {
 ```kotlin
 @InjectYukiHookWithXposed(modulePackageName = "com.example.demo")
 ```
+
+::: danger
+
+请不要在 **modulePackageName** 中填写 **BuildConfig.APPLICATION_ID**，这会在编译过程中获取到空字符串，这取决于 Android Gradle Plugin 的行为。 
+
+:::
 
 只要你自定义了 `modulePackageName` 的参数，你就会在编译时收到警告。
 
@@ -180,9 +213,48 @@ class HookXposedEntry : IXposedHookZygoteInit, IXposedHookLoadPackage, ...
 
 :::
 
+#### isUsingXposedModuleStatus 参数
+
+`isUsingXposedModuleStatus` 决定了自动处理程序是否生成针对 Xposed 模块激活等状态功能的相关代码，此功能默认启用。
+
+生成后你将可以在模块进程中使用 `YukiHookAPI.Status` 的相关功能。
+
+如果你不希望生成相关代码，你可以手动关闭此功能，仅对模块进程生效。
+
 #### isUsingResourcesHook 参数
 
-`isUsingResourcesHook` 决定了自动处理程序是否生成针对 Resources Hook 的相关代码，此功能默认是启用的。
+`isUsingResourcesHook` 决定了自动处理程序是否生成针对 Resources Hook 的相关代码，此功能默认不启用。
+
+默认情况下生成的入口类将为如下所示。
+
+> 示例如下
+
+```kotlin:no-line-numbers
+class _YukiHookXposedInit : IXposedHookZygoteInit, IXposedHookLoadPackage {
+
+    override fun initZygote(sparam: IXposedHookZygoteInit.StartupParam?) {
+        // ...
+    }
+
+    override fun handleLoadPackage(lpparam: XC_LoadPackage.LoadPackageParam?) {
+        // ...
+    }
+}
+```
+
+若你当前的项目需要用到 Resources Hook，可以设置 `isUsingResourcesHook = true` 来启用自动生成。
+
+::: warning
+
+此功能在 **1.2.0** 版本后将不再默认启用，如需使用请手动启用。
+
+:::
+
+>  示例如下
+
+```kotlin
+@InjectYukiHookWithXposed(isUsingResourcesHook = true)
+```
 
 启用后生成的入口类将为如下所示。
 
@@ -200,31 +272,6 @@ class _YukiHookXposedInit : IXposedHookZygoteInit, IXposedHookLoadPackage, IXpos
     }
 
     override fun handleInitPackageResources(resparam: XC_InitPackageResources.InitPackageResourcesParam?) {
-        // ...
-    }
-}
-```
-
-若你当前的项目并不需要用到 Resources Hook，可以设置 `isUsingResourcesHook = false` 来关闭自动生成。
-
->  示例如下
-
-```kotlin
-@InjectYukiHookWithXposed(isUsingResourcesHook = false)
-```
-
-关闭后生成的入口类将为如下所示。
-
-> 示例如下
-
-```kotlin:no-line-numbers
-class _YukiHookXposedInit : IXposedHookZygoteInit, IXposedHookLoadPackage {
-
-    override fun initZygote(sparam: IXposedHookZygoteInit.StartupParam?) {
-        // ...
-    }
-
-    override fun handleLoadPackage(lpparam: XC_LoadPackage.LoadPackageParam?) {
         // ...
     }
 }

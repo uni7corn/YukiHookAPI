@@ -1,27 +1,21 @@
 /*
  * YukiHookAPI - An efficient Hook API and Xposed Module solution built in Kotlin.
- * Copyright (C) 2019-2023 HighCapable
- * https://github.com/fankes/YukiHookAPI
+ * Copyright (C) 2019 HighCapable
+ * https://github.com/HighCapable/YukiHookAPI
  *
- * MIT License
+ * Apache License Version 2.0
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  * This file is created by fankes on 2022/9/12.
  */
@@ -44,7 +38,6 @@ import java.lang.reflect.Member
  */
 open class BaseRules internal constructor(internal var instance: DexClassFinder? = null) {
 
-    @PublishedApi
     internal companion object {
 
         /**
@@ -52,7 +45,6 @@ open class BaseRules internal constructor(internal var instance: DexClassFinder?
          * @param instance 当前查找类实例
          * @return [MemberRulesData]
          */
-        @PublishedApi
         internal fun createMemberRules(instance: DexClassFinder) =
             MemberRules(MemberRulesData().apply { instance.rulesData.memberRules.add(this) }).apply { this.instance = instance }
 
@@ -60,7 +52,6 @@ open class BaseRules internal constructor(internal var instance: DexClassFinder?
          * 创建查找条件规则数据
          * @return [FieldRulesData]
          */
-        @PublishedApi
         internal fun createFieldRules(instance: DexClassFinder) =
             FieldRules(FieldRulesData().apply { instance.rulesData.fieldRules.add(this) }).apply { this.instance = instance }
 
@@ -68,7 +59,6 @@ open class BaseRules internal constructor(internal var instance: DexClassFinder?
          * 创建查找条件规则数据
          * @return [MethodRulesData]
          */
-        @PublishedApi
         internal fun createMethodRules(instance: DexClassFinder) =
             MethodRules(MethodRulesData().apply { instance.rulesData.methodRules.add(this) }).apply { this.instance = instance }
 
@@ -76,7 +66,6 @@ open class BaseRules internal constructor(internal var instance: DexClassFinder?
          * 创建查找条件规则数据
          * @return [ConstructorRulesData]
          */
-        @PublishedApi
         internal fun createConstructorRules(instance: DexClassFinder) =
             ConstructorRules(ConstructorRulesData().apply { instance.rulesData.constroctorRules.add(this) }).apply { this.instance = instance }
     }

@@ -22,34 +22,22 @@ features:
     details: 构建的 Xposed 模块原生支持 R8 压缩优化混淆，混淆不会破坏 Hook 入口点，R8 下无需任何其它配置。
   - title: 快速上手
     details: 简单易用，不需要繁琐的配置，不需要十足的开发经验，搭建环境集成依赖即可立即开始使用。
-footer: MIT License | Copyright (C) 2019-2023 HighCapable
+footer: Apache-2.0 License | Copyright (C) 2019 HighCapable
 ---
 
 ### 所有 Hook 流程一步到位，拒绝繁琐
 
 ```kotlin
 loadApp(name = "com.android.browser") {
-    ActivityClass.hook {
-        injectMember {
-            method {
-                name = "onCreate"
-                param(BundleClass)
-            }
-            beforeHook {
-                // Your code here.
-            }
-            afterHook {
-                // Your code here.
-            }
+    ActivityClass.method {
+        name = "onCreate"
+        param(BundleClass)
+    }.hook {
+        before {
+          // Your code here.
         }
-    }
-    resources().hook {
-        injectResource {
-            conditions {
-                name = "ic_launcher"
-                mipmap()
-            }
-            replaceToModuleResource(R.mipmap.ic_launcher)
+        after {
+          // Your code here.
         }
     }
 }

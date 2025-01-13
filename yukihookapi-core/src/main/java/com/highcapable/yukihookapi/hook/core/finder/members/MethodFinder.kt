@@ -1,35 +1,28 @@
 /*
  * YukiHookAPI - An efficient Hook API and Xposed Module solution built in Kotlin.
- * Copyright (C) 2019-2023 HighCapable
- * https://github.com/fankes/YukiHookAPI
+ * Copyright (C) 2019 HighCapable
+ * https://github.com/HighCapable/YukiHookAPI
  *
- * MIT License
+ * Apache License Version 2.0
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  * This file is created by fankes on 2022/2/4.
  */
-@file:Suppress("unused", "MemberVisibilityCanBePrivate", "UNCHECKED_CAST", "KotlinConstantConditions", "UNCHECKED_CAST")
+@file:Suppress("unused", "MemberVisibilityCanBePrivate", "UNCHECKED_CAST", "KotlinConstantConditions", "NON_PUBLIC_CALL_FROM_PUBLIC_INLINE")
 
 package com.highcapable.yukihookapi.hook.core.finder.members
 
-import com.highcapable.yukihookapi.annotation.YukiPrivateApi
 import com.highcapable.yukihookapi.hook.bean.VariousClass
 import com.highcapable.yukihookapi.hook.core.YukiMemberHookCreator
 import com.highcapable.yukihookapi.hook.core.api.helper.YukiHookHelper
@@ -44,11 +37,11 @@ import com.highcapable.yukihookapi.hook.core.finder.type.factory.NameConditions
 import com.highcapable.yukihookapi.hook.core.finder.type.factory.ObjectConditions
 import com.highcapable.yukihookapi.hook.core.finder.type.factory.ObjectsConditions
 import com.highcapable.yukihookapi.hook.factory.hasExtends
-import com.highcapable.yukihookapi.hook.log.yLoggerW
+import com.highcapable.yukihookapi.hook.log.YLog
 import com.highcapable.yukihookapi.hook.type.defined.UndefinedType
 import com.highcapable.yukihookapi.hook.type.defined.VagueType
-import com.highcapable.yukihookapi.hook.utils.runBlocking
-import com.highcapable.yukihookapi.hook.utils.unit
+import com.highcapable.yukihookapi.hook.utils.factory.runBlocking
+import com.highcapable.yukihookapi.hook.utils.factory.unit
 import java.lang.reflect.Member
 import java.lang.reflect.Method
 
@@ -58,10 +51,8 @@ import java.lang.reflect.Method
  * 可通过指定类型查找指定 [Method] 或一组 [Method]
  * @param classSet 当前需要查找的 [Class] 实例
  */
-class MethodFinder @PublishedApi internal constructor(@PublishedApi override val classSet: Class<*>? = null) :
-    MemberBaseFinder(tag = "Method", classSet) {
+class MethodFinder internal constructor(override val classSet: Class<*>? = null) : MemberBaseFinder(tag = "Method", classSet) {
 
-    @PublishedApi
     internal companion object {
 
         /**
@@ -70,12 +61,10 @@ class MethodFinder @PublishedApi internal constructor(@PublishedApi override val
          * @param classSet 当前需要查找的 [Class] 实例
          * @return [MethodFinder]
          */
-        @PublishedApi
         internal fun fromHooker(hookInstance: YukiMemberHookCreator.MemberHookCreator, classSet: Class<*>? = null) =
             MethodFinder(classSet).apply { hookerManager.instance = hookInstance }
     }
 
-    @PublishedApi
     override var rulesData = MethodRulesData()
 
     /** 当前使用的 [classSet] */
@@ -87,7 +76,7 @@ class MethodFinder @PublishedApi internal constructor(@PublishedApi override val
     /**
      * 设置 [Method] 名称
      *
-     * - ❗若不填写名称则必须存在一个其它条件
+     * - 若不填写名称则必须存在一个其它条件
      * @return [String]
      */
     var name
@@ -113,7 +102,7 @@ class MethodFinder @PublishedApi internal constructor(@PublishedApi override val
     /**
      * 设置 [Method] 返回值
      *
-     * - ❗只能是 [Class]、[String]、[VariousClass]
+     * - 只能是 [Class]、[String]、[VariousClass]
      *
      * - 可不填写返回值
      * @return [Any] or null
@@ -129,7 +118,7 @@ class MethodFinder @PublishedApi internal constructor(@PublishedApi override val
      *
      * - 可不设置筛选条件
      *
-     * - ❗存在多个 [BaseFinder.IndexTypeCondition] 时除了 [order] 只会生效最后一个
+     * - 存在多个 [BaseFinder.IndexTypeCondition] 时除了 [order] 只会生效最后一个
      * @param conditions 条件方法体
      * @return [BaseFinder.IndexTypeCondition]
      */
@@ -164,17 +153,17 @@ class MethodFinder @PublishedApi internal constructor(@PublishedApi override val
      * param(StringType, BooleanType, VagueType, IntType)
      * ```
      *
-     * - ❗无参 [Method] 请使用 [emptyParam] 设置查找条件
+     * - 无参 [Method] 请使用 [emptyParam] 设置查找条件
      *
-     * - ❗有参 [Method] 必须使用此方法设定参数或使用 [paramCount] 指定个数
+     * - 有参 [Method] 必须使用此方法设定参数或使用 [paramCount] 指定个数
      *
-     * - ❗存在多个 [BaseFinder.IndexTypeCondition] 时除了 [order] 只会生效最后一个
-     * @param paramType 参数类型数组 - ❗只能是 [Class]、[String]、[VariousClass]
+     * - 存在多个 [BaseFinder.IndexTypeCondition] 时除了 [order] 只会生效最后一个
+     * @param paramType 参数类型数组 - 只能是 [Class]、[String]、[VariousClass]
      * @return [BaseFinder.IndexTypeCondition]
      */
     fun param(vararg paramType: Any): IndexTypeCondition {
         if (paramType.isEmpty()) error("paramTypes is empty, please use emptyParam() instead")
-        rulesData.paramTypes = arrayListOf<Class<*>>().apply { paramType.forEach { add(it.compat() ?: UndefinedType) } }.toTypedArray()
+        rulesData.paramTypes = mutableListOf<Class<*>>().apply { paramType.forEach { add(it.compat() ?: UndefinedType) } }.toTypedArray()
         return IndexTypeCondition(IndexConfigType.MATCH)
     }
 
@@ -187,11 +176,11 @@ class MethodFinder @PublishedApi internal constructor(@PublishedApi override val
      * param { it[1] == StringClass || it[2].name == "java.lang.String" }
      * ```
      *
-     * - ❗无参 [Method] 请使用 [emptyParam] 设置查找条件
+     * - 无参 [Method] 请使用 [emptyParam] 设置查找条件
      *
-     * - ❗有参 [Method] 必须使用此方法设定参数或使用 [paramCount] 指定个数
+     * - 有参 [Method] 必须使用此方法设定参数或使用 [paramCount] 指定个数
      *
-     * - ❗存在多个 [BaseFinder.IndexTypeCondition] 时除了 [order] 只会生效最后一个
+     * - 存在多个 [BaseFinder.IndexTypeCondition] 时除了 [order] 只会生效最后一个
      * @param conditions 条件方法体
      * @return [BaseFinder.IndexTypeCondition]
      */
@@ -209,9 +198,9 @@ class MethodFinder @PublishedApi internal constructor(@PublishedApi override val
     /**
      * 设置 [Method] 名称
      *
-     * - ❗若不填写名称则必须存在一个其它条件
+     * - 若不填写名称则必须存在一个其它条件
      *
-     * - ❗存在多个 [BaseFinder.IndexTypeCondition] 时除了 [order] 只会生效最后一个
+     * - 存在多个 [BaseFinder.IndexTypeCondition] 时除了 [order] 只会生效最后一个
      * @param value 名称
      * @return [BaseFinder.IndexTypeCondition]
      */
@@ -223,9 +212,9 @@ class MethodFinder @PublishedApi internal constructor(@PublishedApi override val
     /**
      * 设置 [Method] 名称条件
      *
-     * - ❗若不填写名称则必须存在一个其它条件
+     * - 若不填写名称则必须存在一个其它条件
      *
-     * - ❗存在多个 [BaseFinder.IndexTypeCondition] 时除了 [order] 只会生效最后一个
+     * - 存在多个 [BaseFinder.IndexTypeCondition] 时除了 [order] 只会生效最后一个
      * @param conditions 条件方法体
      * @return [BaseFinder.IndexTypeCondition]
      */
@@ -241,7 +230,7 @@ class MethodFinder @PublishedApi internal constructor(@PublishedApi override val
      *
      * 若参数个数小于零则忽略并使用 [param]
      *
-     * - ❗存在多个 [BaseFinder.IndexTypeCondition] 时除了 [order] 只会生效最后一个
+     * - 存在多个 [BaseFinder.IndexTypeCondition] 时除了 [order] 只会生效最后一个
      * @param num 个数
      * @return [BaseFinder.IndexTypeCondition]
      */
@@ -261,7 +250,7 @@ class MethodFinder @PublishedApi internal constructor(@PublishedApi override val
      * paramCount(1..5)
      * ```
      *
-     * - ❗存在多个 [BaseFinder.IndexTypeCondition] 时除了 [order] 只会生效最后一个
+     * - 存在多个 [BaseFinder.IndexTypeCondition] 时除了 [order] 只会生效最后一个
      * @param numRange 个数范围
      * @return [BaseFinder.IndexTypeCondition]
      */
@@ -281,7 +270,7 @@ class MethodFinder @PublishedApi internal constructor(@PublishedApi override val
      * paramCount { it >= 5 || it.isZero() }
      * ```
      *
-     * - ❗存在多个 [BaseFinder.IndexTypeCondition] 时除了 [order] 只会生效最后一个
+     * - 存在多个 [BaseFinder.IndexTypeCondition] 时除了 [order] 只会生效最后一个
      * @param conditions 条件方法体
      * @return [BaseFinder.IndexTypeCondition]
      */
@@ -295,7 +284,7 @@ class MethodFinder @PublishedApi internal constructor(@PublishedApi override val
      *
      * - 可不填写返回值
      *
-     * - ❗存在多个 [BaseFinder.IndexTypeCondition] 时除了 [order] 只会生效最后一个
+     * - 存在多个 [BaseFinder.IndexTypeCondition] 时除了 [order] 只会生效最后一个
      * @param value 个数
      * @return [BaseFinder.IndexTypeCondition]
      */
@@ -315,7 +304,7 @@ class MethodFinder @PublishedApi internal constructor(@PublishedApi override val
      * returnType { it == StringClass || it.name == "java.lang.String" }
      * ```
      *
-     * - ❗存在多个 [BaseFinder.IndexTypeCondition] 时除了 [order] 只会生效最后一个
+     * - 存在多个 [BaseFinder.IndexTypeCondition] 时除了 [order] 只会生效最后一个
      * @param conditions 条件方法体
      * @return [BaseFinder.IndexTypeCondition]
      */
@@ -327,7 +316,7 @@ class MethodFinder @PublishedApi internal constructor(@PublishedApi override val
     /**
      * 设置在 [classSet] 的所有父类中查找当前 [Method]
      *
-     * - ❗若当前 [classSet] 的父类较多可能会耗时 - API 会自动循环到父类继承是 [Any] 前的最后一个类
+     * - 若当前 [classSet] 的父类较多可能会耗时 - API 会自动循环到父类继承是 [Any] 前的最后一个类
      * @param isOnlySuperClass 是否仅在当前 [classSet] 的父类中查找 - 若父类是 [Any] 则不会生效
      */
     fun superClass(isOnlySuperClass: Boolean = false) {
@@ -337,7 +326,7 @@ class MethodFinder @PublishedApi internal constructor(@PublishedApi override val
 
     /**
      * 得到 [Method] 或一组 [Method]
-     * @return [HashSet]<[Method]>
+     * @return [MutableList]<[Method]>
      * @throws NoSuchMethodError 如果找不到 [Method]
      */
     private val result get() = ReflectionTool.findMethods(usedClassSet, rulesData)
@@ -346,7 +335,7 @@ class MethodFinder @PublishedApi internal constructor(@PublishedApi override val
      * 设置实例
      * @param methods 当前找到的 [Method] 数组
      */
-    private fun setInstance(methods: HashSet<Method>) {
+    private fun setInstance(methods: MutableList<Method>) {
         memberInstances.clear()
         methods.takeIf { it.isNotEmpty() }?.onEach { memberInstances.add(it) }
             ?.first()?.apply { if (hookerManager.isMemberBinded) hookerManager.bindMember(member = this) }
@@ -358,33 +347,29 @@ class MethodFinder @PublishedApi internal constructor(@PublishedApi override val
         runBlocking {
             setInstance(result)
         }.result { ms ->
-            memberInstances.takeIf { it.isNotEmpty() }?.forEach { onDebuggingMsg(msg = "Find Method [$it] takes ${ms}ms") }
+            memberInstances.takeIf { it.isNotEmpty() }?.forEach { debugMsg(msg = "Find Method [$it] takes ${ms}ms") }
         }
     }
 
-    @YukiPrivateApi
     override fun build() = runCatching {
         internalBuild()
         Result()
     }.getOrElse {
-        onFailureMsg(throwable = it)
+        errorMsg(e = it)
         Result(isNoSuch = true, it)
     }
 
-    @YukiPrivateApi
     override fun process() = runCatching {
         hookerManager.isMemberBinded = true
         internalBuild()
         Process()
     }.getOrElse {
-        onFailureMsg(throwable = it)
+        errorMsg(e = it)
         Process(isNoSuch = true, it)
     }
 
-    @YukiPrivateApi
     override fun failure(throwable: Throwable?) = Result(isNoSuch = true, throwable)
 
-    @YukiPrivateApi
     override fun denied(throwable: Throwable?) = Process(isNoSuch = true, throwable)
 
     /**
@@ -392,11 +377,10 @@ class MethodFinder @PublishedApi internal constructor(@PublishedApi override val
      *
      * 可累计失败次数直到查找成功
      */
-    inner class RemedyPlan @PublishedApi internal constructor() {
+    inner class RemedyPlan internal constructor() {
 
         /** 失败尝试次数数组 */
-        @PublishedApi
-        internal val remedyPlans = HashSet<Pair<MethodFinder, Result>>()
+        private val remedyPlans = mutableSetOf<Pair<MethodFinder, Result>>()
 
         /**
          * 创建需要重新查找的 [Method]
@@ -414,39 +398,30 @@ class MethodFinder @PublishedApi internal constructor(@PublishedApi override val
         }
 
         /** 开始重查找 */
-        @PublishedApi
         internal fun build() {
             if (classSet == null) return
-            if (remedyPlans.isNotEmpty()) run {
+            if (remedyPlans.isNotEmpty()) {
+                val errors = mutableListOf<Throwable>()
                 var isFindSuccess = false
-                var lastError: Throwable? = null
-                remedyPlans.forEachIndexed { p, it ->
+                remedyPlans.forEachIndexed { index, plan ->
                     runCatching {
                         runBlocking {
-                            setInstance(it.first.result)
+                            setInstance(plan.first.result)
                         }.result { ms ->
-                            memberInstances.takeIf { it.isNotEmpty() }?.forEach { onDebuggingMsg(msg = "Find Method [$it] takes ${ms}ms") }
+                            memberInstances.takeIf { it.isNotEmpty() }?.forEach { debugMsg(msg = "Find Method [$it] takes ${ms}ms") }
                         }
                         isFindSuccess = true
-                        it.second.onFindCallback?.invoke(memberInstances.methods())
+                        plan.second.onFindCallback?.invoke(memberInstances.methods())
                         remedyPlansCallback?.invoke()
                         memberInstances.takeIf { it.isNotEmpty() }
-                            ?.forEach { onDebuggingMsg(msg = "Method [$it] trying ${p + 1} times success by RemedyPlan") }
-                        return@run
-                    }.onFailure {
-                        lastError = it
-                        onFailureMsg(msg = "Trying ${p + 1} times by RemedyPlan --> $it", isAlwaysPrint = true)
-                    }
+                            ?.forEach { debugMsg(msg = "RemedyPlan successed after ${index + 1} attempts of Method [$it]") }
+                        return
+                    }.onFailure { errors.add(it) }
                 }
-                if (isFindSuccess.not()) {
-                    onFailureMsg(
-                        msg = "Trying ${remedyPlans.size} times and all failure by RemedyPlan",
-                        throwable = lastError,
-                        isAlwaysPrint = true
-                    )
-                    remedyPlans.clear()
-                }
-            } else yLoggerW(msg = "RemedyPlan is empty, forgot it?${hookerManager.tailTag}")
+                if (isFindSuccess) return
+                errorMsg(msg = "RemedyPlan failed after ${remedyPlans.size} attempts", es = errors, isAlwaysMode = true)
+                remedyPlans.clear()
+            } else YLog.innerW("RemedyPlan is empty, forgot it?")
         }
 
         /**
@@ -454,16 +429,16 @@ class MethodFinder @PublishedApi internal constructor(@PublishedApi override val
          *
          * 可在这里处理是否成功的回调
          */
-        inner class Result @PublishedApi internal constructor() {
+        inner class Result internal constructor() {
 
             /** 找到结果时的回调 */
-            internal var onFindCallback: (HashSet<Method>.() -> Unit)? = null
+            internal var onFindCallback: (MutableList<Method>.() -> Unit)? = null
 
             /**
              * 当找到结果时
              * @param initiate 回调
              */
-            fun onFind(initiate: HashSet<Method>.() -> Unit) {
+            fun onFind(initiate: MutableList<Method>.() -> Unit) {
                 onFindCallback = initiate
             }
         }
@@ -475,8 +450,8 @@ class MethodFinder @PublishedApi internal constructor(@PublishedApi override val
      * @param throwable 错误信息
      */
     inner class Process internal constructor(
-        @PublishedApi internal val isNoSuch: Boolean = false,
-        @PublishedApi internal val throwable: Throwable? = null
+        internal val isNoSuch: Boolean = false,
+        internal val throwable: Throwable? = null
     ) : BaseResult {
 
         /**
@@ -491,7 +466,7 @@ class MethodFinder @PublishedApi internal constructor(@PublishedApi override val
          * @return [Process] 可继续向下监听
          */
         fun all(): Process {
-            fun HashSet<Member>.bind() = takeIf { it.isNotEmpty() }?.apply { hookerManager.bindMembers(members = this) }.unit()
+            fun MutableList<Member>.bind() = takeIf { it.isNotEmpty() }?.apply { hookerManager.bindMembers(members = this) }.unit()
             if (isUsingRemedyPlan)
                 remedyPlansCallback = { memberInstances.bind() }
             else memberInstances.bind()
@@ -534,8 +509,8 @@ class MethodFinder @PublishedApi internal constructor(@PublishedApi override val
      * @param throwable 错误信息
      */
     inner class Result internal constructor(
-        @PublishedApi internal val isNoSuch: Boolean = false,
-        @PublishedApi internal val throwable: Throwable? = null
+        internal val isNoSuch: Boolean = false,
+        internal val throwable: Throwable? = null
     ) : BaseResult {
 
         /**
@@ -550,9 +525,9 @@ class MethodFinder @PublishedApi internal constructor(@PublishedApi override val
          *
          * - 若有多个 [Method] 结果只会返回第一个
          *
-         * - ❗在 [memberInstances] 结果为空时使用此方法将无法获得对象
+         * - 在 [memberInstances] 结果为空时使用此方法将无法获得对象
          *
-         * - ❗若你设置了 [remedys] 请使用 [wait] 回调结果方法
+         * - 若你设置了 [remedys] 请使用 [wait] 回调结果方法
          * @param instance 所在实例
          * @return [Instance]
          */
@@ -563,14 +538,14 @@ class MethodFinder @PublishedApi internal constructor(@PublishedApi override val
          *
          * - 返回全部查找条件匹配的多个 [Method] 实例结果
          *
-         * - ❗在 [memberInstances] 结果为空时使用此方法将无法获得对象
+         * - 在 [memberInstances] 结果为空时使用此方法将无法获得对象
          *
-         * - ❗若你设置了 [remedys] 请使用 [waitAll] 回调结果方法
+         * - 若你设置了 [remedys] 请使用 [waitAll] 回调结果方法
          * @param instance 所在实例
-         * @return [ArrayList]<[Instance]>
+         * @return [MutableList]<[Instance]>
          */
         fun all(instance: Any? = null) =
-            arrayListOf<Instance>().apply { giveAll().takeIf { it.isNotEmpty() }?.forEach { add(Instance(instance, it)) } }
+            mutableListOf<Instance>().apply { giveAll().takeIf { it.isNotEmpty() }?.forEach { add(Instance(instance, it)) } }
 
         /**
          * 得到 [Method] 本身
@@ -587,19 +562,19 @@ class MethodFinder @PublishedApi internal constructor(@PublishedApi override val
          *
          * - 返回全部查找条件匹配的多个 [Method] 实例
          *
-         * - 在查找条件找不到任何结果的时候将返回空的 [HashSet]
-         * @return [HashSet]<[Method]>
+         * - 在查找条件找不到任何结果的时候将返回空的 [MutableList]
+         * @return [MutableList]<[Method]>
          */
-        fun giveAll() = memberInstances.takeIf { it.isNotEmpty() }?.methods() ?: HashSet()
+        fun giveAll() = memberInstances.takeIf { it.isNotEmpty() }?.methods() ?: mutableListOf()
 
         /**
          * 获得 [Method] 实例处理类
          *
          * - 若有多个 [Method] 结果只会返回第一个
          *
-         * - ❗若你设置了 [remedys] 必须使用此方法才能获得结果
+         * - 若你设置了 [remedys] 必须使用此方法才能获得结果
          *
-         * - ❗若你没有设置 [remedys] 此方法将不会被回调
+         * - 若你没有设置 [remedys] 此方法将不会被回调
          * @param instance 所在实例
          * @param initiate 回调 [Instance]
          */
@@ -613,13 +588,13 @@ class MethodFinder @PublishedApi internal constructor(@PublishedApi override val
          *
          * - 返回全部查找条件匹配的多个 [Method] 实例结果
          *
-         * - ❗若你设置了 [remedys] 必须使用此方法才能获得结果
+         * - 若你设置了 [remedys] 必须使用此方法才能获得结果
          *
-         * - ❗若你没有设置 [remedys] 此方法将不会被回调
+         * - 若你没有设置 [remedys] 此方法将不会被回调
          * @param instance 所在实例
-         * @param initiate 回调 [ArrayList]<[Instance]>
+         * @param initiate 回调 [MutableList]<[Instance]>
          */
-        fun waitAll(instance: Any? = null, initiate: ArrayList<Instance>.() -> Unit) {
+        fun waitAll(instance: Any? = null, initiate: MutableList<Instance>.() -> Unit) {
             if (memberInstances.isNotEmpty()) initiate(all(instance))
             else remedyPlansCallback = { initiate(all(instance)) }
         }
@@ -658,20 +633,20 @@ class MethodFinder @PublishedApi internal constructor(@PublishedApi override val
          *
          * - 若 [MemberBaseFinder.MemberHookerManager.isNotIgnoredNoSuchMemberFailure] 为 false 则自动忽略
          *
-         * - ❗此时若要监听异常结果 - 你需要手动实现 [onNoSuchMethod] 方法
+         * - 此时若要监听异常结果 - 你需要手动实现 [onNoSuchMethod] 方法
          * @return [Result] 可继续向下监听
          */
         fun ignored(): Result {
-            isShutErrorPrinting = true
+            isIgnoreErrorLogs = true
             return this
         }
 
         /**
          * 忽略异常并停止打印任何错误日志
          *
-         * - ❗此方法已弃用 - 在之后的版本中将直接被删除
+         * - 此方法已弃用 - 在之后的版本中将直接被删除
          *
-         * - ❗请现在转移到 [ignored]
+         * - 请现在迁移到 [ignored]
          * @return [Result] 可继续向下监听
          */
         @Deprecated(message = "请使用新的命名方法", ReplaceWith("ignored()"))
@@ -680,7 +655,7 @@ class MethodFinder @PublishedApi internal constructor(@PublishedApi override val
         /**
          * [Method] 实例处理类
          *
-         * - ❗请使用 [get]、[wait]、[all]、[waitAll] 方法来获取 [Instance]
+         * - 请使用 [get]、[wait]、[all]、[waitAll] 方法来获取 [Instance]
          * @param instance 当前 [Method] 所在类的实例对象
          * @param method 当前 [Method] 实例对象
          */
@@ -694,7 +669,7 @@ class MethodFinder @PublishedApi internal constructor(@PublishedApi override val
              *
              * 若当前 [Method] 并未 Hook 则会使用原始的 [Method.invoke] 方法调用
              *
-             * - ❗你只能在 (Xposed) 宿主环境中使用此功能
+             * - 你只能在 (Xposed) 宿主环境中使用此功能
              * @return [Instance] 可继续向下监听
              */
             fun original(): Instance {
@@ -729,7 +704,7 @@ class MethodFinder @PublishedApi internal constructor(@PublishedApi override val
             /**
              * 执行 [Method] - 指定 [Byte] 返回值类型
              *
-             * - ❗请确认目标变量的类型 - 发生错误会返回 null
+             * - 请确认目标变量的类型 - 发生错误会返回 null
              * @param args 方法参数
              * @return [Byte] or null
              */
@@ -738,7 +713,7 @@ class MethodFinder @PublishedApi internal constructor(@PublishedApi override val
             /**
              * 执行 [Method] - 指定 [Int] 返回值类型
              *
-             * - ❗请确认目标 [Method] 的返回值 - 发生错误会返回默认值
+             * - 请确认目标 [Method] 的返回值 - 发生错误会返回默认值
              * @param args 方法参数
              * @return [Int] 取不到返回 0
              */
@@ -747,7 +722,7 @@ class MethodFinder @PublishedApi internal constructor(@PublishedApi override val
             /**
              * 执行 [Method] - 指定 [Long] 返回值类型
              *
-             * - ❗请确认目标 [Method] 的返回值 - 发生错误会返回默认值
+             * - 请确认目标 [Method] 的返回值 - 发生错误会返回默认值
              * @param args 方法参数
              * @return [Long] 取不到返回 0L
              */
@@ -756,7 +731,7 @@ class MethodFinder @PublishedApi internal constructor(@PublishedApi override val
             /**
              * 执行 [Method] - 指定 [Short] 返回值类型
              *
-             * - ❗请确认目标 [Method] 的返回值 - 发生错误会返回默认值
+             * - 请确认目标 [Method] 的返回值 - 发生错误会返回默认值
              * @param args 方法参数
              * @return [Short] 取不到返回 0
              */
@@ -765,7 +740,7 @@ class MethodFinder @PublishedApi internal constructor(@PublishedApi override val
             /**
              * 执行 [Method] - 指定 [Double] 返回值类型
              *
-             * - ❗请确认目标 [Method] 的返回值 - 发生错误会返回默认值
+             * - 请确认目标 [Method] 的返回值 - 发生错误会返回默认值
              * @param args 方法参数
              * @return [Double] 取不到返回 0.0
              */
@@ -774,7 +749,7 @@ class MethodFinder @PublishedApi internal constructor(@PublishedApi override val
             /**
              * 执行 [Method] - 指定 [Float] 返回值类型
              *
-             * - ❗请确认目标 [Method] 的返回值 - 发生错误会返回默认值
+             * - 请确认目标 [Method] 的返回值 - 发生错误会返回默认值
              * @param args 方法参数
              * @return [Float] 取不到返回 0f
              */
@@ -797,7 +772,7 @@ class MethodFinder @PublishedApi internal constructor(@PublishedApi override val
             /**
              * 执行 [Method] - 指定 [Boolean] 返回值类型
              *
-             * - ❗请确认目标 [Method] 的返回值 - 发生错误会返回默认值
+             * - 请确认目标 [Method] 的返回值 - 发生错误会返回默认值
              * @param args 方法参数
              * @return [Boolean] 取不到返回 false
              */
@@ -806,7 +781,7 @@ class MethodFinder @PublishedApi internal constructor(@PublishedApi override val
             /**
              * 执行 [Method] - 指定 [Array] 返回值类型 - 每项类型 [T]
              *
-             * - ❗请确认目标 [Method] 的返回值 - 发生错误会返回空数组
+             * - 请确认目标 [Method] 的返回值 - 发生错误会返回空数组
              * @return [Array] 取不到返回空数组
              */
             inline fun <reified T> array(vararg args: Any?) = invoke(*args) ?: arrayOf<T>()
@@ -814,7 +789,7 @@ class MethodFinder @PublishedApi internal constructor(@PublishedApi override val
             /**
              * 执行 [Method] - 指定 [List] 返回值类型 - 每项类型 [T]
              *
-             * - ❗请确认目标 [Method] 的返回值 - 发生错误会返回空数组
+             * - 请确认目标 [Method] 的返回值 - 发生错误会返回空数组
              * @return [List] 取不到返回空数组
              */
             inline fun <reified T> list(vararg args: Any?) = invoke(*args) ?: listOf<T>()

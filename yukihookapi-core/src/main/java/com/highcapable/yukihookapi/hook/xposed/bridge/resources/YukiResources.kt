@@ -1,31 +1,25 @@
 /*
  * YukiHookAPI - An efficient Hook API and Xposed Module solution built in Kotlin.
- * Copyright (C) 2019-2023 HighCapable
- * https://github.com/fankes/YukiHookAPI
+ * Copyright (C) 2019 HighCapable
+ * https://github.com/HighCapable/YukiHookAPI
  *
- * MIT License
+ * Apache License Version 2.0
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  * This file is created by fankes on 2022/4/29.
  */
-@file:Suppress("unused", "DEPRECATION", "DiscouragedApi")
+@file:Suppress("unused", "DEPRECATION", "DiscouragedApi", "NON_PUBLIC_CALL_FROM_PUBLIC_INLINE")
 
 package com.highcapable.yukihookapi.hook.xposed.bridge.resources
 
@@ -33,7 +27,7 @@ import android.content.res.Resources
 import android.content.res.XResources
 import android.graphics.drawable.Drawable
 import android.view.View
-import com.highcapable.yukihookapi.hook.log.yLoggerE
+import com.highcapable.yukihookapi.hook.log.YLog
 import com.highcapable.yukihookapi.hook.xposed.bridge.resources.YukiResources.LayoutInflatedParam
 import de.robv.android.xposed.callbacks.XC_LayoutInflated
 
@@ -153,7 +147,7 @@ class YukiResources private constructor(private val baseInstance: XResources) :
         private inline fun runIfAnyErrors(name: String, initiate: () -> Unit) {
             runCatching {
                 initiate()
-            }.onFailure { yLoggerE(msg = "Failed to execute method \"$name\", maybe your Hook Framework not support Resources Hook", it) }
+            }.onFailure { YLog.innerE("Failed to execute method \"$name\", maybe your Hook Framework not support Resources Hook", it) }
         }
     }
 
@@ -236,7 +230,7 @@ class YukiResources private constructor(private val baseInstance: XResources) :
      * 装载 Hook APP 的目标布局 Resources 实现类
      * @param baseParam 对接 [XC_LayoutInflated.LayoutInflatedParam]
      */
-    class LayoutInflatedParam(@PublishedApi internal val baseParam: XC_LayoutInflated.LayoutInflatedParam) {
+    class LayoutInflatedParam(private val baseParam: XC_LayoutInflated.LayoutInflatedParam) {
 
         /**
          * 获取当前被 Hook 的布局装载目录名称

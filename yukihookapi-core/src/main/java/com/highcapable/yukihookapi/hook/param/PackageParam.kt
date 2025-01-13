@@ -1,31 +1,25 @@
 /*
  * YukiHookAPI - An efficient Hook API and Xposed Module solution built in Kotlin.
- * Copyright (C) 2019-2023 HighCapable
- * https://github.com/fankes/YukiHookAPI
+ * Copyright (C) 2019 HighCapable
+ * https://github.com/HighCapable/YukiHookAPI
  *
- * MIT License
+ * Apache License Version 2.0
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  * This file is created by fankes on 2022/2/2.
  */
-@file:Suppress("unused", "MemberVisibilityCanBePrivate", "UNCHECKED_CAST")
+@file:Suppress("unused", "MemberVisibilityCanBePrivate", "NON_PUBLIC_CALL_FROM_PUBLIC_INLINE")
 
 package com.highcapable.yukihookapi.hook.param
 
@@ -43,13 +37,21 @@ import com.highcapable.yukihookapi.hook.bean.HookResources
 import com.highcapable.yukihookapi.hook.bean.VariousClass
 import com.highcapable.yukihookapi.hook.core.YukiMemberHookCreator
 import com.highcapable.yukihookapi.hook.core.YukiResourcesHookCreator
+import com.highcapable.yukihookapi.hook.core.annotation.LegacyHookApi
+import com.highcapable.yukihookapi.hook.core.annotation.LegacyResourcesHook
+import com.highcapable.yukihookapi.hook.core.api.priority.YukiHookPriority
+import com.highcapable.yukihookapi.hook.core.finder.base.BaseFinder
 import com.highcapable.yukihookapi.hook.core.finder.classes.DexClassFinder
-import com.highcapable.yukihookapi.hook.core.finder.tools.ReflectionTool
+import com.highcapable.yukihookapi.hook.core.finder.members.ConstructorFinder
+import com.highcapable.yukihookapi.hook.core.finder.members.MethodFinder
 import com.highcapable.yukihookapi.hook.core.finder.type.factory.ClassConditions
+import com.highcapable.yukihookapi.hook.core.finder.type.factory.ClassLoaderInitializer
 import com.highcapable.yukihookapi.hook.entity.YukiBaseHooker
-import com.highcapable.yukihookapi.hook.log.yLoggerW
+import com.highcapable.yukihookapi.hook.factory.LazyClass
+import com.highcapable.yukihookapi.hook.factory.hasClass
+import com.highcapable.yukihookapi.hook.log.YLog
 import com.highcapable.yukihookapi.hook.param.wrapper.PackageParamWrapper
-import com.highcapable.yukihookapi.hook.utils.value
+import com.highcapable.yukihookapi.hook.utils.factory.value
 import com.highcapable.yukihookapi.hook.xposed.bridge.YukiXposedModule
 import com.highcapable.yukihookapi.hook.xposed.bridge.resources.YukiModuleResources
 import com.highcapable.yukihookapi.hook.xposed.bridge.resources.YukiResources
@@ -57,38 +59,40 @@ import com.highcapable.yukihookapi.hook.xposed.bridge.type.HookEntryType
 import com.highcapable.yukihookapi.hook.xposed.channel.YukiHookDataChannel
 import com.highcapable.yukihookapi.hook.xposed.parasitic.AppParasitics
 import com.highcapable.yukihookapi.hook.xposed.prefs.YukiHookPrefsBridge
+import java.lang.reflect.Constructor
+import java.lang.reflect.Member
+import java.lang.reflect.Method
+import com.highcapable.yukihookapi.hook.factory.hasClass as hasClassGlobal
+import com.highcapable.yukihookapi.hook.factory.lazyClass as lazyClassGlobal
+import com.highcapable.yukihookapi.hook.factory.lazyClassOrNull as lazyClassOrNullGlobal
+import com.highcapable.yukihookapi.hook.factory.toClass as toClassGlobal
+import com.highcapable.yukihookapi.hook.factory.toClassOrNull as toClassOrNullGlobal
 
 /**
  * 装载 Hook 的目标 APP 入口对象实现类
  * @param wrapper [PackageParam] 的参数包装类实例 - 默认是空的
  */
-open class PackageParam internal constructor(@PublishedApi internal var wrapper: PackageParamWrapper? = null) {
-
-    @PublishedApi
-    internal companion object {
-
-        /** 获取当前 Xposed 模块包名 */
-        @PublishedApi
-        internal val modulePackageName get() = YukiXposedModule.modulePackageName
-
-        /** Android 系统框架名称 */
-        @PublishedApi
-        internal const val SYSTEM_FRAMEWORK_NAME = AppParasitics.SYSTEM_FRAMEWORK_NAME
-    }
+open class PackageParam internal constructor(internal var wrapper: PackageParamWrapper? = null) {
 
     /** 当前设置的 [ClassLoader] */
     private var currentClassLoader: ClassLoader? = null
+
+    /**
+     * 获取 [appClassLoader] 装载实例
+     * @return [ClassLoaderInitializer]
+     */
+    private val appLoaderInit get(): ClassLoaderInitializer = { appClassLoader }
 
     /**
      * 获取、设置当前 Hook APP 的 [ClassLoader]
      *
      * 你可以在这里手动设置当前 Hook APP 的 [ClassLoader] - 默认情况下会自动获取
      *
-     * - ❗如果设置了错误或无效的 [ClassLoader] 会造成功能异常 - 请谨慎操作
-     * @return [ClassLoader]
+     * - 如果设置了错误或无效的 [ClassLoader] 会造成功能异常 - 请谨慎操作
+     * @return [ClassLoader] or null
      */
     var appClassLoader
-        get() = currentClassLoader ?: wrapper?.appClassLoader ?: AppParasitics.currentApplication?.classLoader ?: AppParasitics.baseClassLoader
+        get() = currentClassLoader ?: wrapper?.appClassLoader ?: AppParasitics.currentApplication?.classLoader
         set(value) {
             currentClassLoader = value
         }
@@ -110,7 +114,7 @@ open class PackageParam internal constructor(@PublishedApi internal var wrapper:
     /**
      * 获取当前 Hook APP 的 [Application] 实例
      *
-     * - ❗首次装载可能是空的 - 请延迟一段时间再获取或通过设置 [onAppLifecycle] 监听来完成
+     * - 首次装载可能是空的 - 请延迟一段时间再获取或通过设置 [onAppLifecycle] 监听来完成
      * @return [Application] or null
      */
     val appContext get() = AppParasitics.hostApplication ?: AppParasitics.currentApplication
@@ -118,7 +122,7 @@ open class PackageParam internal constructor(@PublishedApi internal var wrapper:
     /**
      * 获取当前 Hook APP 的 Resources
      *
-     * - ❗你只能在 [HookResources.hook] 方法体内或 [appContext] 装载完毕时进行调用
+     * - 你只能在 [HookResources.hook] 方法体内或 [appContext] 装载完毕时进行调用
      * @return [Resources] or null
      */
     val appResources get() = wrapper?.appResources ?: appContext?.resources
@@ -161,7 +165,7 @@ open class PackageParam internal constructor(@PublishedApi internal var wrapper:
     /**
      * 获取当前 Xposed 模块自身 APK 文件路径
      *
-     * - ❗作为 Hook API 装载时无法使用 - 会获取到空字符串
+     * - 作为 Hook API 装载时无法使用 - 会获取到空字符串
      * @return [String]
      */
     val moduleAppFilePath get() = YukiXposedModule.moduleAppFilePath
@@ -169,7 +173,7 @@ open class PackageParam internal constructor(@PublishedApi internal var wrapper:
     /**
      * 获取当前 Xposed 模块自身 [Resources]
      *
-     * - ❗作为 Hook API 或不支持的 Hook Framework 装载时无法使用 - 会抛出异常
+     * - 作为 Hook API 或不支持的 Hook Framework 装载时无法使用 - 会抛出异常
      * @return [YukiModuleResources]
      * @throws IllegalStateException 如果当前 Hook Framework 不支持此功能
      */
@@ -180,7 +184,7 @@ open class PackageParam internal constructor(@PublishedApi internal var wrapper:
     /**
      * 创建 [YukiHookPrefsBridge] 对象
      *
-     * - ❗作为 Hook API 装载时无法使用 - 会抛出异常
+     * - 作为 Hook API 装载时无法使用 - 会抛出异常
      * @return [YukiHookPrefsBridge]
      */
     val prefs get() = YukiHookPrefsBridge.from()
@@ -188,7 +192,7 @@ open class PackageParam internal constructor(@PublishedApi internal var wrapper:
     /**
      * 创建 [YukiHookPrefsBridge] 对象
      *
-     * - ❗作为 Hook API 装载时无法使用 - 会抛出异常
+     * - 作为 Hook API 装载时无法使用 - 会抛出异常
      * @param name 自定义 Sp 存储名称
      * @return [YukiHookPrefsBridge]
      */
@@ -197,7 +201,7 @@ open class PackageParam internal constructor(@PublishedApi internal var wrapper:
     /**
      * 获取 [YukiHookDataChannel] 对象
      *
-     * - ❗作为 Hook API 装载时无法使用 - 会抛出异常
+     * - 作为 Hook API 装载时无法使用 - 会抛出异常
      * @return [YukiHookDataChannel.NameSpace]
      * @throws IllegalStateException 如果在 [HookEntryType.ZYGOTE] 装载
      */
@@ -222,6 +226,7 @@ open class PackageParam internal constructor(@PublishedApi internal var wrapper:
      * 请调用 [HookResources.hook] 方法开始 Hook
      * @return [HookResources]
      */
+    @LegacyResourcesHook
     fun resources() = HookResources(wrapper?.appResources)
 
     /** 刷新当前 Xposed 模块自身 [Resources] */
@@ -230,10 +235,10 @@ open class PackageParam internal constructor(@PublishedApi internal var wrapper:
     /**
      * 监听当前 Hook APP 生命周期装载事件
      *
-     * - ❗在 [loadZygote] 中不会被装载 - 仅会在 [loadSystem]、[loadApp] 中装载
+     * - 在 [loadZygote] 中不会被装载 - 仅会在 [loadSystem]、[loadApp] 中装载
      *
-     * - ❗作为 Hook API 装载时请使用原生的 [Application] 实现生命周期监听
-     * @param isOnFailureThrowToApp 是否在发生异常时将异常抛出给宿主 - 默认是
+     * - 作为 Hook API 装载时请使用原生的 [Application] 实现生命周期监听
+     * @param isOnFailureThrowToApp 是否在发生异常时将异常抛出给宿主 - 默认是 (仅在第一个 Hooker 设置有效)
      * @param initiate 方法体
      */
     inline fun onAppLifecycle(isOnFailureThrowToApp: Boolean = true, initiate: AppLifecycle.() -> Unit) =
@@ -304,7 +309,7 @@ open class PackageParam internal constructor(@PublishedApi internal var wrapper:
      */
     inline fun loadApp(isExcludeSelf: Boolean = false, initiate: PackageParam.() -> Unit) {
         if (wrapper?.type != HookEntryType.ZYGOTE &&
-            (isExcludeSelf.not() || isExcludeSelf && packageName != modulePackageName)
+            (isExcludeSelf.not() || isExcludeSelf && packageName != YukiXposedModule.modulePackageName)
         ) initiate(this)
     }
 
@@ -319,7 +324,7 @@ open class PackageParam internal constructor(@PublishedApi internal var wrapper:
      */
     fun loadApp(isExcludeSelf: Boolean = false, hooker: YukiBaseHooker) {
         if (wrapper?.type != HookEntryType.ZYGOTE &&
-            (isExcludeSelf.not() || isExcludeSelf && packageName != modulePackageName)
+            (isExcludeSelf.not() || isExcludeSelf && packageName != YukiXposedModule.modulePackageName)
         ) loadHooker(hooker)
     }
 
@@ -335,7 +340,7 @@ open class PackageParam internal constructor(@PublishedApi internal var wrapper:
     fun loadApp(isExcludeSelf: Boolean = false, vararg hooker: YukiBaseHooker) {
         if (hooker.isEmpty()) error("loadApp method need a \"hooker\" param")
         if (wrapper?.type != HookEntryType.ZYGOTE &&
-            (isExcludeSelf.not() || isExcludeSelf && packageName != modulePackageName)
+            (isExcludeSelf.not() || isExcludeSelf && packageName != YukiXposedModule.modulePackageName)
         ) hooker.forEach { loadHooker(it) }
     }
 
@@ -343,13 +348,13 @@ open class PackageParam internal constructor(@PublishedApi internal var wrapper:
      * 装载并 Hook 系统框架
      * @param initiate 方法体
      */
-    inline fun loadSystem(initiate: PackageParam.() -> Unit) = loadApp(SYSTEM_FRAMEWORK_NAME, initiate)
+    inline fun loadSystem(initiate: PackageParam.() -> Unit) = loadApp(AppParasitics.SYSTEM_FRAMEWORK_NAME, initiate)
 
     /**
      * 装载并 Hook 系统框架
      * @param hooker Hook 子类
      */
-    fun loadSystem(hooker: YukiBaseHooker) = loadApp(SYSTEM_FRAMEWORK_NAME, hooker)
+    fun loadSystem(hooker: YukiBaseHooker) = loadApp(AppParasitics.SYSTEM_FRAMEWORK_NAME, hooker)
 
     /**
      * 装载并 Hook 系统框架
@@ -357,7 +362,7 @@ open class PackageParam internal constructor(@PublishedApi internal var wrapper:
      */
     fun loadSystem(vararg hooker: YukiBaseHooker) {
         if (hooker.isEmpty()) error("loadSystem method need a \"hooker\" param")
-        loadApp(SYSTEM_FRAMEWORK_NAME, *hooker)
+        loadApp(AppParasitics.SYSTEM_FRAMEWORK_NAME, *hooker)
     }
 
     /**
@@ -434,7 +439,7 @@ open class PackageParam internal constructor(@PublishedApi internal var wrapper:
             if (it.packageName.isNotBlank() && it.type != HookEntryType.ZYGOTE)
                 if (it.packageName == wrapper?.packageName)
                     hooker.assignInstance(packageParam = this)
-                else yLoggerW(
+                else YLog.innerW(
                     msg = "This Hooker \"${hooker::class.java.name}\" is singleton or reused, " +
                         "but the current process has multiple package name \"${wrapper?.packageName}\", " +
                         "the original is \"${it.packageName}\"\n" +
@@ -448,11 +453,11 @@ open class PackageParam internal constructor(@PublishedApi internal var wrapper:
     /**
      * 通过 [appClassLoader] 按指定条件查找并得到当前 Hook APP Dex 中的 [Class]
      *
-     * - ❗此方法在 [Class] 数量过多及查找条件复杂时会非常耗时
+     * - 此方法在 [Class] 数量过多及查找条件复杂时会非常耗时
      *
-     * - ❗建议启用 [async] 或设置 [name] 参数 - [name] 参数将在 Hook APP (宿主) 不同版本中自动进行本地缓存以提升效率
+     * - 建议启用 [async] 或设置 [name] 参数 - [name] 参数将在 Hook APP (宿主) 不同版本中自动进行本地缓存以提升效率
      *
-     * - ❗此功能尚在试验阶段 - 性能与稳定性可能仍然存在问题 - 使用过程遇到问题请向我们报告并帮助我们改进
+     * - 此功能尚在实验阶段 - 性能与稳定性可能仍然存在问题 - 使用过程遇到问题请向我们报告并帮助我们改进
      * @param name 标识当前 [Class] 缓存的名称 - 不设置将不启用缓存 - 启用缓存自动启用 [async]
      * @param async 是否启用异步 - 默认否
      * @param initiate 方法体
@@ -464,9 +469,9 @@ open class PackageParam internal constructor(@PublishedApi internal var wrapper:
     /**
      * 通过字符串类名转换为当前 Hook APP 的实体类
      *
-     * - ❗此方法已弃用 - 在之后的版本中将直接被删除
+     * - 此方法已弃用 - 在之后的版本中将直接被删除
      *
-     * - ❗请现在转移到 [toClass]
+     * - 请现在迁移到 [toClass]
      * @return [Class]
      * @throws NoClassDefFoundError 如果找不到 [Class]
      */
@@ -477,9 +482,9 @@ open class PackageParam internal constructor(@PublishedApi internal var wrapper:
     /**
      * [VariousClass] 转换为当前 Hook APP 的实体类
      *
-     * - ❗此方法已弃用 - 在之后的版本中将直接被删除
+     * - 此方法已弃用 - 在之后的版本中将直接被删除
      *
-     * - ❗请现在转移到 [toClass]
+     * - 请现在迁移到 [toClass]
      * @return [Class]
      * @throws IllegalStateException 如果任何 [Class] 都没有匹配到
      */
@@ -490,9 +495,9 @@ open class PackageParam internal constructor(@PublishedApi internal var wrapper:
     /**
      * 通过字符串类名查找是否存在
      *
-     * - ❗此方法已弃用 - 在之后的版本中将直接被删除
+     * - 此方法已弃用 - 在之后的版本中将直接被删除
      *
-     * - ❗请现在转移到 [hasClass]
+     * - 请现在迁移到 [hasClass]
      * @return [Boolean] 是否存在
      */
     @Deprecated(message = "请使用新的命名方法", ReplaceWith("hasClass()"))
@@ -507,7 +512,7 @@ open class PackageParam internal constructor(@PublishedApi internal var wrapper:
      * @throws NoClassDefFoundError 如果找不到 [Class]
      */
     fun String.toClass(loader: ClassLoader? = appClassLoader, initialize: Boolean = false) =
-        ReflectionTool.findClassByName(name = this, loader, initialize)
+        toClassGlobal(loader, initialize)
 
     /**
      * 通过字符串类名转换为 [loader] 中的实体类
@@ -519,8 +524,7 @@ open class PackageParam internal constructor(@PublishedApi internal var wrapper:
      */
     @JvmName("toClass_Generics")
     inline fun <reified T> String.toClass(loader: ClassLoader? = appClassLoader, initialize: Boolean = false) =
-        ReflectionTool.findClassByName(name = this, loader, initialize) as? Class<T>?
-            ?: error("Target Class type cannot cast to ${T::class.java}")
+        toClassGlobal<T>(loader, initialize)
 
     /**
      * 通过字符串类名转换为 [loader] 中的实体类
@@ -531,7 +535,7 @@ open class PackageParam internal constructor(@PublishedApi internal var wrapper:
      * @return [Class] or null
      */
     fun String.toClassOrNull(loader: ClassLoader? = appClassLoader, initialize: Boolean = false) =
-        runCatching { toClass(loader, initialize) }.getOrNull()
+        toClassOrNullGlobal(loader, initialize)
 
     /**
      * 通过字符串类名转换为 [loader] 中的实体类
@@ -543,7 +547,7 @@ open class PackageParam internal constructor(@PublishedApi internal var wrapper:
      */
     @JvmName("toClassOrNull_Generics")
     inline fun <reified T> String.toClassOrNull(loader: ClassLoader? = appClassLoader, initialize: Boolean = false) =
-        runCatching { toClass<T>(loader, initialize) }.getOrNull()
+        toClassOrNullGlobal<T>(loader, initialize)
 
     /**
      * [VariousClass] 转换为 [loader] 中的实体类
@@ -565,59 +569,125 @@ open class PackageParam internal constructor(@PublishedApi internal var wrapper:
     fun VariousClass.toClassOrNull(loader: ClassLoader? = appClassLoader, initialize: Boolean = false) = getOrNull(loader, initialize)
 
     /**
+     * 懒装载 [Class]
+     * @param name 完整类名
+     * @param initialize 是否初始化 [Class] 的静态方法块 - 默认否
+     * @param loader [ClassLoader] 装载实例 - 不填使用 [appClassLoader]
+     * @return [LazyClass.NonNull]
+     */
+    fun lazyClass(name: String, initialize: Boolean = false, loader: ClassLoaderInitializer? = appLoaderInit) =
+        lazyClassGlobal(name, initialize, loader)
+
+    /**
+     * 懒装载 [Class]<[T]>
+     * @param name 完整类名
+     * @param initialize 是否初始化 [Class] 的静态方法块 - 默认否
+     * @param loader [ClassLoader] 装载实例 - 不填使用 [appClassLoader]
+     * @return [LazyClass.NonNull]<[T]>
+     */
+    @JvmName("lazyClass_Generics")
+    inline fun <reified T> lazyClass(name: String, initialize: Boolean = false, noinline loader: ClassLoaderInitializer? = appLoaderInit) =
+        lazyClassGlobal<T>(name, initialize, loader)
+
+    /**
+     * 懒装载 [Class]
+     * @param variousClass [VariousClass]
+     * @param initialize 是否初始化 [Class] 的静态方法块 - 默认否
+     * @param loader [ClassLoader] 装载实例 - 不填使用 [appClassLoader]
+     * @return [LazyClass.NonNull]
+     */
+    fun lazyClass(variousClass: VariousClass, initialize: Boolean = false, loader: ClassLoaderInitializer? = appLoaderInit) =
+        lazyClassGlobal(variousClass, initialize, loader)
+
+    /**
+     * 懒装载 [Class]
+     * @param name 完整类名
+     * @param initialize 是否初始化 [Class] 的静态方法块 - 默认否
+     * @param loader [ClassLoader] 装载实例 - 不填使用 [appClassLoader]
+     * @return [LazyClass.Nullable]
+     */
+    fun lazyClassOrNull(name: String, initialize: Boolean = false, loader: ClassLoaderInitializer? = appLoaderInit) =
+        lazyClassOrNullGlobal(name, initialize, loader)
+
+    /**
+     * 懒装载 [Class]<[T]>
+     * @param name 完整类名
+     * @param initialize 是否初始化 [Class] 的静态方法块 - 默认否
+     * @param loader [ClassLoader] 装载实例 - 不填使用 [appClassLoader]
+     * @return [LazyClass.Nullable]<[T]>
+     */
+    @JvmName("lazyClassOrNull_Generics")
+    inline fun <reified T> lazyClassOrNull(name: String, initialize: Boolean = false, noinline loader: ClassLoaderInitializer? = appLoaderInit) =
+        lazyClassOrNullGlobal<T>(name, initialize, loader)
+
+    /**
+     * 懒装载 [Class]
+     * @param variousClass [VariousClass]
+     * @param initialize 是否初始化 [Class] 的静态方法块 - 默认否
+     * @param loader [ClassLoader] 装载实例 - 不填使用 [appClassLoader]
+     * @return [LazyClass.Nullable]
+     */
+    fun lazyClassOrNull(variousClass: VariousClass, initialize: Boolean = false, loader: ClassLoaderInitializer? = appLoaderInit) =
+        lazyClassOrNullGlobal(variousClass, initialize, loader)
+
+    /**
      * 通过字符串类名查找是否存在
      * @param loader [Class] 所在的 [ClassLoader] - 不填使用 [appClassLoader]
      * @return [Boolean] 是否存在
      */
-    fun String.hasClass(loader: ClassLoader? = appClassLoader) = ReflectionTool.hasClassByName(name = this, loader)
+    fun String.hasClass(loader: ClassLoader? = appClassLoader) = hasClassGlobal(loader)
 
     /**
      * 查找并装载 [HookClass]
      *
-     * - ❗使用此方法会得到一个 [HookClass] 仅用于 Hook - 若想查找 [Class] 请使用 [toClass] 功能
-     * @param name 类名
-     * @param loader 当前 [ClassLoader] - 默认使用 [appClassLoader] - 设为 null 使用默认 [ClassLoader]
+     * - 此方法已弃用 - 在之后的版本中将直接被删除
+     *
+     * - 请现在迁移到 [toClass]
      * @return [HookClass]
      */
-    fun findClass(name: String, loader: ClassLoader? = appClassLoader) =
-        runCatching { name.toClass(loader).toHookClass() }.getOrElse { HookClass(name = name, throwable = it) }
+    @LegacyHookApi
+    @Deprecated(message = "不再推荐使用此方法", ReplaceWith("name.toClass(loader)"))
+    fun findClass(name: String, loader: ClassLoader? = appClassLoader) = name.toHookClass(loader)
 
     /**
      * 查找并装载 [HookClass]
      *
-     * 使用此方法查找将会取 [name] 其中命中存在的第一个 [Class] 作为结果
+     * - 此方法已弃用 - 在之后的版本中将直接被删除
      *
-     * - ❗使用此方法会得到一个 [HookClass] 仅用于 Hook - 若想查找 [Class] 请使用 [toClass] 功能
-     * @param name 可填入多个类名 - 自动匹配
-     * @param loader 当前 [ClassLoader] - 默认使用 [appClassLoader] - 设为 null 使用默认 [ClassLoader]
+     * - 请现在迁移到 [VariousClass]
      * @return [HookClass]
      */
+    @LegacyHookApi
+    @Deprecated(message = "不再推荐使用此方法", ReplaceWith("VariousClass(*name)"))
     fun findClass(vararg name: String, loader: ClassLoader? = appClassLoader) = VariousClass(*name).toHookClass(loader)
 
     /**
      * Hook 方法、构造方法
      *
-     * - 使用当前 [appClassLoader] 装载目标 [Class]
+     * - 此方法已弃用 - 在之后的版本中将直接被删除
      *
-     * - ❗为防止任何字符串都被当做 [Class] 进行 Hook - 推荐优先使用 [findClass]
+     * - 请现在迁移到 [toClass]
      * @param initiate 方法体
      * @return [YukiMemberHookCreator.Result]
      */
-    inline fun String.hook(initiate: YukiMemberHookCreator.() -> Unit) = findClass(name = this).hook(initiate)
+    @LegacyHookApi
+    @Deprecated(message = "不再推荐使用此方法", ReplaceWith("this.toClass().hook(initiate = initiate)"))
+    inline fun String.hook(initiate: YukiMemberHookCreator.() -> Unit) = toHookClass().hook(initiate = initiate)
 
     /**
      * Hook 方法、构造方法
      *
      * - 自动选择与当前 [Class] 相匹配的 [ClassLoader] - 优先使用 [appClassLoader]
      *
-     * - ❗若当前 [Class] 不在 [appClassLoader] 且自动匹配无法找到该 [Class] - 请启用 [isForceUseAbsolute]
+     * - 若当前 [Class] 不在 [appClassLoader] 且自动匹配无法找到该 [Class] - 请启用 [isForceUseAbsolute]
      * @param isForceUseAbsolute 是否强制使用绝对实例对象 - 默认否
      * @param initiate 方法体
      * @return [YukiMemberHookCreator.Result]
      */
+    @LegacyHookApi
     inline fun Class<*>.hook(isForceUseAbsolute: Boolean = false, initiate: YukiMemberHookCreator.() -> Unit) = when {
         isForceUseAbsolute -> toHookClass()
-        name.hasClass() -> findClass(name)
+        name.hasClass() -> name.toClass().toHookClass()
         else -> toHookClass()
     }.hook(initiate)
 
@@ -628,48 +698,208 @@ open class PackageParam internal constructor(@PublishedApi internal var wrapper:
      * @param initiate 方法体
      * @return [YukiMemberHookCreator.Result]
      */
-    inline fun VariousClass.hook(initiate: YukiMemberHookCreator.() -> Unit) = toHookClass(appClassLoader).hook(initiate)
+    @LegacyHookApi
+    inline fun VariousClass.hook(initiate: YukiMemberHookCreator.() -> Unit) = toHookClass().hook(initiate)
 
     /**
      * Hook 方法、构造方法
      * @param initiate 方法体
      * @return [YukiMemberHookCreator.Result]
      */
+    @LegacyHookApi
     inline fun HookClass.hook(initiate: YukiMemberHookCreator.() -> Unit) =
         YukiMemberHookCreator(packageParam = this@PackageParam, hookClass = this).apply(initiate).hook()
 
     /**
+     * 直接 Hook 方法、构造方法
+     *
+     * - 此功能尚在实验阶段 - 在 1.x.x 版本将暂定于此 - 在 2.0.0 版本将完全合并到新 API
+     * @param priority Hook 优先级 - 默认为 [YukiHookPriority.DEFAULT]
+     * @return [YukiMemberHookCreator.MemberHookCreator]
+     */
+    fun Member.hook(priority: YukiHookPriority = YukiHookPriority.DEFAULT) = listOf(this).baseHook(priority)
+
+    /**
+     * 直接 Hook 方法、构造方法
+     *
+     * - 此功能尚在实验阶段 - 在 1.x.x 版本将暂定于此 - 在 2.0.0 版本将完全合并到新 API
+     * @param priority Hook 优先级 - 默认为 [YukiHookPriority.DEFAULT]
+     * @param initiate 方法体
+     * @return [YukiMemberHookCreator.MemberHookCreator.Result]
+     */
+    inline fun Member.hook(
+        priority: YukiHookPriority = YukiHookPriority.DEFAULT,
+        initiate: YukiMemberHookCreator.MemberHookCreator.() -> Unit
+    ) = listOf(this).baseHook(priority, isLazyMode = true).apply(initiate).build()
+
+    /**
+     * 通过 [BaseFinder.BaseResult] 直接 Hook 方法、构造方法
+     *
+     * - 此功能尚在实验阶段 - 在 1.x.x 版本将暂定于此 - 在 2.0.0 版本将完全合并到新 API
+     * @param priority Hook 优先级 - 默认为 [YukiHookPriority.DEFAULT]
+     * @return [YukiMemberHookCreator.MemberHookCreator]
+     */
+    fun BaseFinder.BaseResult.hook(priority: YukiHookPriority = YukiHookPriority.DEFAULT) = baseHook(isMultiple = false, priority)
+
+    /**
+     * 通过 [BaseFinder.BaseResult] 直接 Hook 方法、构造方法
+     *
+     * - 此功能尚在实验阶段 - 在 1.x.x 版本将暂定于此 - 在 2.0.0 版本将完全合并到新 API
+     * @param priority Hook 优先级 - 默认为 [YukiHookPriority.DEFAULT]
+     * @param initiate 方法体
+     * @return [YukiMemberHookCreator.MemberHookCreator.Result]
+     */
+    inline fun BaseFinder.BaseResult.hook(
+        priority: YukiHookPriority = YukiHookPriority.DEFAULT,
+        initiate: YukiMemberHookCreator.MemberHookCreator.() -> Unit
+    ) = baseHook(isMultiple = false, priority, isLazyMode = true).apply(initiate).build()
+
+    /**
+     * 直接 Hook 方法、构造方法 (批量)
+     *
+     * - 此功能尚在实验阶段 - 在 1.x.x 版本将暂定于此 - 在 2.0.0 版本将完全合并到新 API
+     * @param priority Hook 优先级 - 默认为 [YukiHookPriority.DEFAULT]
+     * @return [YukiMemberHookCreator.MemberHookCreator]
+     */
+    fun Array<Member>.hookAll(priority: YukiHookPriority = YukiHookPriority.DEFAULT) = toList().baseHook(priority)
+
+    /**
+     * 直接 Hook 方法、构造方法 (批量)
+     *
+     * - 此功能尚在实验阶段 - 在 1.x.x 版本将暂定于此 - 在 2.0.0 版本将完全合并到新 API
+     * @param priority Hook 优先级 - 默认为 [YukiHookPriority.DEFAULT]
+     * @param initiate 方法体
+     * @return [YukiMemberHookCreator.MemberHookCreator.Result]
+     */
+    inline fun Array<Member>.hookAll(
+        priority: YukiHookPriority = YukiHookPriority.DEFAULT,
+        initiate: YukiMemberHookCreator.MemberHookCreator.() -> Unit
+    ) = toList().baseHook(priority, isLazyMode = true).apply(initiate).build()
+
+    /**
+     * 直接 Hook 方法、构造方法 (批量)
+     *
+     * - 此功能尚在实验阶段 - 在 1.x.x 版本将暂定于此 - 在 2.0.0 版本将完全合并到新 API
+     * @param priority Hook 优先级 - 默认为 [YukiHookPriority.DEFAULT]
+     * @return [YukiMemberHookCreator.MemberHookCreator]
+     */
+    fun List<Member>.hookAll(priority: YukiHookPriority = YukiHookPriority.DEFAULT) = baseHook(priority)
+
+    /**
+     * 直接 Hook 方法、构造方法 (批量)
+     *
+     * - 此功能尚在实验阶段 - 在 1.x.x 版本将暂定于此 - 在 2.0.0 版本将完全合并到新 API
+     * @param priority Hook 优先级 - 默认为 [YukiHookPriority.DEFAULT]
+     * @param initiate 方法体
+     * @return [YukiMemberHookCreator.MemberHookCreator.Result]
+     */
+    inline fun List<Member>.hookAll(
+        priority: YukiHookPriority = YukiHookPriority.DEFAULT,
+        initiate: YukiMemberHookCreator.MemberHookCreator.() -> Unit
+    ) = baseHook(priority, isLazyMode = true).apply(initiate).build()
+
+    /**
+     * 通过 [BaseFinder.BaseResult] 直接 Hook 方法、构造方法 (批量)
+     *
+     * - 此功能尚在实验阶段 - 在 1.x.x 版本将暂定于此 - 在 2.0.0 版本将完全合并到新 API
+     * @param priority Hook 优先级 - 默认为 [YukiHookPriority.DEFAULT]
+     * @return [YukiMemberHookCreator.MemberHookCreator]
+     */
+    fun BaseFinder.BaseResult.hookAll(priority: YukiHookPriority = YukiHookPriority.DEFAULT) = baseHook(isMultiple = true, priority)
+
+    /**
+     * 通过 [BaseFinder.BaseResult] 直接 Hook 方法、构造方法 (批量)
+     *
+     * - 此功能尚在实验阶段 - 在 1.x.x 版本将暂定于此 - 在 2.0.0 版本将完全合并到新 API
+     * @param priority Hook 优先级 - 默认为 [YukiHookPriority.DEFAULT]
+     * @param initiate 方法体
+     * @return [YukiMemberHookCreator.MemberHookCreator.Result]
+     */
+    inline fun BaseFinder.BaseResult.hookAll(
+        priority: YukiHookPriority = YukiHookPriority.DEFAULT,
+        initiate: YukiMemberHookCreator.MemberHookCreator.() -> Unit
+    ) = baseHook(isMultiple = true, priority, isLazyMode = true).apply(initiate).build()
+
+    /**
+     * 通过 [BaseFinder.BaseResult] 直接 Hook 方法、构造方法
+     *
+     * - 此功能尚在实验阶段 - 在 1.x.x 版本将暂定于此 - 在 2.0.0 版本将完全合并到新 API
+     * @param isMultiple 是否为多重查找
+     * @param priority Hook 优先级
+     * @param isLazyMode 是否为惰性模式 - 默认否
+     * @return [YukiMemberHookCreator.MemberHookCreator]
+     */
+    private fun BaseFinder.BaseResult.baseHook(isMultiple: Boolean, priority: YukiHookPriority, isLazyMode: Boolean = false) =
+        when (this) {
+            is DexClassFinder.Result ->
+                error("Use of searchClass { ... }.hook { ... } is an error, please use like searchClass { ... }.get()?.hook { ... }")
+            is ConstructorFinder.Result -> {
+                val members = if (isMultiple) giveAll()
+                else mutableListOf<Member>().also { give()?.also { e -> it.add(e) } }
+                YukiMemberHookCreator.createMemberHook(packageParam = this@PackageParam, members, priority, isLazyMode)
+            }
+            is MethodFinder.Result -> {
+                val members = if (isMultiple) giveAll()
+                else mutableListOf<Member>().also { give()?.also { e -> it.add(e) } }
+                YukiMemberHookCreator.createMemberHook(packageParam = this@PackageParam, members, priority, isLazyMode)
+            }
+            else -> error("This type [$this] not support to hook, supported are Constructors and Methods")
+        }
+
+    /**
+     * 直接 Hook 方法、构造方法
+     *
+     * - 此功能尚在实验阶段 - 在 1.x.x 版本将暂定于此 - 在 2.0.0 版本将完全合并到新 API
+     * @param priority Hook 优先级
+     * @param isLazyMode 是否为惰性模式 - 默认否
+     * @return [YukiMemberHookCreator.MemberHookCreator]
+     */
+    private fun List<Member>.baseHook(priority: YukiHookPriority, isLazyMode: Boolean = false) =
+        YukiMemberHookCreator.createMemberHook(packageParam = this@PackageParam, onEach {
+            if (it !is Constructor<*> && it !is Method) error("This type [$it] not support to hook, supported are Constructors and Methods")
+        }, priority, isLazyMode)
+
+    /**
      * Hook APP 的 Resources
      *
-     * - ❗请注意你需要确保当前 Hook Framework 支持且 [InjectYukiHookWithXposed.isUsingResourcesHook] 已启用
+     * - 此功能将不再默认启用 - 如需启用 - 请手动设置 [InjectYukiHookWithXposed.isUsingResourcesHook]
      * @param initiate 方法体
      */
+    @LegacyResourcesHook
     inline fun HookResources.hook(initiate: YukiResourcesHookCreator.() -> Unit) =
         YukiResourcesHookCreator(packageParam = this@PackageParam, hookResources = this).apply(initiate).hook()
 
     /**
      * [VariousClass] 转换为 [HookClass]
-     * @param loader 当前 [ClassLoader] - 若留空使用默认 [ClassLoader]
+     * @param loader 当前 [ClassLoader] - 不填使用 [appClassLoader]
      * @return [HookClass]
      */
-    @PublishedApi
-    internal fun VariousClass.toHookClass(loader: ClassLoader? = null) =
+    @LegacyHookApi
+    private fun VariousClass.toHookClass(loader: ClassLoader? = appClassLoader) =
         runCatching { get(loader).toHookClass() }.getOrElse { HookClass(name = "VariousClass", throwable = Throwable(it.message)) }
 
     /**
      * [Class] 转换为 [HookClass]
      * @return [HookClass]
      */
-    @PublishedApi
-    internal fun Class<*>.toHookClass() = HookClass(instance = this, name)
+    @LegacyHookApi
+    private fun Class<*>.toHookClass() = HookClass(instance = this, name)
+
+    /**
+     * 字符串类名转换为 [HookClass]
+     * @param loader 当前 [ClassLoader] - 不填使用 [appClassLoader]
+     * @return [HookClass]
+     */
+    @LegacyHookApi
+    private fun String.toHookClass(loader: ClassLoader? = appClassLoader) = HookClass(toClassOrNull(loader), name = this)
 
     /**
      * 当前 Hook APP 的生命周期实例处理类
      *
-     * - ❗请使用 [onAppLifecycle] 方法来获取 [AppLifecycle]
+     * - 请使用 [onAppLifecycle] 方法来获取 [AppLifecycle]
      * @param isOnFailureThrowToApp 是否在发生异常时将异常抛出给宿主
      */
-    inner class AppLifecycle @PublishedApi internal constructor(private val isOnFailureThrowToApp: Boolean) {
+    inner class AppLifecycle internal constructor(private val isOnFailureThrowToApp: Boolean) {
 
         /**
          * 是否为当前操作 [HookEntryType.PACKAGE] 的调用域
@@ -684,7 +914,7 @@ open class PackageParam internal constructor(@PublishedApi internal var wrapper:
          * @param result 回调 - ([Context] baseContext,[Boolean] 是否已执行 super)
          */
         fun attachBaseContext(result: (baseContext: Context, hasCalledSuper: Boolean) -> Unit) {
-            if (isCurrentScope) AppParasitics.AppLifecycleCallback.attachBaseContextCallback = result
+            if (isCurrentScope) AppParasitics.AppLifecycleActor.get(this@PackageParam).attachBaseContextCallback = result
         }
 
         /**
@@ -692,7 +922,7 @@ open class PackageParam internal constructor(@PublishedApi internal var wrapper:
          * @param initiate 方法体
          */
         fun onCreate(initiate: Application.() -> Unit) {
-            if (isCurrentScope) AppParasitics.AppLifecycleCallback.onCreateCallback = initiate
+            if (isCurrentScope) AppParasitics.AppLifecycleActor.get(this@PackageParam).onCreateCallback = initiate
         }
 
         /**
@@ -700,7 +930,7 @@ open class PackageParam internal constructor(@PublishedApi internal var wrapper:
          * @param initiate 方法体
          */
         fun onTerminate(initiate: Application.() -> Unit) {
-            if (isCurrentScope) AppParasitics.AppLifecycleCallback.onTerminateCallback = initiate
+            if (isCurrentScope) AppParasitics.AppLifecycleActor.get(this@PackageParam).onTerminateCallback = initiate
         }
 
         /**
@@ -708,7 +938,7 @@ open class PackageParam internal constructor(@PublishedApi internal var wrapper:
          * @param initiate 方法体
          */
         fun onLowMemory(initiate: Application.() -> Unit) {
-            if (isCurrentScope) AppParasitics.AppLifecycleCallback.onLowMemoryCallback = initiate
+            if (isCurrentScope) AppParasitics.AppLifecycleActor.get(this@PackageParam).onLowMemoryCallback = initiate
         }
 
         /**
@@ -716,7 +946,7 @@ open class PackageParam internal constructor(@PublishedApi internal var wrapper:
          * @param result 回调 - ([Application] 当前实例,[Int] 类型)
          */
         fun onTrimMemory(result: (self: Application, level: Int) -> Unit) {
-            if (isCurrentScope) AppParasitics.AppLifecycleCallback.onTrimMemoryCallback = result
+            if (isCurrentScope) AppParasitics.AppLifecycleActor.get(this@PackageParam).onTrimMemoryCallback = result
         }
 
         /**
@@ -724,7 +954,7 @@ open class PackageParam internal constructor(@PublishedApi internal var wrapper:
          * @param result 回调 - ([Application] 当前实例,[Configuration] 配置实例)
          */
         fun onConfigurationChanged(result: (self: Application, config: Configuration) -> Unit) {
-            if (isCurrentScope) AppParasitics.AppLifecycleCallback.onConfigurationChangedCallback = result
+            if (isCurrentScope) AppParasitics.AppLifecycleActor.get(this@PackageParam).onConfigurationChangedCallback = result
         }
 
         /**
@@ -734,7 +964,7 @@ open class PackageParam internal constructor(@PublishedApi internal var wrapper:
          */
         fun registerReceiver(vararg action: String, result: (context: Context, intent: Intent) -> Unit) {
             if (isCurrentScope && action.isNotEmpty())
-                AppParasitics.AppLifecycleCallback.onReceiverActionsCallbacks[action.value()] = Pair(action, result)
+                AppParasitics.AppLifecycleActor.get(this@PackageParam).onReceiverActionsCallbacks[action.value()] = action to result
         }
 
         /**
@@ -743,16 +973,16 @@ open class PackageParam internal constructor(@PublishedApi internal var wrapper:
          * @param result 回调 - ([Context] 当前上下文,[Intent] 当前 Intent)
          */
         fun registerReceiver(filter: IntentFilter, result: (context: Context, intent: Intent) -> Unit) {
-            if (isCurrentScope) AppParasitics.AppLifecycleCallback.onReceiverFiltersCallbacks[filter.toString()] = Pair(filter, result)
+            if (isCurrentScope)
+                AppParasitics.AppLifecycleActor.get(this@PackageParam).onReceiverFiltersCallbacks[filter.toString()] = filter to result
         }
 
         /** 设置创建生命周期监听回调 */
-        @PublishedApi
         internal fun build() {
-            AppParasitics.AppLifecycleCallback.isOnFailureThrowToApp = isOnFailureThrowToApp
-            AppParasitics.AppLifecycleCallback.isCallbackSetUp = true
+            if (AppParasitics.AppLifecycleActor.isOnFailureThrowToApp == null)
+                AppParasitics.AppLifecycleActor.isOnFailureThrowToApp = isOnFailureThrowToApp
         }
     }
 
-    override fun toString() = "PackageParam by $wrapper"
+    override fun toString() = "PackageParam(${super.toString()}) by $wrapper"
 }

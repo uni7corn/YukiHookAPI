@@ -22,34 +22,22 @@ features:
     details: The built Xposed Module simply supports R8, obfuscate will not destroy the hook entry point, and no other configuration is required under R8.
   - title: Quickly Started
     details: Simple and easy to use it now! Do not need complex configuration and full development experience, Integrate dependencies and enjoy yourself.
-footer: MIT License | Copyright (C) 2019-2023 HighCapable
+footer: Apache-2.0 License | Copyright (C) 2019 HighCapable
 ---
 
 ### All Hook process in one step, everything is simplified
 
 ```kotlin
 loadApp(name = "com.android.browser") {
-    ActivityClass.hook {
-        injectMember {
-            method {
-                name = "onCreate"
-                param(BundleClass)
-            }
-            beforeHook {
-                // Your code here.
-            }
-            afterHook {
-                // Your code here.
-            }
+    ActivityClass.method {
+        name = "onCreate"
+        param(BundleClass)
+    }.hook {
+        before {
+          // Your code here.
         }
-    }
-    resources().hook {
-        injectResource {
-            conditions {
-                name = "ic_launcher"
-                mipmap()
-            }
-            replaceToModuleResource(R.mipmap.ic_launcher)
+        after {
+          // Your code here.
         }
     }
 }

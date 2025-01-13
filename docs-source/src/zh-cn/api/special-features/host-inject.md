@@ -35,12 +35,11 @@ android {
 > 示例如下
 
 ```kotlin
-injectMember {
-    method {
-        name = "onCreate"
-        param(BundleClass)
-    }
-    afterHook {
+method {
+    name = "onCreate"
+    param(BundleClass)
+}.hook {
+    after {
         instance<Activity>().also {
             // <方案1> 通过 Context 注入模块资源
             it.injectModuleAppResources()
@@ -87,12 +86,11 @@ onAppLifecycle {
 > 示例如下
 
 ```kotlin
-injectMember {
-    method {
-        name = "onCreate"
-        param(BundleClass)
-    }
-    afterHook {
+method {
+    name = "onCreate"
+    param(BundleClass)
+}.hook {
+    after {
         instance<Activity>().registerModuleAppActivities()
     }
 }
@@ -229,12 +227,11 @@ The style on this component requires your app theme to be Theme.AppCompat (or a 
 > 示例如下
 
 ```kotlin
-injectMember {
-    method {
-        name = "onCreate"
-        param(BundleClass)
-    }
-    afterHook {
+method {
+     name = "onCreate"
+    param(BundleClass)
+}.hook {
+    after {
         // 使用 applyModuleTheme 创建一个当前模块中的主题资源
         val appCompatContext = instance<Activity>().applyModuleTheme(R.style.Theme_AppCompat)
         // 直接使用这个包装了模块主题后的 Context 创建对话框
@@ -252,12 +249,11 @@ injectMember {
 > 示例如下
 
 ```kotlin
-injectMember {
-    method {
-        name = "onCreate"
-        param(BundleClass)
-    }
-    afterHook {
+method {
+    name = "onCreate"
+    param(BundleClass)
+}.hook {
+    after {
         // 定义当前模块中的主题资源
         var appCompatContext: ModuleContextThemeWrapper
         // <方案1> 直接得到 Configuration 对象进行设置
@@ -284,7 +280,7 @@ injectMember {
 
 ::: warning 可能存在的问题
 
-由于一些 APP 自身使用的 **androidx** 依赖库或自定义主题可能会对当前 **MaterialAlertDialog** 实际样式造成干扰，例如对话框的按钮样式，这种情况你可以参考 **模块 Demo** 中 [这里的示例代码](https://github.com/fankes/YukiHookAPI/tree/master/samples/demo-module/src/main/java/com/highcapable/yukihookapi/demo_module/hook/factory/ComponentCompatFactory.kt) 来修复这个问题。
+由于一些 APP 自身使用的 **androidx** 依赖库或自定义主题可能会对当前 **MaterialAlertDialog** 实际样式造成干扰，例如对话框的按钮样式，这种情况你可以参考 **模块 Demo** 中 [这里的示例代码](https://github.com/HighCapable/YukiHookAPI/tree/master/samples/demo-module/src/main/java/com/highcapable/yukihookapi/demo_module/hook/factory/ComponentCompatFactory.kt) 来修复这个问题。
 
 某些 APP 在创建时可能会发生 **ClassCastException** 异常，请手动指定新的 **Configuration** 实例来进行修复。
 
@@ -311,14 +307,14 @@ injectMember {
 ```kotlin
 // 排除属于宿主的 Class 类名
 // 它们将会被宿主的 ClassLoader 装载
-// ❗以下内容仅供演示，不要直接使用，请以你的实际情况为准
+// 以下内容仅供演示，不要直接使用，请以你的实际情况为准
 ModuleClassLoader.excludeHostClasses(
     "androidx.core.app.ActivityCompat",
     "com.demo.Test"
 )
 // 排除属于模块的 Class 类名
 // 它们将会被模块 (当前 Hook 进程) 的 ClassLoader 装载
-// ❗以下内容仅供演示，不要直接使用，请以你的实际情况为准
+// 以下内容仅供演示，不要直接使用，请以你的实际情况为准
 ModuleClassLoader.excludeModuleClasses(
     "com.demo.entry.HookEntry",
     "com.demo.controller.ModuleController"

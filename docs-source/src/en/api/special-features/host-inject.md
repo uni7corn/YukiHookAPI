@@ -37,12 +37,11 @@ After the Host App is hooked, we can directly inject the `Context` obtained in t
 > The following example
 
 ```kotlin
-injectMember {
-    method {
-        name = "onCreate"
-        param(BundleClass)
-    }
-    afterHook {
+method {
+    name = "onCreate"
+    param(BundleClass)
+}.hook {
+    after {
         instance<Activity>().also {
             // <Scenario 1> Inject Module App's Resources through Context
             it.injectModuleAppResources()
@@ -91,12 +90,11 @@ After the Host App is hooked, we can directly register the `Activity` proxy of t
 > The following example
 
 ```kotlin
-injectMember {
-    method {
-        name = "onCreate"
-        param(BundleClass)
-    }
-    afterHook {
+method {
+    name = "onCreate"
+    param(BundleClass)
+}.hook {
+    after {
         instance<Activity>().registerModuleAppActivities()
     }
 }
@@ -238,12 +236,11 @@ At this time, we want to use `MaterialAlertDialogBuilder` to create a dialog in 
 > The following example
 
 ```kotlin
-injectMember {
-    method {
-        name = "onCreate"
-        param(BundleClass)
-    }
-    afterHook {
+method {
+    name = "onCreate"
+    param(BundleClass)
+}.hook {
+    after {
         // Use applyModuleTheme to create a theme resource in the current Module App
         val appCompatContext = instance<Activity>().applyModuleTheme(R.style.Theme_AppCompat)
         // Directly use this Context that wraps the Module App's theme to create a dialog
@@ -263,12 +260,11 @@ Which requires at least Android 10 and above system version support and the curr
 > The following example
 
 ```kotlin
-injectMember {
-    method {
-        name = "onCreate"
-        param(BundleClass)
-    }
-    afterHook {
+method {
+    name = "onCreate"
+    param(BundleClass)
+}.hook {
+    after {
         // Define the theme resource in the current Module App
         var appCompatContext: ModuleContextThemeWrapper
         // <Scenario 1> Get the Configuration object directly to set
@@ -298,7 +294,7 @@ This way, we can create dialogs in the Host App very simply using `MaterialAlert
 
 Because some **androidx** dependent libraries or custom themes used by some apps may interfere with the actual style of the current **MaterialAlertDialog**, such as the button style of the dialog.
 
-You can refer to the **Module App Demo** in this case and see [here is the sample code](https://github.com/fankes/YukiHookAPI/tree/master/samples/demo-module/src/main/java/com/highcapable/yukihookapi/demo_module/hook/factory/ComponentCompatFactory.kt) to fix this problem.
+You can refer to the **Module App Demo** in this case and see [here is the sample code](https://github.com/HighCapable/YukiHookAPI/tree/master/samples/demo-module/src/main/java/com/highcapable/yukihookapi/demo_module/hook/factory/ComponentCompatFactory.kt) to fix this problem.
 
 **ClassCastException** may occur when some apps are created, please manually specify a new **Configuration** instance to fix.
 
@@ -327,7 +323,7 @@ The exclusion list determines whether these `Class` need to be loaded by the Mod
 ```kotlin
 // Exclude Class names belonging to the Host App
 // They will be loaded by the Host App's ClassLoader
-// ❗The following content is for demonstration only
+// The following content is for demonstration only
 // DO NOT USE IT DIRECTLY, please refer to your actual situation
 ModuleClassLoader.excludeHostClasses(
     "androidx.core.app.ActivityCompat",
@@ -335,7 +331,7 @@ ModuleClassLoader.excludeHostClasses(
 )
 // Exclude Class names belonging to the Module App
 // They will be loaded by the ClassLoader of the Module App (the current Hook process)
-// ❗The following content is for demonstration only
+// The following content is for demonstration only
 // DO NOT USE IT DIRECTLY, please refer to your actual situation
 ModuleClassLoader.excludeModuleClasses(
     "com.demo.entry.HookEntry",

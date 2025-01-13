@@ -10,7 +10,7 @@
 
 > 从 `XC_LoadPackage.LoadPackageParam` 迁移至 `PackageParam`。
 
-`YukiHookAPI` 对 `PackageParam` 实现了 `lambda` 方法体 `this` 用法，在 `encase` 方法体内即可全局得到 `PackageParam` 对象。
+`YukiHookAPI` 对 `PackageParam` 实现了 **lambda** 方法体 `this` 用法，在 `encase` 方法体内即可全局得到 `PackageParam` 对象。
 
 > API 功能差异对比如下
 
@@ -29,18 +29,16 @@ override fun onHook() = encase {
     appContext
     // Hook 指定的 APP
     loadApp(name = "com.demo.test") {
-        // Class Hook
-        findClass("com.demo.test.TestClass").hook {
-            injectMember {
-                method {
-                    name = "test"
-                    param(BooleanType)
-                }
-                afterHook {
+        // Member Hook
+        "com.demo.test.TestClass".toClass()
+            .method {
+                name = "test"
+                param(BooleanType)
+            }.hook {
+                after {
                     // ...
                 }
             }
-        }
         // Resources Hook (固定用法)
         resources().hook {
             injectResource {
@@ -107,7 +105,7 @@ override fun handleInitPackageResources(resparam: XC_InitPackageResources.InitPa
 
 #### Before/After Hook
 
-`YukiHookAPI` 同样对 `HookParam` 实现了 `lambda` 方法体 `this` 用法，在 `beforeHook`、`afterHook` 等方法体内即可全局得到 `HookParam` 对象。
+`YukiHookAPI` 同样对 `HookParam` 实现了 **lambda** 方法体 `this` 用法，在 `before`、`after` 等方法体内即可全局得到 `HookParam` 对象。
 
 > API 功能差异对比如下
 
@@ -115,7 +113,7 @@ override fun handleInitPackageResources(resparam: XC_InitPackageResources.InitPa
 ::: code-group-item Yuki Hook API
 
 ```kotlin
-afterHook {
+after {
     // 得到当前 Hook 的实例
     instance
     // 得到当前 Hook 的 Class 实例
@@ -261,6 +259,49 @@ override fun replaceHookedMethod(param: MethodHookParam) = null
 
 :::
 ::::
+
+### 迁移 XposedHelpers 注意事项
+
+`YukiHookAPI` 中提供的反射功能与 `XposedHelpers` 的反射功能有所不同，这里提供一个误区指引。
+
+`XposedHelpers.callMethod`、`XposedHelpers.callStaticMethod` 等方法自动查找的方法会自动调用所有公开的方法 (包括 `super` 超类)，这是 Java 原生反射的特性，
+而 `YukiHookAPI` 提供的反射方案为先反射查找再调用，而查找过程默认不会自动查找 `super` 超类的方法。
+
+例如，类 `A` 继承于 `B`， `B` 中存在公开的方法 `test`，而 `A` 中并不存在。
+
+```java
+public class B {
+    public void test(String a) {
+        // ...
+    }
+}
+
+public class A extends B {
+    // ...
+}
+```
+
+此时 `XposedHelpers` 的用法。
+
+```kotlin
+val instance: A = ...
+XposedHelpers.callMethod(instance, "test", "some string")
+```
+
+`YukiHookAPI` 的用法。
+
+```kotlin
+val instance: A = ...
+instance.current().method {
+    name = "test"
+    // 请注意，这里需要添加此查找条件以确保其会查找超类的方法
+    superClass()
+}.call("some string")
+// 或者直接调用 superClass() 方法
+instance.current().superClass()?.method {
+    name = "test"
+}?.call("some string")
+```
 
 ## 迁移更多有关 Hook API 的功能
 

@@ -18,6 +18,8 @@
 
 - Java 11 and above (Since API `1.0.80`)
 
+- Java 17 and above (Since API `1.2.0`)
+
 ## Automatically Build Project
 
 `YukiHookAPI` provides an automated build tool that can help you quickly build an Android standard project template with Xposed Module dependencies, and use the built template to start the next step directly.
@@ -30,13 +32,13 @@ If you don't want to use automated build tools, you can still manually configure
 
 ### Create Project
 
-Use `Android Studio` or `IntelliJ IDEA` to create a new Android project and select `Kotlin` in the `Language` column to automatically add basic dependencies.
+Use `Android Studio` or `IntelliJ IDEA` to create a new Android project and select Kotlin in the `Language` column to automatically add basic dependencies.
 
 ### Integration Dependencies
 
 We recommend using Kotlin DSL as the Gradle build script language and [SweetDependency](https://github.com/HighCapable/SweetDependency) to manage dependencies.
 
-#### SweetDependency Method
+#### SweetDependency (Recommended)
 
 Add the repositories and dependencies in your project's `SweetDependency` configuration file.
 
@@ -44,7 +46,7 @@ Add the repositories and dependencies in your project's `SweetDependency` config
 
 ```yaml
 repositories:
-  # ❗Must be added when used as an Xposed Module, otherwise optional
+  # Must be added when used as an Xposed Module, otherwise optional
   rovo89-xposed-api:
     url: https://api.xposed.info/
   # MavenCentral has a 2-hour cache,
@@ -52,13 +54,13 @@ repositories:
   sonatype-oss-releases:
 
 plugins:
-  # ❗Must be added when used as an Xposed Module, otherwise optional
+  # Must be added when used as an Xposed Module, otherwise optional
   com.google.devtools.ksp:
     version: +
   ...
 
 libraries:
-  # ❗Must be added when used as an Xposed Module, otherwise optional
+  # Must be added when used as an Xposed Module, otherwise optional
   de.robv.android.xposed:
     api:
       version: 82
@@ -67,7 +69,7 @@ libraries:
   com.highcapable.yukihookapi:
     api:
       version: +
-    # ❗Must be added when used as an Xposed Module, otherwise optional
+    # Must be added when used as an Xposed Module, otherwise optional
     ksp-xposed:
       version-ref: <this>::api
   ...
@@ -81,7 +83,7 @@ Next, deploy plugins in your project `build.gradle.kts`.
 
 ```kotlin
 plugins {
-    // ❗Must be added when used as an Xposed Module, otherwise optional
+    // Must be added when used as an Xposed Module, otherwise optional
     autowire(libs.plugins.com.google.devtools.ksp)
     // ...
 }
@@ -95,14 +97,14 @@ Then, deploy dependencies in your project `build.gradle.kts`.
 dependencies {
     // Basic dependencies
     implementation(com.highcapable.yukihookapi.api)
-    // ❗Must be added when used as an Xposed Module, otherwise optional
+    // Must be added when used as an Xposed Module, otherwise optional
     compileOnly(de.robv.android.xposed.api)
-    // ❗Must be added when used as an Xposed Module, otherwise optional
+    // Must be added when used as an Xposed Module, otherwise optional
     ksp(com.highcapable.yukihookapi.ksp.xposed)
 }
 ```
 
-#### Traditional Method (Not Recommended)
+#### Traditional Method
 
 Add repositories in your project `build.gradle.kts` or `build.gradle`.
 
@@ -112,7 +114,7 @@ Add repositories in your project `build.gradle.kts` or `build.gradle`.
 repositories {
     google()
     mavenCentral()
-    // ❗Must be added when used as an Xposed Module, otherwise optional
+    // Must be added when used as an Xposed Module, otherwise optional
     maven { url("https://api.xposed.info/") }
     // MavenCentral has a 2-hour cache, if the latest version cannot be integrated, please add this URL
     maven { url("https://s01.oss.sonatype.org/content/repositories/releases/") }
@@ -125,7 +127,7 @@ repositories {
 repositories {
     google()
     mavenCentral()
-    // ❗Must be added when used as an Xposed Module, otherwise optional
+    // Must be added when used as an Xposed Module, otherwise optional
     maven { url 'https://api.xposed.info/' }
     // MavenCentral has a 2-hour cache, if the latest version cannot be integrated, please add this URL
     maven { url 'https://s01.oss.sonatype.org/content/repositories/releases/' }
@@ -138,7 +140,7 @@ Add plugins in your project `build.gradle.kts` or `build.gradle`.
 
 ```kotlin
 plugins {
-    // ❗Must be added when used as an Xposed Module, otherwise optional
+    // Must be added when used as an Xposed Module, otherwise optional
     id("com.google.devtools.ksp") version "<ksp-version>"
 }
 ```
@@ -147,7 +149,7 @@ plugins {
 
 ```groovy
 plugins {
-    // ❗Must be added when used as an Xposed Module, otherwise optional
+    // Must be added when used as an Xposed Module, otherwise optional
     id 'com.google.devtools.ksp' version '<ksp-version>'
 }
 ```
@@ -160,9 +162,9 @@ Add dependencies in your project `build.gradle.kts` or `build.gradle`.
 dependencies {
     // Basic dependency
     implementation("com.highcapable.yukihookapi:api:<yuki-version>")
-    // ❗Must be added when used as an Xposed Module, otherwise optional
+    // Must be added when used as an Xposed Module, otherwise optional
     compileOnly("de.robv.android.xposed:api:82")
-    // ❗Must be added when used as an Xposed Module, otherwise optional
+    // Must be added when used as an Xposed Module, otherwise optional
     ksp("com.highcapable.yukihookapi:ksp-xposed:<yuki-version>")
 }
 ```
@@ -173,9 +175,9 @@ dependencies {
 dependencies {
     // Basic dependency
     implementation 'com.highcapable.yukihookapi:api:<yuki-version>'
-    // ❗Must be added when used as an Xposed Module, otherwise optional
+    // Must be added when used as an Xposed Module, otherwise optional
     compileOnly 'de.robv.android.xposed:api:82'
-    // ❗Must be added when used as an Xposed Module, otherwise optional
+    // Must be added when used as an Xposed Module, otherwise optional
     ksp 'com.highcapable.yukihookapi:ksp-xposed:<yuki-version>'
 }
 ```
@@ -194,18 +196,18 @@ We recommend using [SweetDependency](https://github.com/HighCapable/SweetDepende
 
 #### Configure Java Version
 
-Modify the Java version of Kotlin in your project `build.gradle.kts` or `build.gradle` to 11 or above.
+Modify the Java version of Kotlin in your project `build.gradle.kts` or `build.gradle` to 17 or above.
 
 > Kotlin DSL
 
 ```kt
 android {
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "17"
     }
 }
 ```
@@ -215,11 +217,11 @@ android {
 ```groovy
 android {
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_11
-        targetCompatibility JavaVersion.VERSION_11
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = '11'
+        jvmTarget = '17'
     }
 }
 ```
@@ -227,6 +229,8 @@ android {
 ::: warning
 
 Since API **1.0.80**, the Java version used by Kotlin defaults to 11, and versions 1.8 and below are no longer supported.
+
+Since API **1.2.0**, the Java version used by Kotlin defaults to 17, and versions 11 and below are no longer supported.
 
 :::
 
@@ -284,10 +288,6 @@ override fun onInit() = configs {
     isDebug = BuildConfig.DEBUG
 }
 ```
-
-**YukiHookAPI** will print all logs for debugging by default.
-
-For a release build, be sure to turn off debugging to prevent a lot of log stuffing on the user's device.
 
 You can also extends **Application** of your Module App from **ModuleApplication** to achieve a complete user experience.
 

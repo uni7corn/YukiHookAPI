@@ -1,27 +1,21 @@
 /*
  * YukiHookAPI - An efficient Hook API and Xposed Module solution built in Kotlin.
- * Copyright (C) 2019-2023 HighCapable
- * https://github.com/fankes/YukiHookAPI
+ * Copyright (C) 2019 HighCapable
+ * https://github.com/HighCapable/YukiHookAPI
  *
- * MIT License
+ * Apache License Version 2.0
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  * This file is created by fankes on 2022/3/27.
  * This file is modified by fankes on 2022/9/14.
@@ -30,7 +24,6 @@
 
 package com.highcapable.yukihookapi.hook.core.finder.base.rules
 
-import android.util.ArrayMap
 import java.lang.reflect.Field
 import java.lang.reflect.Member
 import java.lang.reflect.Method
@@ -44,18 +37,17 @@ import java.lang.reflect.Modifier
  */
 class ModifierRules private constructor(private val instance: Any) {
 
-    @PublishedApi
     internal companion object {
 
         /** 当前实例数组 */
-        private val instances = ArrayMap<Long, ModifierRules>()
+        private val instances = mutableMapOf<Long, ModifierRules>()
 
         /**
          * 获取模板字符串数组
          * @param value 唯一标识值
-         * @return [ArrayList]<[String]>
+         * @return [MutableList]<[String]>
          */
-        internal fun templates(value: Long) = instances[value]?.templates ?: arrayListOf()
+        internal fun templates(value: Long) = instances[value]?.templates ?: mutableListOf()
 
         /**
          * 创建实例
@@ -63,12 +55,11 @@ class ModifierRules private constructor(private val instance: Any) {
          * @param value 唯一标识值 - 默认 0
          * @return [ModifierRules]
          */
-        @PublishedApi
         internal fun with(instance: Any, value: Long = 0) = ModifierRules(instance).apply { instances[value] = this }
     }
 
     /** 当前模板字符串数组 */
-    private val templates = ArrayList<String>()
+    private val templates = mutableListOf<String>()
 
     /**
      * [Class]、[Member] 类型是否包含 public
@@ -117,7 +108,7 @@ class ModifierRules private constructor(private val instance: Any) {
      *
      * ^^^
      *
-     * - ❗注意 Kotlin → Jvm 后的 object 类中的方法并不是静态的
+     * - 注意 Kotlin → Jvm 后的 object 类中的方法并不是静态的
      * @return [Boolean]
      */
     val isStatic get() = Modifier.isStatic(modifiers).also { templates.add("<isStatic> ($it)") }
@@ -131,7 +122,7 @@ class ModifierRules private constructor(private val instance: Any) {
      *
      * ^^^
      *
-     * - ❗注意 Kotlin → Jvm 后没有 open 标识的 [Class]、[Member] 和没有任何关联的 [Class]、[Member] 都将为 final
+     * - 注意 Kotlin → Jvm 后没有 open 标识的 [Class]、[Member] 和没有任何关联的 [Class]、[Member] 都将为 final
      * @return [Boolean]
      */
     val isFinal get() = Modifier.isFinal(modifiers).also { templates.add("<isFinal> ($it)") }

@@ -10,7 +10,7 @@ This document can help you quickly migrate from the Hook APIs you are familiar w
 
 > Migrated from `XC_LoadPackage.LoadPackageParam` to `PackageParam`.
 
-`YukiHookAPI` implements the `lambda` method body `this` usage for `PackageParam`, and the `PackageParam` object can be obtained globally in the `encase` method body.
+`YukiHookAPI` implements the **lambda** method body `this` usage for `PackageParam`, and the `PackageParam` object can be obtained globally in the `encase` method body.
 
 > The API function differences are compared as follows
 
@@ -29,18 +29,16 @@ override fun onHook() = encase {
     appContext
     // Hook specified app
     loadApp(name = "com.demo.test") {
-        // Class Hook
-        findClass("com.demo.test.TestClass").hook {
-            injectMember {
-                method {
-                    name = "test"
-                    param(BooleanType)
-                }
-                afterHook {
+        // Member Hook
+        "com.demo.test.TestClass".toClass()
+            .method {
+                name = "test"
+                param(BooleanType)
+            }.hook {
+                after {
                     // ...
                 }
             }
-        }
         // Resources Hook (fixed usage)
         resources().hook {
             injectResource {
@@ -107,7 +105,7 @@ override fun handleInitPackageResources(resparam: XC_InitPackageResources.InitPa
 
 #### Before/After Hook
 
-`YukiHookAPI` also implements the `lambda` method body `this` usage for `HookParam`, and the `HookParam` object can be obtained globally in the method bodies such as `beforeHook` and `afterHook`.
+`YukiHookAPI` also implements the **lambda** method body `this` usage for `HookParam`, and the `HookParam` object can be obtained globally in the method bodies such as `before` and `after`.
 
 > The API function differences are compared as follows
 
@@ -115,7 +113,7 @@ override fun handleInitPackageResources(resparam: XC_InitPackageResources.InitPa
 ::: code-group-item Yuki Hook API
 
 ```kotlin
-afterHook {
+after {
     // Get the current Hook instance
     instance
     // Get the Class instance of the current Hook
@@ -261,6 +259,50 @@ override fun replaceHookedMethod(param: MethodHookParam) = null
 
 :::
 ::::
+
+### Notes on Migrating XposedHelpers
+
+The reflection functionality provided in `YukiHookAPI` differs from the reflection functionality of `XposedHelpers`.
+
+Here is a guide to avoid common pitfalls.
+
+Methods like `XposedHelpers.callMethod` and `XposedHelpers.callStaticMethod` automatically search and invoke all public methods (including those in superclasses), which is a feature of native Java reflection. In contrast, the reflection solution provided by `YukiHookAPI` first searches and then calls, and by default, the search process does not automatically look for methods in superclasses.
+
+For example, class `A` inherits from `B`, and `B` has a public method `test`, while `A` does not.
+
+```java
+public class B {
+    public void test(String a) {
+        // ...
+    }
+}
+
+public class A extends B {
+    // ...
+}
+```
+
+Usage with `XposedHelpers`.
+
+```kotlin
+val instance: A = ...
+XposedHelpers.callMethod(instance, "test", "some string")
+```
+
+Usage with `YukiHookAPI`.
+
+```kotlin
+val instance: A = ...
+instance.current().method {
+    name = "test"
+    // Note that you need to add this search condition to ensure it searches for methods in superclasses.
+    superClass()
+}.call("some string")
+// Or directly call the superClass() method.
+instance.current().superClass()?.method {
+    name = "test"
+}?.call("some string")
+```
 
 ## Migrate More Functions Related to Hook API
 

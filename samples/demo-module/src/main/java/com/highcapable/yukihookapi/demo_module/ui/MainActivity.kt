@@ -1,27 +1,21 @@
 /*
  * YukiHookAPI - An efficient Hook API and Xposed Module solution built in Kotlin.
- * Copyright (C) 2019-2023 HighCapable
- * https://github.com/fankes/YukiHookAPI
+ * Copyright (C) 2019 HighCapable
+ * https://github.com/HighCapable/YukiHookAPI
  *
- * MIT License
+ * Apache License Version 2.0
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  * This file is created by fankes on 2022/1/29.
  */
@@ -57,19 +51,19 @@ class MainActivity : ModuleAppCompatActivity() {
                     }
                 }
             }
-            moduleDemoActiveText.text = "Module is Active：${YukiHookAPI.Status.isModuleActive}"
+            moduleDemoActiveText.text = "Module is Active: ${YukiHookAPI.Status.isModuleActive}"
             moduleDemoActiveZhText.text = "Xposed 模块激活状态"
-            moduleDemoFrameworkText.text = "Hook Framework：${YukiHookAPI.Status.Executor.name}"
+            moduleDemoFrameworkText.text = "Hook Framework: ${YukiHookAPI.Status.Executor.name}"
             moduleDemoFrameworkZhText.text = "当前的 Hook 框架"
-            moduleDemoApiVersionText.text = "Xposed API Version：${YukiHookAPI.Status.Executor.apiLevel}"
+            moduleDemoApiVersionText.text = "Xposed API Version: ${YukiHookAPI.Status.Executor.apiLevel}"
             moduleDemoApiVersionZhText.text = "Xposed API 版本"
-            moduleDemoYukiHookApiVersionText.text = "YukiHookAPI Version：${YukiHookAPI.API_VERSION_NAME}(${YukiHookAPI.API_VERSION_CODE})"
-            moduleDemoYukiHookApiVersionZhText.text = "YukiHookAPI 版本"
+            moduleDemoYukiHookApiVersionText.text = "${YukiHookAPI.TAG} Version: ${YukiHookAPI.VERSION}"
+            moduleDemoYukiHookApiVersionZhText.text = "${YukiHookAPI.TAG} 版本"
             moduleDemoNewXshareText.text =
-                "${if (YukiHookAPI.Status.isXposedEnvironment) "XSharedPreferences Readable" else "New XSharedPreferences"}：${prefs().isPreferencesAvailable}"
+                "${if (YukiHookAPI.Status.isXposedEnvironment) "XSharedPreferences Readable" else "New XSharedPreferences"}: ${prefs().isPreferencesAvailable}"
             moduleDemoNewXshareZhText.text =
                 if (YukiHookAPI.Status.isXposedEnvironment) "XSharedPreferences 是否可用" else "New XSharedPreferences 支持状态"
-            moduleDemoResHookText.text = "Support Resources Hook：${YukiHookAPI.Status.isSupportResourcesHook}"
+            moduleDemoResHookText.text = "Support Resources Hook: ${YukiHookAPI.Status.isSupportResourcesHook}"
             moduleDemoResHookZhText.text = "资源钩子支持状态"
             moduleDemoComTimeStampText.text =
                 "Compiled Time：${SimpleDateFormat.getDateTimeInstance().format(Date(YukiHookAPI.Status.compiledTimestamp))}"

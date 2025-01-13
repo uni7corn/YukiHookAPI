@@ -68,6 +68,24 @@ CONSTRUCTOR
 
 > 全部 `Constructor`。
 
+## LazyClass <span class="symbol">- class</span>
+
+```kotlin:no-line-numbers
+open class LazyClass<T> internal constructor(
+    private val instance: Any,
+    private val initialize: Boolean,
+    private val loader: ClassLoaderInitializer?
+)
+```
+
+**变更记录**
+
+`v1.2.0` `新增`
+
+**功能描述**
+
+> 懒装载 `Class` 实例。
+
 ## ClassLoader.listOfClasses <span class="symbol">- ext-method</span>
 
 ```kotlin:no-line-numbers
@@ -110,7 +128,7 @@ inline fun ClassLoader.searchClass(name: String, async: Boolean, initiate: Class
 
 建议启用 **async** 或设置 **name** 参数，**name** 参数将在 Hook APP (宿主) 不同版本中自动进行本地缓存以提升效率。
 
-此功能尚在试验阶段，性能与稳定性可能仍然存在问题，使用过程遇到问题请向我们报告并帮助我们改进。
+此功能尚在实验阶段，性能与稳定性可能仍然存在问题，使用过程遇到问题请向我们报告并帮助我们改进。
 
 :::
 
@@ -528,7 +546,7 @@ inline fun <reified T> classOf(loader: ClassLoader?, initialize: Boolean): Class
 
 **功能示例**
 
-我们要获取一个 `Class` 在 `Kotlin` 下不通过反射时应该这样做。
+我们要获取一个 `Class` 在 Kotlin 下不通过反射时应该这样做。
 
 > 示例如下
 
@@ -552,6 +570,50 @@ classOf<DemoClass>()
 val customClassLoader: ClassLoader? = ... // 假设这个就是你的 ClassLoader
 classOf<DemoClass>(customClassLoader)
 ```
+
+## lazyClass <span class="symbol">- method</span>
+
+```kotlin:no-line-numbers
+fun lazyClass(name: String, initialize: Boolean, loader: ClassLoaderInitializer?): LazyClass.NonNull<Any>
+```
+
+```kotlin:no-line-numbers
+inline fun <reified T> lazyClass(name: String, initialize: Boolean, loader: ClassLoaderInitializer?): LazyClass.NonNull<T>
+```
+
+```kotlin:no-line-numbers
+fun lazyClass(variousClass: VariousClass, initialize: Boolean, loader: ClassLoaderInitializer?): LazyClass.NonNull<Any>
+```
+
+**变更记录**
+
+`v1.2.0` `新增`
+
+**功能描述**
+
+> 懒装载 `Class`。
+
+## lazyClassOrNull <span class="symbol">- method</span>
+
+```kotlin:no-line-numbers
+fun lazyClassOrNull(name: String, initialize: Boolean, loader: ClassLoaderInitializer?): LazyClass.Nullable<Any>
+```
+
+```kotlin:no-line-numbers
+inline fun <reified T> lazyClassOrNull(name: String, initialize: Boolean, loader: ClassLoaderInitializer?): LazyClass.Nullable<T>
+```
+
+```kotlin:no-line-numbers
+fun lazyClassOrNull(variousClass: VariousClass, initialize: Boolean, loader: ClassLoaderInitializer?): LazyClass.Nullable<Any>
+```
+
+**变更记录**
+
+`v1.2.0` `新增`
+
+**功能描述**
+
+> 懒装载 `Class`。
 
 ## String.hasClass <span class="symbol">- ext-method</span>
 
@@ -896,7 +958,7 @@ inline fun <reified T : Any> T.current(ignored: Boolean, initiate: CurrentClass.
 
 `v1.1.0` `作废`
 
-请转移到 `buildOf` 方法
+请迁移到 `buildOf` 方法
 
 ## Class.buildOf <span class="symbol">- ext-method</span>
 

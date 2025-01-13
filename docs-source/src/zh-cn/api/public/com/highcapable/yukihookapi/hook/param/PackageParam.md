@@ -19,7 +19,7 @@ open class PackageParam internal constructor(internal var wrapper: PackageParamW
 ## appClassLoader <span class="symbol">- field</span>
 
 ```kotlin:no-line-numbers
-var appClassLoader：ClassLoader
+var appClassLoader：ClassLoader?
 ```
 
 **变更记录**
@@ -29,6 +29,10 @@ var appClassLoader：ClassLoader
 `v1.1.5` `修改`
 
 可以动态修改此变量的值
+
+`v1.2.0` `修改`
+
+加入可空类型 (空安全)
 
 **功能描述**
 
@@ -404,7 +408,7 @@ fun loadApp(isExcludeSelf: Boolean, vararg hooker: YukiBaseHooker)
 
 > 装载并 Hook 指定、全部包名的 APP。
 
-`name` 为 APP 的包名，后方的两个参数一个可作为 `lambda` 方法体使用，一个可以直接装载子 Hooker。
+`name` 为 APP 的包名，后方的两个参数一个可作为 **lambda** 方法体使用，一个可以直接装载子 Hooker。
 
 装载并 Hook 指定、全部包名的 APP。
 
@@ -414,7 +418,7 @@ fun loadApp(isExcludeSelf: Boolean, vararg hooker: YukiBaseHooker)
 
 **功能示例**
 
-你可以使用 `loadApp` 的 `lambda` 方法体形式或直接装载一个 Hooker。
+你可以使用 `loadApp` 的 **lambda** 方法体形式或直接装载一个 Hooker。
 
 > 示例如下
 
@@ -499,7 +503,7 @@ fun loadZygote(vararg hooker: YukiBaseHooker)
 
 > 装载 APP Zygote 事件。
 
-方法中的两个参数一个可作为 `lambda` 方法体使用，一个可以直接装载子 Hooker。
+方法中的两个参数一个可作为 **lambda** 方法体使用，一个可以直接装载子 Hooker。
 
 ## loadSystem <span class="symbol">- method</span>
 
@@ -527,7 +531,7 @@ fun loadSystem(vararg hooker: YukiBaseHooker)
 
 > 装载并 Hook 系统框架。
 
-方法中的两个参数一个可作为 `lambda` 方法体使用，一个可以直接装载子 Hooker。
+方法中的两个参数一个可作为 **lambda** 方法体使用，一个可以直接装载子 Hooker。
 
 ## withProcess <span class="symbol">- method</span>
 
@@ -559,7 +563,7 @@ fun withProcess(name: String, vararg hooker: YukiBaseHooker)
 
 > 装载并 Hook APP 的指定进程。
 
-`name` 为 APP 的进程名称，后方的两个参数一个可作为 `lambda` 方法体使用，一个可以直接装载子 Hooker。
+`name` 为 APP 的进程名称，后方的两个参数一个可作为 **lambda** 方法体使用，一个可以直接装载子 Hooker。
 
 ## loadHooker <span class="symbol">- method</span>
 
@@ -597,7 +601,7 @@ inline fun searchClass(name: String, async: Boolean, initiate: ClassConditions):
 
 建议启用 **async** 或设置 **name** 参数，**name** 参数将在 Hook APP (宿主) 不同版本中自动进行本地缓存以提升效率。
 
-此功能尚在试验阶段，性能与稳定性可能仍然存在问题，使用过程遇到问题请向我们报告并帮助我们改进。
+此功能尚在实验阶段，性能与稳定性可能仍然存在问题，使用过程遇到问题请向我们报告并帮助我们改进。
 
 :::
 
@@ -609,7 +613,7 @@ inline fun searchClass(name: String, async: Boolean, initiate: ClassConditions):
 
 `v1.1.0` `作废`
 
-请转移到 `toClass(...)` 方法
+请迁移到 `toClass(...)` 方法
 
 <h2 class="deprecated">String.hasClass - i-ext-field</h2>
 
@@ -619,7 +623,7 @@ inline fun searchClass(name: String, async: Boolean, initiate: ClassConditions):
 
 `v1.1.0` `作废`
 
-请转移到 `hasClass(...)` 方法
+请迁移到 `hasClass(...)` 方法
 
 ## String+VariousClass.toClass <span class="symbol">- i-ext-method</span>
 
@@ -760,6 +764,50 @@ fun VariousClass.toClassOrNull(loader: ClassLoader?, initialize: Boolean): Class
 
 用法请参考 [String+VariousClass.toClass](#string-variousclass-toclass-i-ext-method) 方法。
 
+## lazyClass <span class="symbol">- method</span>
+
+```kotlin:no-line-numbers
+fun lazyClass(name: String, initialize: Boolean, loader: ClassLoaderInitializer?): LazyClass.NonNull<Any>
+```
+
+```kotlin:no-line-numbers
+inline fun <reified T> lazyClass(name: String, initialize: Boolean, loader: ClassLoaderInitializer?): LazyClass.NonNull<T>
+```
+
+```kotlin:no-line-numbers
+fun lazyClass(variousClass: VariousClass, initialize: Boolean, loader: ClassLoaderInitializer?): LazyClass.NonNull<Any>
+```
+
+**变更记录**
+
+`v1.2.0` `新增`
+
+**功能描述**
+
+> 懒装载 `Class`。
+
+## lazyClassOrNull <span class="symbol">- method</span>
+
+```kotlin:no-line-numbers
+fun lazyClassOrNull(name: String, initialize: Boolean, loader: ClassLoaderInitializer?): LazyClass.Nullable<Any>
+```
+
+```kotlin:no-line-numbers
+inline fun <reified T> lazyClassOrNull(name: String, initialize: Boolean, loader: ClassLoaderInitializer?): LazyClass.Nullable<T>
+```
+
+```kotlin:no-line-numbers
+fun lazyClassOrNull(variousClass: VariousClass, initialize: Boolean, loader: ClassLoaderInitializer?): LazyClass.Nullable<Any>
+```
+
+**变更记录**
+
+`v1.2.0` `新增`
+
+**功能描述**
+
+> 懒装载 `Class`。
+
 ## String.hasClass <span class="symbol">- i-ext-method</span>
 
 ```kotlin:no-line-numbers
@@ -799,15 +847,7 @@ if("com.example.demo.DemoClass".hasClass(customClassLoader)) {
 }
 ```
 
-## findClass <span class="symbol">- method</span>
-
-```kotlin:no-line-numbers
-fun findClass(name: String, loader: ClassLoader?): HookClass
-```
-
-```kotlin:no-line-numbers
-fun findClass(vararg name: String, loader: ClassLoader?): VariousClass
-```
+<h2 class="deprecated">findClass - method</h2>
 
 **变更记录**
 
@@ -821,67 +861,11 @@ fun findClass(vararg name: String, loader: ClassLoader?): VariousClass
 
 新增 `loader` 参数
 
-**功能描述**
+`v1.2.0` `作废`
 
-> 通过完整包名+名称查找需要被 Hook 的 `Class`。
+请直接使用 `String.toClass(...)` 或 `VariousClass(...)`
 
-::: warning
-
-使用此方法会得到一个 **HookClass** 仅用于 Hook，若想查找 **Class** 请使用 [toClass](#string-variousclass-toclass-i-ext-method) 功能。
-
-:::
-
-**功能示例**
-
-你可以使用三种方式查找你需要 Hook 的目标 `Class`。
-
-你可以直接将被查找的 `Class` 完整包名+名称填入 `name` 中。
-
-> 示例如下
-
-```kotlin
-findClass(name = "com.example.demo.DemoClass")
-```
-
-若你不确定多个版本的 `Class` 以及不同名称，你可以将多个完整包名+名称填入 `name` 中。
-
-> 示例如下
-
-```kotlin
-findClass("com.example.demo.DemoClass1", "com.example.demo.DemoClass2", "com.example.demo.DemoClass3")
-```
-
-你还可以创建一个 `VariousClass`，将 `Class` 的完整包名+名称填入 `VariousClass` 的 `name` 中并填入 `various` 参数中。
-
-> 示例如下
-
-```kotlin
-val variousClass = VariousClass("com.example.demo.DemoClass1", "com.example.demo.DemoClass2", "com.example.demo.DemoClass3")
-```
-
-若你当前需要查找的 `Class` 不属于 `appClassLoader`，你可以使用 `loader` 参数指定你要装载的 `ClassLoader`。
-
-> 示例如下
-
-```kotlin
-val outsideLoader: ClassLoader? = ... // 假设这就是你的 ClassLoader
-findClass(name = "com.example.demo.OutsideClass", loader = outsideLoader)
-```
-
-同样地，在不确定多个版本的 `Class` 以及不同名称时，也可以使用 `loader` 参数指定你要装载的 `ClassLoader`。
-
-> 示例如下
-
-```kotlin
-val outsideLoader: ClassLoader? = ... // 假设这就是你的 ClassLoader
-findClass("com.example.demo.OutsideClass1", "com.example.demo.OutsideClass2", "com.example.demo.OutsideClass3", loader = outsideLoader)
-```
-
-## String+Class+VariousClass+HookClass.hook <span class="symbol">- i-ext-method</span>
-
-```kotlin:no-line-numbers
-inline fun String.hook(initiate: YukiMemberHookCreator.() -> Unit): YukiMemberHookCreator.Result
-```
+## Class+VariousClass+HookClass.hook <span class="symbol">- i-ext-method</span>
 
 ```kotlin:no-line-numbers
 inline fun Class<*>.hook(isForceUseAbsolute: Boolean, initiate: YukiMemberHookCreator.() -> Unit): YukiMemberHookCreator.Result
@@ -925,75 +909,85 @@ inline fun HookClass.hook(initiate: YukiMemberHookCreator.() -> Unit): YukiMembe
 
 添加了 `isForceUseAbsolute` 参数到 `Class.hook` 方法
 
+`v1.2.0` `修改`
+
+作废了 ~~`String.hook`~~ 方法
+
 **功能描述**
 
-> 这是一切 Hook 的入口创建方法，Hook 方法、构造方法。
+> Hook 方法、构造方法。
 
-**功能示例**
+## Member+BaseFinder.BaseResult.hook <span class="symbol">- i-ext-method</span>
 
-如你所见，Hook 方法体的创建可使用 4 种方式。
-
-通过字符串类名得到 `HookClass` 实例进行创建。
-
-> 示例如下
-
-```kotlin
-"com.example.demo.DemoClass".hook {
-    // Your code here.
-}
-
-```
-通过 `findClass` 得到 `HookClass` 实例进行创建。
-
-> 示例如下
-
-```kotlin
-findClass(name = "com.example.demo.DemoClass").hook {
-    // Your code here.
-}
+```kotlin:no-line-numbers
+inline fun Member.hook(priority: YukiHookPriority): YukiMemberHookCreator.MemberHookCreator
 ```
 
-使用 `stub` 或直接拿到 `Class` 实例进行创建。
-
-默认情况下 API 会将 `Class` 实例转换为类名并绑定到 `appClassLoader`，若失败，则会使用原始 `Class` 实例直接进行 Hook。
-
-> 示例如下
-
-```kotlin
-Stub::class.java.hook {
-    // Your code here.
-}
+```kotlin:no-line-numbers
+inline fun Member.hook(priority: YukiHookPriority, initiate: YukiMemberHookCreator.MemberHookCreator.() -> Unit): YukiMemberHookCreator.MemberHookCreator.Result
 ```
 
-若当前 `Class` 不在 `appClassLoader` 且自动匹配无法找到该 `Class`，请启用 `isForceUseAbsolute`。
-
-> 示例如下
-
-```kotlin
-YourClass::class.java.hook(isForceUseAbsolute = true) {
-    // Your code here.
-}
+```kotlin:no-line-numbers
+inline fun BaseFinder.BaseResult.hook(priority: YukiHookPriority): YukiMemberHookCreator.MemberHookCreator
 ```
 
-使用 `VariousClass` 实例进行创建。
-
-> 示例如下
-
-```kotlin
-VariousClass("com.example.demo.DemoClass1", "com.example.demo.DemoClass2").hook {
-    // Your code here.
-}
+```kotlin:no-line-numbers
+inline fun BaseFinder.BaseResult.hook(priority: YukiHookPriority, initiate: YukiMemberHookCreator.MemberHookCreator.() -> Unit): YukiMemberHookCreator.MemberHookCreator.Result
 ```
 
-或者直接使用可变字符串数组进行创建。
+**变更记录**
 
-> 示例如下
+`v1.2.0` `新增`
 
-```kotlin
-findClass("com.example.demo.DemoClass1", "com.example.demo.DemoClass2").hook {
-    // Your code here.
-}
+**功能描述**
+
+> 直接 Hook 方法、构造方法。
+
+::: warning
+
+此功能尚在实验阶段，在 **1.x.x** 版本将暂定于此，在 **2.0.0** 版本将完全合并到新 API。
+
+:::
+
+## Array&lt;Member&gt;+List&lt;Member&gt;+BaseFinder.BaseResult.hookAll <span class="symbol">- i-ext-method</span>
+
+```kotlin:no-line-numbers
+inline fun Array<Member>.hookAll(priority: YukiHookPriority): YukiMemberHookCreator.MemberHookCreator
 ```
+
+```kotlin:no-line-numbers
+inline fun Array<Member>.hookAll(priority: YukiHookPriority, initiate: YukiMemberHookCreator.MemberHookCreator.() -> Unit): YukiMemberHookCreator.MemberHookCreator.Result
+```
+
+```kotlin:no-line-numbers
+inline fun List<Member>.hookAll(priority: YukiHookPriority): YukiMemberHookCreator.MemberHookCreator
+```
+
+```kotlin:no-line-numbers
+inline fun List<Member>.hookAll(priority: YukiHookPriority, initiate: YukiMemberHookCreator.MemberHookCreator.() -> Unit): YukiMemberHookCreator.MemberHookCreator.Result
+```
+
+```kotlin:no-line-numbers
+inline fun BaseFinder.BaseResult.hookAll(priority: YukiHookPriority): YukiMemberHookCreator.MemberHookCreator
+```
+
+```kotlin:no-line-numbers
+inline fun BaseFinder.BaseResult.hookAll(priority: YukiHookPriority, initiate: YukiMemberHookCreator.MemberHookCreator.() -> Unit): YukiMemberHookCreator.MemberHookCreator.Result
+```
+
+**变更记录**
+
+`v1.2.0` `新增`
+
+**功能描述**
+
+> 直接 Hook 方法、构造方法 (批量)。
+
+::: warning
+
+此功能尚在实验阶段，在 **1.x.x** 版本将暂定于此，在 **2.0.0** 版本将完全合并到新 API。
+
+:::
 
 ## HookResources.hook <span class="symbol">- i-ext-method</span>
 
@@ -1011,7 +1005,7 @@ inline fun HookResources.hook(initiate: YukiResourcesHookCreator.() -> Unit)
 
 ::: danger
 
-请注意你需要确保当前 Hook Framework 支持且 **InjectYukiHookWithXposed.isUsingResourcesHook** 已启用。
+此功能将不再默认启用，如需启用，请手动设置 **InjectYukiHookWithXposed.isUsingResourcesHook**。
 
 :::
 
@@ -1033,7 +1027,7 @@ resources().hook {
 
 :::
 
-将 Resources 的 Hook 设置为这样是为了与 `findClass(...).hook` 做到统一，使得调用起来逻辑不会混乱。
+将 Resources 的 Hook 设置为这样是为了与 `String.toClass(...).hook` 做到统一，使得调用起来逻辑不会混乱。
 
 ## AppLifecycle <span class="symbol">- class</span>
 

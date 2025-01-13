@@ -1,27 +1,21 @@
 /*
  * YukiHookAPI - An efficient Hook API and Xposed Module solution built in Kotlin.
- * Copyright (C) 2019-2023 HighCapable
- * https://github.com/fankes/YukiHookAPI
+ * Copyright (C) 2019 HighCapable
+ * https://github.com/HighCapable/YukiHookAPI
  *
- * MIT License
+ * Apache License Version 2.0
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  * This file is created by fankes on 2022/5/16.
  */
@@ -44,14 +38,12 @@ import android.os.Parcel
 import android.os.Parcelable
 import android.os.TransactionTooLargeException
 import com.highcapable.yukihookapi.YukiHookAPI
-import com.highcapable.yukihookapi.annotation.CauseProblemsApi
-import com.highcapable.yukihookapi.hook.log.YukiHookLogger
-import com.highcapable.yukihookapi.hook.log.YukiLoggerData
-import com.highcapable.yukihookapi.hook.log.yLoggerE
-import com.highcapable.yukihookapi.hook.log.yLoggerW
-import com.highcapable.yukihookapi.hook.utils.RandomSeed
+import com.highcapable.yukihookapi.hook.log.YLog
+import com.highcapable.yukihookapi.hook.log.data.YLogData
+import com.highcapable.yukihookapi.hook.utils.factory.RandomSeed
 import com.highcapable.yukihookapi.hook.xposed.application.ModuleApplication
 import com.highcapable.yukihookapi.hook.xposed.bridge.YukiXposedModule
+import com.highcapable.yukihookapi.hook.xposed.channel.annotation.SendTooLargeChannelData
 import com.highcapable.yukihookapi.hook.xposed.channel.data.ChannelData
 import com.highcapable.yukihookapi.hook.xposed.channel.data.wrapper.ChannelDataWrapper
 import com.highcapable.yukihookapi.hook.xposed.channel.priority.ChannelPriority
@@ -66,11 +58,11 @@ import java.util.concurrent.ConcurrentHashMap
  *
  * 模块需要将 [Application] 继承于 [ModuleApplication] 来实现此功能
  *
- * - ❗模块与宿主需要保持存活状态 - 否则无法建立通讯
+ * - 模块与宿主需要保持存活状态 - 否则无法建立通讯
  *
- * 详情请参考 [API 文档 - YukiHookDataChannel](https://fankes.github.io/YukiHookAPI/zh-cn/api/public/com/highcapable/yukihookapi/hook/xposed/channel/YukiHookDataChannel)
+ * 详情请参考 [API 文档 - YukiHookDataChannel](https://highcapable.github.io/YukiHookAPI/zh-cn/api/public/com/highcapable/yukihookapi/hook/xposed/channel/YukiHookDataChannel)
  *
- * For English version, see [API Document - YukiHookDataChannel](https://fankes.github.io/YukiHookAPI/en/api/public/com/highcapable/yukihookapi/hook/xposed/channel/YukiHookDataChannel)
+ * For English version, see [API Document - YukiHookDataChannel](https://highcapable.github.io/YukiHookAPI/en/api/public/com/highcapable/yukihookapi/hook/xposed/channel/YukiHookDataChannel)
  */
 class YukiHookDataChannel private constructor() {
 
@@ -92,7 +84,7 @@ class YukiHookDataChannel private constructor() {
         private const val GET_YUKI_LOGGER_INMEMORY_DATA = "yuki_logger_inmemory_data_get"
 
         /** 调试日志数据结果标签 */
-        private val RESULT_YUKI_LOGGER_INMEMORY_DATA = ChannelData<ArrayList<YukiLoggerData>>("yuki_logger_inmemory_data_result")
+        private val RESULT_YUKI_LOGGER_INMEMORY_DATA = ChannelData<List<YLogData>>("yuki_logger_inmemory_data_result")
 
         /** 仅监听结果键值 */
         private const val VALUE_WAIT_FOR_LISTENER = "wait_for_listener_value"
@@ -157,7 +149,7 @@ class YukiHookDataChannel private constructor() {
                 intent.action?.also { action ->
                     runCatching {
                         receiverCallbacks.takeIf { it.isNotEmpty() }?.apply {
-                            arrayListOf<String>().also { destroyedCallbacks ->
+                            mutableListOf<String>().also { destroyedCallbacks ->
                                 forEach { (key, it) ->
                                     when {
                                         (it.first as? Activity?)?.isDestroyed == true -> destroyedCallbacks.add(key)
@@ -167,7 +159,7 @@ class YukiHookDataChannel private constructor() {
                                 destroyedCallbacks.takeIf { it.isNotEmpty() }?.forEach { remove(it) }
                             }
                         }
-                    }.onFailure { yLoggerE(msg = "Received action \"$action\" failed", e = it) }
+                    }.onFailure { YLog.innerE("Received action \"$action\" failed", it) }
                 }
             }
         }
@@ -191,7 +183,7 @@ class YukiHookDataChannel private constructor() {
         context is Application || isXposedEnvironment || (((context ?: receiverContext)
             ?.getSystemService(ACTIVITY_SERVICE) as? ActivityManager?)
             ?.getRunningTasks(9999)?.filter { context?.javaClass?.name == it?.topActivity?.className }?.size ?: 0) > 0
-    }.getOrNull() ?: yLoggerW(msg = "Couldn't got current Activity status because a SecurityException blocked it").let { false }
+    }.getOrNull() ?: YLog.innerW("Couldn't got current Activity status because a SecurityException blocked it").let { false }
 
     /**
      * 获取宿主广播 Action 名称
@@ -237,7 +229,7 @@ class YukiHookDataChannel private constructor() {
             }
             /** 注册监听模块与宿主之间的调试日志数据 */
             wait<String>(GET_YUKI_LOGGER_INMEMORY_DATA) { fromPackageName ->
-                nameSpace(context, fromPackageName).put(RESULT_YUKI_LOGGER_INMEMORY_DATA, YukiHookLogger.inMemoryData)
+                nameSpace(context, fromPackageName).put(RESULT_YUKI_LOGGER_INMEMORY_DATA, YLog.inMemoryData)
             }
         }
     }
@@ -261,16 +253,16 @@ class YukiHookDataChannel private constructor() {
      * @param stringData [String] 数据数组
      */
     internal inner class SegmentsTempData(
-        var listData: ArrayList<List<*>> = arrayListOf(),
-        var mapData: ArrayList<Map<*, *>> = arrayListOf(),
-        var setData: ArrayList<Set<*>> = arrayListOf(),
-        var stringData: ArrayList<String> = arrayListOf()
+        var listData: MutableList<List<*>> = mutableListOf(),
+        var mapData: MutableList<Map<*, *>> = mutableListOf(),
+        var setData: MutableList<Set<*>> = mutableListOf(),
+        var stringData: MutableList<String> = mutableListOf()
     )
 
     /**
      * [YukiHookDataChannel] 命名空间
      *
-     * - ❗请使用 [nameSpace] 方法来获取 [NameSpace]
+     * - 请使用 [nameSpace] 方法来获取 [NameSpace]
      * @param context 上下文实例
      * @param packageName 目标 Hook APP (宿主) 的包名
      */
@@ -311,7 +303,7 @@ class YukiHookDataChannel private constructor() {
          *
          * - 超出最大数据字节大小后的数据将被自动分段发送
          *
-         * - ❗警告：请谨慎调整此参数 - 如果超出了系统能够允许的大小会引发 [TransactionTooLargeException] 异常
+         * - 警告：请谨慎调整此参数 - 如果超出了系统能够允许的大小会引发 [TransactionTooLargeException] 异常
          * @return [Int]
          */
         var dataMaxByteSize
@@ -331,7 +323,7 @@ class YukiHookDataChannel private constructor() {
          *
          * - 超出最大数据字节大小后的数据将按照此倍数自动划分 [receiverDataMaxByteSize] 的大小
          *
-         * - ❗警告：请谨慎调整此参数 - 如果超出了系统能够允许的大小会引发 [TransactionTooLargeException] 异常
+         * - 警告：请谨慎调整此参数 - 如果超出了系统能够允许的大小会引发 [TransactionTooLargeException] 异常
          * @return [Int]
          */
         var dataMaxByteCompressionFactor
@@ -345,12 +337,12 @@ class YukiHookDataChannel private constructor() {
          *
          * 仅会在每次调用时生效 - 下一次没有调用此方法则此功能将被自动关闭
          *
-         * 你还需要在整个调用域中声明注解 [CauseProblemsApi] 以消除警告
+         * 你还需要在整个调用域中声明注解 [SendTooLargeChannelData] 以消除警告
          *
-         * - ❗若你不知道允许此功能会带来何种后果 - 请勿使用
+         * - 若你不知道允许此功能会带来何种后果 - 请勿使用
          * @return [NameSpace]
          */
-        @CauseProblemsApi
+        @SendTooLargeChannelData
         fun allowSendTooLargeData(): NameSpace {
             isAllowSendTooLargeData = true
             return this
@@ -413,7 +405,7 @@ class YukiHookDataChannel private constructor() {
         /**
          * 仅获取监听结果 - 不获取键值数据
          *
-         * - ❗仅限使用 [VALUE_WAIT_FOR_LISTENER] 发送的监听才能被接收
+         * - 仅限使用 [VALUE_WAIT_FOR_LISTENER] 发送的监听才能被接收
          * @param key 键值名称
          * @param priority 响应优先级 - 默认不设置
          * @param callback 回调结果
@@ -439,17 +431,17 @@ class YukiHookDataChannel private constructor() {
         }
 
         /**
-         * 获取模块与宿主之间的 [ArrayList]<[YukiLoggerData]> 数据
+         * 获取模块与宿主之间的 [List]<[YLogData]> 数据
          *
          * 由于模块与宿主处于不同的进程 - 我们可以使用数据通讯桥访问各自的调试日志数据
          *
-         * - ❗模块与宿主必须启用 [YukiHookLogger.Configs.isRecord] 才能获取到调试日志数据
+         * - 模块与宿主必须启用 [YLog.Configs.isRecord] 才能获取到调试日志数据
          *
-         * - ❗由于 Android 限制了数据传输大小的最大值 - 如果调试日志过多将会自动进行分段发送 - 数据越大速度越慢
+         * - 由于 Android 限制了数据传输大小的最大值 - 如果调试日志过多将会自动进行分段发送 - 数据越大速度越慢
          * @param priority 响应优先级 - 默认不设置
-         * @param result 回调 [ArrayList]<[YukiLoggerData]>
+         * @param result 回调 [List]<[YLogData]>
          */
-        fun obtainLoggerInMemoryData(priority: ChannelPriority? = null, result: (ArrayList<YukiLoggerData>) -> Unit) {
+        fun obtainLoggerInMemoryData(priority: ChannelPriority? = null, result: (List<YLogData>) -> Unit) {
             wait(RESULT_YUKI_LOGGER_INMEMORY_DATA, priority) { result(it) }
             put(GET_YUKI_LOGGER_INMEMORY_DATA, packageName)
         }
@@ -533,7 +525,7 @@ class YukiHookDataChannel private constructor() {
                         if (tempData.listData.isEmpty() && wrapper.segmentsIndex > 0) return
                         tempData.listData.add(wrapper.segmentsIndex, value)
                         if (tempData.listData.size == wrapper.segmentsSize) {
-                            result(arrayListOf<Any?>().also { list -> tempData.listData.forEach { list.addAll(it) } } as T)
+                            result(mutableListOf<Any?>().also { list -> tempData.listData.forEach { list.addAll(it) } } as T)
                             tempData.listData.clear()
                             segmentsTempData.remove(wrapper.wrapperId)
                         }
@@ -542,7 +534,7 @@ class YukiHookDataChannel private constructor() {
                         if (tempData.mapData.isEmpty() && wrapper.segmentsIndex > 0) return
                         tempData.mapData.add(wrapper.segmentsIndex, value)
                         if (tempData.mapData.size == wrapper.segmentsSize) {
-                            result(hashMapOf<Any?, Any?>().also { map -> tempData.mapData.forEach { it.forEach { (k, v) -> map[k] = v } } } as T)
+                            result(mutableMapOf<Any?, Any?>().also { map -> tempData.mapData.forEach { it.forEach { (k, v) -> map[k] = v } } } as T)
                             tempData.mapData.clear()
                             segmentsTempData.remove(wrapper.wrapperId)
                         }
@@ -551,7 +543,7 @@ class YukiHookDataChannel private constructor() {
                         if (tempData.setData.isEmpty() && wrapper.segmentsIndex > 0) return
                         tempData.setData.add(wrapper.segmentsIndex, value)
                         if (tempData.setData.size == wrapper.segmentsSize) {
-                            result(hashSetOf<Any?>().also { set -> tempData.setData.forEach { set.addAll(it) } } as T)
+                            result(mutableSetOf<Any?>().also { set -> tempData.setData.forEach { set.addAll(it) } } as T)
                             tempData.setData.clear()
                             segmentsTempData.remove(wrapper.wrapperId)
                         }
@@ -565,10 +557,10 @@ class YukiHookDataChannel private constructor() {
                             segmentsTempData.remove(wrapper.wrapperId)
                         }
                     }
-                    else -> yLoggerE(msg = "Unsupported segments data key of \"${wrapper.instance.key}\"'s type")
+                    else -> YLog.innerE("Unsupported segments data key of \"${wrapper.instance.key}\"'s type")
                 }
             }.onFailure {
-                yLoggerE(msg = "YukiHookDataChannel cannot merge this segments data key of \"${wrapper.instance.key}\"", e = it)
+                YLog.innerE("YukiHookDataChannel cannot merge this segments data key of \"${wrapper.instance.key}\"", it)
             } else wrapper.instance.value?.let { e -> result(e) }
         }
 
@@ -583,7 +575,7 @@ class YukiHookDataChannel private constructor() {
 
             /** 当前需要发送的数据字节大小 */
             val dataByteSize = wrapper.instance.calDataByteSize()
-            if (dataByteSize < 0 && isAllowSendTooLargeData.not()) return yLoggerE(
+            if (dataByteSize < 0 && isAllowSendTooLargeData.not()) return YLog.innerE(
                 msg = "YukiHookDataChannel cannot calculate the byte size of the data key of \"${wrapper.instance.key}\" to be sent, " +
                     "so this data cannot be sent\n" +
                     "If you want to lift this restriction, use the allowSendTooLargeData function when calling, " +
@@ -595,7 +587,7 @@ class YukiHookDataChannel private constructor() {
              * @param size 分段总大小 (长度)
              */
             fun loggerForTooLargeData(name: String, size: Int) {
-                if (YukiHookAPI.Configs.isDebug) yLoggerW(
+                if (YukiHookAPI.Configs.isDebug) YLog.innerW(
                     msg = "This data key of \"${wrapper.instance.key}\" type $name is too large (total ${dataByteSize / 1024f} KB, " +
                         "limit ${receiverDataMaxByteSize / 1024f} KB), will be segmented to $size piece to send"
                 )
@@ -605,7 +597,7 @@ class YukiHookDataChannel private constructor() {
              * 如果数据过大且无法分段打印错误信息
              * @param suggestionMessage 建议内容 - 默认空
              */
-            fun loggerForUnprocessableData(suggestionMessage: String = "") = yLoggerE(
+            fun loggerForUnprocessableData(suggestionMessage: String = "") = YLog.innerE(
                 msg = "YukiHookDataChannel cannot send this data key of \"${wrapper.instance.key}\" type ${wrapper.instance.value?.javaClass}, " +
                     "because it is too large (total ${dataByteSize / 1024f} KB, " +
                     "limit ${receiverDataMaxByteSize / 1024f} KB) and cannot be segmented\n" +
@@ -625,13 +617,13 @@ class YukiHookDataChannel private constructor() {
                 wrapper.isSegmentsType || isAllowSendTooLargeData -> pushReceiver(wrapper)
                 dataByteSize >= receiverDataMaxByteSize -> when (wrapper.instance.value) {
                     is List<*> -> (wrapper.instance.value as List<*>).also { value ->
-                        val segments = arrayListOf<List<*>>()
-                        var segment = arrayListOf<Any?>()
+                        val segments = mutableListOf<List<*>>()
+                        var segment = mutableListOf<Any?>()
                         value.forEach {
                             segment.add(it)
                             if (segment.calDataByteSize() >= receiverDataSegmentMaxByteSize) {
                                 segments.add(segment)
-                                segment = arrayListOf()
+                                segment = mutableListOf()
                             }
                         }
                         if (segment.isNotEmpty()) segments.add(segment)
@@ -641,13 +633,13 @@ class YukiHookDataChannel private constructor() {
                         } ?: loggerForUnprocessableDataByFirstElement(name = "List")
                     }
                     is Map<*, *> -> (wrapper.instance.value as Map<*, *>).also { value ->
-                        val segments = arrayListOf<Map<*, *>>()
-                        var segment = hashMapOf<Any?, Any?>()
+                        val segments = mutableListOf<Map<*, *>>()
+                        var segment = mutableMapOf<Any?, Any?>()
                         value.forEach { (k, v) ->
                             segment[k] = v
                             if (segment.calDataByteSize() >= receiverDataSegmentMaxByteSize) {
                                 segments.add(segment)
-                                segment = hashMapOf()
+                                segment = mutableMapOf()
                             }
                         }
                         if (segment.isNotEmpty()) segments.add(segment)
@@ -657,13 +649,13 @@ class YukiHookDataChannel private constructor() {
                         } ?: loggerForUnprocessableDataByFirstElement(name = "Map")
                     }
                     is Set<*> -> (wrapper.instance.value as Set<*>).also { value ->
-                        val segments = arrayListOf<Set<*>>()
-                        var segment = hashSetOf<Any?>()
+                        val segments = mutableListOf<Set<*>>()
+                        var segment = mutableSetOf<Any?>()
                         value.forEach {
                             segment.add(it)
                             if (segment.calDataByteSize() >= receiverDataSegmentMaxByteSize) {
                                 segments.add(segment)
-                                segment = hashSetOf()
+                                segment = mutableSetOf()
                             }
                         }
                         if (segment.isNotEmpty()) segments.add(segment)
@@ -675,7 +667,7 @@ class YukiHookDataChannel private constructor() {
                     is String -> (wrapper.instance.value as String).also { value ->
                         /** 由于字符会被按照双字节计算 - 所以这里将限制字节大小除以 2 */
                         val twoByteMaxSize = receiverDataMaxByteSize / 2
-                        val segments = arrayListOf<String>()
+                        val segments = mutableListOf<String>()
                         for (i in 0..value.length step twoByteMaxSize)
                             if (i + twoByteMaxSize <= value.length)
                                 segments.add(value.substring(i, i + twoByteMaxSize))
@@ -710,7 +702,7 @@ class YukiHookDataChannel private constructor() {
                 if (packageName != AppParasitics.SYSTEM_FRAMEWORK_NAME)
                     setPackage(if (isXposedEnvironment) YukiXposedModule.modulePackageName else packageName)
                 putExtra(wrapper.instance.key + keyNonRepeatName, wrapper)
-            }) ?: yLoggerE(msg = "Failed to sendBroadcast like \"${wrapper.instance.key}\", because got null context in \"$packageName\"")
+            }) ?: YLog.innerE("Failed to sendBroadcast like \"${wrapper.instance.key}\", because got null context in \"$packageName\"")
         }
     }
 }

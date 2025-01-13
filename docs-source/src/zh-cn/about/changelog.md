@@ -8,7 +8,45 @@
 
 :::
 
-### 1.1.11 | 2023.04.25 &ensp;<Badge type="tip" text="最新" vertical="middle" />
+### 1.2.1 | 2024.06.20 &ensp;<Badge type="tip" text="最新" vertical="middle" />
+
+- 捕获单例 Hooker 中的异常，防止其阻断整个进程
+- 在自动处理程序中添加自动使用 "`" 来修复 Kotlin 关键字为包名的情况，感谢 [Fengning Zhu](https://github.com/zhufengning) 的 [PR](https://github.com/HighCapable/YukiHookAPI/pull/70)
+- 适配 Kotlin 2.0.0+，修复在自动处理过程中无法通过编译的问题，感谢 [xihan123](https://github.com/xihan123) 的 [PR](https://github.com/HighCapable/YukiHookAPI/pull/76)
+
+### 1.2.0 | 2023.10.07 &ensp;<Badge type="warning" text="过旧" vertical="middle" />
+
+- 许可协议由 `MIT` 变更为 `Apache-2.0`，在此之后的版本将由此许可协议进行分发，您在使用此版本后应变更相关许可协议
+- 这是一次重大更新，详情请参考 [迁移到 YukiHookAPI 1.2.x](https://highcapable.github.io/YukiHookAPI/zh-cn/config/move-to-api-1-2-x)
+- 适配 Android 14，感谢 [BlueCat300](https://github.com/BlueCat300) 的 [PR](https://github.com/HighCapable/YukiHookAPI/pull/44)
+- 修复 `findAllInterfaces` 相关问题，感谢 [buffcow](https://github.com/buffcow) 的 [PR](https://github.com/HighCapable/YukiHookAPI/pull/38)
+- 修复 Hook 过程中的延迟回调问题，感谢 [cesaryuan](https://github.com/cesaryuan) 的 [Issue](https://github.com/HighCapable/YukiHookAPI/issues/47)
+- 新增 Resources Hook 相关功能支持，详情请参考这个 [Issue](https://github.com/HighCapable/YukiHookAPI/issues/36)
+- 新增 `YukiHookAPI.TAG`
+- 作废了 ~~`YukiHookAPI.API_VERSION_NAME`~~、~~`YukiHookAPI.API_VERSION_CODE`~~，统一合并到 `YukiHookAPI.VERSION`
+- 作废了 ~~`YukiMemberHookCreator`~~ 中的 ~~`useDangerousOperation`~~ 方法
+- 作废了 ~~`YukiMemberHookCreator`~~ 中的 ~~`instanceClass`~~ 功能，不再推荐使用
+- 修改 `HookParam` 中的 `instanceClass` 为空安全返回值类型
+- 分离全部使用 `injectMember` 创建的 Hook 对象到 `LegacyCreator`
+- 修改 `PackageParam` 中的 `appClassLoader` 为空安全返回值类型
+- 重构全部 `logger...` 方法到新用法 `YLog`
+- 移除了打印日志功能后方的 `-->` 样式
+- 修复并改进在使用 `namespace` 后通过 KSP 无法获取模块包名的问题
+- 是否启用模块激活状态等功能现已移动到 `InjectYukiHookWithXposed` 注解中
+- 分离 [FreeReflection](https://github.com/tiann/FreeReflection) 不再自动生成，将作为依赖自动导入
+- 新增重复 Hook 同一个方法时将自动打印警告日志
+- 作废了 `PackageParam` 中的 `findClass(...)` 方法，请迁移到 `"...".toClass()` 方法
+- 作废了 `PackageParam` 中的 `String.hook { ... }` 方法，推荐使用新方式进行 Hook
+- `AppLifecycle` 现在可以在不同 Hooker 中重复创建
+- 作废了旧版 Hook 优先级写法，统一迁移到 `YukiHookPriority`
+- 移除了 Hook 过程中的 `tag` 功能
+- 重构方法查找中的 `remendy` 功能，现在可以对其进行分步打印异常
+- 多重方法查找结果类型由 `HashSet` 改为 `MutableList`
+- 新增使用 `method()`、`constructor()`、`field()` 可直接获取到类中的所有对象功能
+- `constructor()` 的行为不再是 `constructor { emptyParam() }`
+- 新增 `lazyClass`、`lazyClassOrNull` 方法，可延迟装载 `Class`
+
+### 1.1.11 | 2023.04.25 &ensp;<Badge type="warning" text="过旧" vertical="middle" />
 
 - 修复从 `1.1.5` 版本开始的一个严重问题，`Member` 缓存未生效且持续存储最终引发 APP 内存溢出 (OOM)，感谢 [Art-Chen](https://github.com/Art-Chen)
 - 移除 `Member` 的直接缓存功能并作废 ~~`YukiHookAPI.Configs.isEnableMemberCache`~~，保留 `Class` 的缓存功能
@@ -38,7 +76,7 @@
 - 新增 `ExecutorType`，可以通过 `YukiHookAPI.Status.Executor.type` 来获取已知 Hook Framework 的类型
 - ~~`YukiHookModulePrefs`~~ 更名为 `YukiHookPrefsBridge`
 - 修改 `YukiHookPrefsBridge` 为非单例实现，作为单例可能发生数据混淆的问题
-- 作废了 ~~`Context.modulePrefs(...)`~~ 方法，请转移到 `Context.prefs(...)`
+- 作废了 ~~`Context.modulePrefs(...)`~~ 方法，请迁移到 `Context.prefs(...)`
 - `YukiHookPrefsBridge` 新增 `native` 方法，支持直接作为原生存储在模块和宿主中存储私有数据
 - 整合 `YukiHookPrefsBridge` 中的存储方法到 `YukiHookPrefsBridge.Editor`，请使用 `edit` 方法来存储数据
 - `YukiHookPrefsBridge` 新增 `contains` 方法
@@ -48,7 +86,7 @@
 
 ### 1.1.8 | 2023.02.01 &ensp;<Badge type="warning" text="过旧" vertical="middle" />
 
-- 修复底层 Hook 方法在回调时修改 `result` 等参数时时不能同步更新修改后的状态问题，感谢 [Yongzheng Lai](https://github.com/elvizlai) 的 [Issue](https://github.com/fankes/YukiHookAPI/issues/23)
+- 修复底层 Hook 方法在回调时修改 `result` 等参数时时不能同步更新修改后的状态问题，感谢 [Yongzheng Lai](https://github.com/elvizlai) 的 [Issue](https://github.com/HighCapable/YukiHookAPI/issues/23)
 - 移动 `YukiHookAPI` 自动生成的入口类名称文件 `assets/yukihookapi_init` 到 `resources/META-INF/yukihookapi_init`
 - 允许在仅打印异常堆栈时 `msg` 参数为空并可以不设置 `msg` 参数，留空 `msg` 参数的日志除非异常堆栈不为空否则将不会被记录
 - 修复 Hook 回调方法体内发生的异常打印的日志无具体方法信息的 BUG
@@ -88,7 +126,7 @@
 - 修复一个 Hook 过程中方法返回值的对象是目标的继承类和接口时被识别为返回值不符的严重错误
 - 修复在当前 Hook 的实例对象是静态的情况下调用 `HookParam.callOriginal`、`HookParam.invokeOriginal` 出现对象为空问题
 - 优化对太极激活方法相关判断功能以及同步更新文档相关说明
-- 作废了 ~~`YukiHookAPI.Status.executorName`~~、~~`YukiHookAPI.Status.executorVersion`~~，请转移到 `YukiHookAPI.Status.Executor`
+- 作废了 ~~`YukiHookAPI.Status.executorName`~~、~~`YukiHookAPI.Status.executorVersion`~~，请迁移到 `YukiHookAPI.Status.Executor`
 - 适配了一些第三方 Hook Framework 的 `YukiHookAPI.Status.Executor.name` 名称显示功能
 - 新增 `Class.extends`、`Class.implements` 等方法，可更加方便地判断当前 `Class` 的继承与接口关系
 - 新增 `Class.toClass`、`Class.toClassOrNull` 等相关方法的同名泛型方法，可使用泛型来约束已知 `Class` 的实例对象类型
@@ -165,7 +203,7 @@
 - 新增 `generic` 功能，可对泛型进行反射和调用，你可以在 `Class` 或 `CurrentClass` 中使用它
 - 作废 `buildOfAny` 方法，现在请直接使用 `buildOf` 方法 (不带泛型) 来使用构造方法创建新对象并得到结果 `Any`
 - 修复 `hasExtends` 使用过程发生空指针异常的问题
-- `CurrentClass` 新增非 `lambda` 方式的调用方法
+- `CurrentClass` 新增非 **lambda** 方式的调用方法
 - `CurrentClass` 新增 `name` 与 `simpleName` 功能
 - 完全重写 `ReflectionTool` 的核心方法，将不同的查找条件进行了整理分类
 - 修复 `ReflectionTool` 中可能的直接调用 `declared` 获取的 `Member` 抛出异常的问题
@@ -181,7 +219,7 @@
 - 新增反射查找中的多重查找功能，可使用相对查找条件同时获取多个查找结果，感谢 **AA** 以及 [Kitsune](https://github.com/KyuubiRan) 的建议
 - 修复 `appClassLoader` 获取到的对象在某些系统中的系统应用中不正确的问题，感谢 [Luckyzyx](https://github.com/luckyzyx) 的反馈
 - 修改了 `XposedBridge.invokeOriginalMethod` 的调用方式并在 `MethodFinder.Result.Instance` 中增加 `original` 功能
-- 修复 `YukiHookModulePrefs` 中 `getStringSet` 方法取值错误的问题并优化代码风格，感谢 [Teddy_Zhu](https://github.com/Teddy-Zhu) 的 [PR](https://github.com/fankes/YukiHookAPI/pull/19)
+- 修复 `YukiHookModulePrefs` 中 `getStringSet` 方法取值错误的问题并优化代码风格，感谢 [Teddy_Zhu](https://github.com/Teddy-Zhu) 的 [PR](https://github.com/HighCapable/YukiHookAPI/pull/19)
 - 修改 `YukiHookModulePrefs`，拦截 `XSharePreference` 可能不存在的异常
 - 修复 `YukiHookDataChannel` 在某些第三方 ROM 系统框架中无法注册成功的问题
 - 安全化 `YukiHookDataChannel`，现在它只能在来自指定包名的模块与宿主之间通信
@@ -193,7 +231,7 @@
 - 新增模块资源注入与 `Activity` 代理功能，你可以调用 `injectModuleAppResources` 及 `registerModuleAppActivities` 来使用
 - 新增 `ModuleContextThemeWrapper` 功能，你可以调用 `applyModuleTheme` 在任意 `Activity` 中创建模块的 `Context`
 - 新增 `ClassLoader.onLoadClass` 功能，可用于监听 `ClassLoader` 的 `loadClass` 方法被调用的事件
-- 作废了 `classOf` 与 `clazz` 扩展方法，新增 `toClass` 以及 `toClassOrNull` 用法，请现在转移到新的方法
+- 作废了 `classOf` 与 `clazz` 扩展方法，新增 `toClass` 以及 `toClassOrNull` 用法，请现在迁移到新的方法
 - `VariousClass` 新增 `getOrNull` 方法，可在匹配不到 `Class` 的时候不抛出异常而是返回 `null`
 - `PackageParam.hook` 中移除了 `isUseAppClassLoader` 参数，修改为 `isForceUseAbsolute` 并自动匹配目标 `Class`
 - `PackageParam` 新增 `systemContext` 功能，你可以在任意时间调用此功能获取一个持久化的 `Context`
@@ -204,7 +242,7 @@
 - Hook 过程中新增解除 Hook 功能，可使用 `remove` 及 `removeSelf` 方法解除 Hook
 - 修复在 ReplaceHook 失败的时候导致宿主抛出异常的问题，现修改为调用原始方法保证宿主功能正常运行
 - 新增 Hook 过程中对方法返回值的检查功能，在返回值不匹配的情况下会根据情景自动抛出异常或打印错误
-- Resources Hook 中新增 `array` 类型，感谢 [GSWXXN](https://github.com/GSWXXN) 的 [PR](https://github.com/fankes/YukiHookAPI/pull/12)
+- Resources Hook 中新增 `array` 类型，感谢 [GSWXXN](https://github.com/GSWXXN) 的 [PR](https://github.com/HighCapable/YukiHookAPI/pull/12)
 - 移动 `me.weishu.reflection` 到 `thirdparty` 防止同时引入的同名依赖冲突
 - 移除 Hook 方法体为空时抛出的异常，修改为打印警告日志
 - 修改 `AppLifecycle` 的异常处理逻辑，当其发生异常时直接抛给宿主
@@ -294,7 +332,7 @@
 - ~~`YukiHookXposedInitProxy`~~ 更名为 `IYukiHookXposedInit`，原接口名称已作废，将在后续版本中直接被删除
 - 新增 `initZygote` 与 Resources Hook 功能，支持 Hook Layout
 - 新增 `onXposedEvent` 方法，可监听原生 Xposed API 的全部事件
-- 对 Hook 功能的 `lambda` 进行 `inline` 处理，避免生成过碎的匿名类，提升编译后的运行性能
+- 对 Hook 功能的 **lambda** 进行 `inline` 处理，避免生成过碎的匿名类，提升编译后的运行性能
 - 修复 `PrefsData` 编译后的方法体复制过大的问题
 - 增加 `XSharePreference` 可读性测试，失败后会自动打印警告日志
 - `PackageParam` 新增 `appResources`、`moduleAppResources`、`moduleAppFilePath` 功能
@@ -322,7 +360,7 @@
 - 修复 `YukiHookModulePrefs` 在 `New XSharePreference` 模式下工作的部分问题
 - 新增 `ModulePreferenceFragment`，现在，你可以完全替换掉 `PreferenceFragmentCompat` 并开始使用新的功能
 - 适配 `PreferenceFragmentCompat` 的 Sp 数据存储解决方案，感谢 [mahoshojoHCG](https://github.com/mahoshojoHCG) 的反馈
-- 更新自动处理程序以及 `Kotlin` 依赖到最新版本
+- 更新自动处理程序以及 Kotlin 依赖到最新版本
 - 修正部分文档和代码注释中的错误
 
 ### 1.0.77 | 2022.04.15 &ensp;<Badge type="danger" text="过期" vertical="middle" />
@@ -413,7 +451,7 @@
 - 增加 `MethodFinder` 与 `FieldFinder` 新的返回值调用方法
 - 修复可能存在的问题，并修复太极使用过程中可能存在的问题
 - 修复自动生成 Xposed 入口类可能发生的问题
-- 增加了 `type` 中的 `android` 类型以及 `java` 类型
+- 增加了 `type` 中的 `android` 类型以及 Java 类型
 
 ### 1.0.6 | 2022.03.20 &ensp;<Badge type="danger" text="过期" vertical="middle" />
 
@@ -430,7 +468,7 @@
 
 - 修正一处注释错误
 - 临时修复一个 BUG
-- 增加了 `type` 中的大量 `android` 类型以及少量 `java` 类型
+- 增加了 `type` 中的大量 `android` 类型以及少量 Java 类型
 - 修复新版与旧版 Kotlin APIs 的兼容性问题
 
 ### 1.0.5 | 2022.03.18 &ensp;<Badge type="danger" text="过期" vertical="middle" />
@@ -466,7 +504,7 @@
 
 - `RemedyPlan` 增加 `onFind` 功能
 - 整合并修改了部分反射 API 代码
-- 增加了 `type` 中的 `java` 类型
+- 增加了 `type` 中的 Java 类型
 - 修复忽略错误在控制台仍然输出的问题
 
 ### 1.0 | 2022.02.14 &ensp;<Badge type="danger" text="过期" vertical="middle" />

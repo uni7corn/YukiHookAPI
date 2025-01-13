@@ -16,33 +16,53 @@ object YukiHookAPI
 
 > 这是 `YukiHookAPI` 的 API 调用总类，Hook 相关功能的开始、Hook 相关功能的配置都在这里。
 
-## API_VERSION_NAME <span class="symbol">- field</span>
+## TAG <span class="symbol">- field</span>
 
 ```kotlin:no-line-numbers
-const val API_VERSION_NAME: String
+const val TAG: String
 ```
 
 **变更记录**
 
-`v1.0.4` `新增`
+`v1.2.0` `新增`
+
+**功能描述**
+
+> 获取当前 `YukiHookAPI` 的名称 (标签)。
+
+## VERSION <span class="symbol">- field</span>
+
+```kotlin:no-line-numbers
+const val VERSION: String
+```
+
+**变更记录**
+
+`v1.2.0` `新增`
 
 **功能描述**
 
 > 获取当前 `YukiHookAPI` 的版本。
 
-## API_VERSION_CODE <span class="symbol">- field</span>
-
-```kotlin:no-line-numbers
-const val API_VERSION_CODE: Int
-```
+<h2 class="deprecated">API_VERSION_NAME - field</h2>
 
 **变更记录**
 
 `v1.0.4` `新增`
 
-**功能描述**
+`v1.2.0` `作废`
 
-> 获取当前 `YukiHookAPI` 的版本号。
+不再区分版本名称和版本号，请迁移到 `VERSION`
+
+<h2 class="deprecated">API_VERSION_CODE - field</h2>
+
+**变更记录**
+
+`v1.0.4` `新增`
+
+`v1.2.0` `作废`
+
+不再区分版本名称和版本号，请迁移到 `VERSION`
 
 <h2 class="deprecated">executorName - field</h2>
 
@@ -52,7 +72,7 @@ const val API_VERSION_CODE: Int
 
 `v1.0.91` `移除`
 
-请转移到 `Status.Executor.name`
+请迁移到 `Status.Executor.name`
 
 <h2 class="deprecated">executorVersion - field</h2>
 
@@ -62,7 +82,7 @@ const val API_VERSION_CODE: Int
 
 `v1.0.91` `移除`
 
-请转移到 `Status.Executor.apiLevel`、`Status.Executor.versionName`、`Status.Executor.versionCode`
+请迁移到 `Status.Executor.apiLevel`、`Status.Executor.versionName`、`Status.Executor.versionCode`
 
 ## Status <span class="symbol">- object</span>
 
@@ -114,7 +134,7 @@ val isXposedEnvironment: Boolean
 
 `v1.1.5` `作废`
 
-请转移到 `Executor.name`
+请迁移到 `Executor.name`
 
 <h3 class="deprecated">executorVersion - field</h3>
 
@@ -124,7 +144,7 @@ val isXposedEnvironment: Boolean
 
 `v1.1.5` `作废`
 
-请转移到 `Executor.apiLevel`、`Executor.versionName`、`Executor.versionCode`
+请迁移到 `Executor.apiLevel`、`Executor.versionName`、`Executor.versionCode`
 
 ### isModuleActive <span class="symbol">- field</span>
 
@@ -144,7 +164,7 @@ val isModuleActive: Boolean
 
 在模块环境中你需要将 **Application** 继承于 **ModuleApplication**。
 
-在模块环境中需要启用 **Configs.isEnableHookModuleStatus**。
+在模块环境中需要启用 **InjectYukiHookWithXposed.isUsingXposedModuleStatus**。
 
 在 (Xposed) 宿主环境中仅返回非 **isTaiChiModuleActive** 的激活状态。
 
@@ -166,7 +186,7 @@ val isXposedModuleActive: Boolean
 
 ::: warning
 
-在模块环境中需要启用 **Configs.isEnableHookModuleStatus**。
+在模块环境中需要启用 **InjectYukiHookWithXposed.isUsingXposedModuleStatus**。
 
 在 (Xposed) 宿主环境中始终返回 true。
 
@@ -206,11 +226,11 @@ val isSupportResourcesHook: Boolean
 
 **功能描述**
 
-> 判断当前 Hook Framework 是否支持资源钩子(Resources Hook)。
+> 判断当前 Hook Framework 是否支持资源钩子 (Resources Hook)。
 
 ::: warning
 
-在模块环境中需要启用 **Configs.isEnableHookModuleStatus**。
+在模块环境中需要启用 **InjectYukiHookWithXposed.isUsingXposedModuleStatus**。
 
 在 (Xposed) 宿主环境中可能会延迟等待事件回调后才会返回 true。
 
@@ -248,7 +268,7 @@ val name: String
 
 ::: warning
 
-在模块环境中需要启用 **Configs.isEnableHookModuleStatus**。
+在模块环境中需要启用 **InjectYukiHookWithXposed.isUsingXposedModuleStatus**。
 
 :::
 
@@ -268,7 +288,7 @@ val type: ExecutorType
 
 ::: warning
 
-在模块环境中需要启用 **Configs.isEnableHookModuleStatus**。
+在模块环境中需要启用 **InjectYukiHookWithXposed.isUsingXposedModuleStatus**。
 
 :::
 
@@ -288,7 +308,7 @@ val apiLevel: Int
 
 ::: warning
 
-在模块环境中需要启用 **Configs.isEnableHookModuleStatus**。
+在模块环境中需要启用 **InjectYukiHookWithXposed.isUsingXposedModuleStatus**。
 
 :::
 
@@ -308,7 +328,7 @@ val versionName: String
 
 ::: warning
 
-在模块环境中需要启用 **Configs.isEnableHookModuleStatus**。
+在模块环境中需要启用 **InjectYukiHookWithXposed.isUsingXposedModuleStatus**。
 
 :::
 
@@ -328,7 +348,7 @@ val versionCode: Int
 
 ::: warning
 
-在模块环境中需要启用 **Configs.isEnableHookModuleStatus**。
+在模块环境中需要启用 **InjectYukiHookWithXposed.isUsingXposedModuleStatus**。
 
 :::
 
@@ -349,7 +369,7 @@ object Configs
 ### debugLog <span class="symbol">- method</span>
 
 ```kotlin:no-line-numbers
-inline fun debugLog(initiate: YukiHookLogger.Configs.() -> Unit)
+inline fun debugLog(initiate: YLog.Configs.() -> Unit)
 ```
 
 **变更记录**
@@ -358,7 +378,7 @@ inline fun debugLog(initiate: YukiHookLogger.Configs.() -> Unit)
 
 **功能描述**
 
-> 配置 `YukiHookLogger.Configs` 相关参数。
+> 配置 `YLog.Configs` 相关参数。
 
 <h3 class="deprecated">debugTag - field</h3>
 
@@ -368,7 +388,7 @@ inline fun debugLog(initiate: YukiHookLogger.Configs.() -> Unit)
 
 `v1.1.0` `作废`
 
-请转移到 `YukiHookLogger.Configs.tag`
+请迁移到 `YLog.Configs.tag`
 
 ### isDebug <span class="symbol">- field</span>
 
@@ -384,7 +404,7 @@ var isDebug: Boolean
 
 > 是否启用 Debug 模式。
 
-默认为开启状态，开启后模块将会向 `Logcat` 和 (Xposed) 宿主环境中的日志功能打印详细的 Hook 日志，关闭后仅会打印 `E` 级别的日志。
+默认不启用，启用后模块将会向 `Logcat` 和 (Xposed) 宿主环境中的日志功能打印详细的 Hook 日志，关闭后仅会打印 `E` 级别的日志。
 
 <h3 class="deprecated">isAllowPrintingLogs - field</h3>
 
@@ -394,7 +414,7 @@ var isDebug: Boolean
 
 `v1.1.0` `作废`
 
-请转移到 `YukiHookLogger.Configs.isEnable`
+请迁移到 `YLog.Configs.isEnable`
 
 <h3 class="deprecated">isEnableModulePrefsCache - field</h3>
 
@@ -404,7 +424,7 @@ var isDebug: Boolean
 
 `v1.1.9` `作废`
 
-请转移到 `isEnablePrefsBridgeCache`
+请迁移到 `isEnablePrefsBridgeCache`
 
 <h3 class="deprecated">isEnablePrefsBridgeCache - field</h3>
 
@@ -440,27 +460,15 @@ var isEnableModuleAppResourcesCache: Boolean
 
 :::
 
-### isEnableHookModuleStatus <span class="symbol">- field</span>
-
-```kotlin:no-line-numbers
-var isEnableHookModuleStatus: Boolean
-```
+<h3 class="deprecated">isEnableHookModuleStatus - field</h3>
 
 **变更记录**
 
 `v1.0.88` `新增`
 
-**功能描述**
+`v1.2.0` `作废`
 
-> 是否启用 Hook Xposed 模块激活等状态功能.
-
-为原生支持 Xposed 模块激活状态检测，此功能默认启用。
-
-::: warning
-
-关闭后你将不能再在模块环境中使用 **YukiHookAPI.Status** 中的激活状态判断功能。
-
-:::
+请手动迁移到 `InjectYukiHookWithXposed.isUsingXposedModuleStatus`
 
 ### isEnableHookSharedPreferences <span class="symbol">- field</span>
 
@@ -482,7 +490,7 @@ var isEnableHookSharedPreferences: Boolean
 
 这是一个可选的实验性功能，此功能默认不启用。
 
-仅用于修复某些系统可能会出现在启用了 **New XSharedPreferences** 后依然出现文件权限错误问题，若你能正常使用 **YYukiHookPrefsBridge** 就不建议启用此功能。
+仅用于修复某些系统可能会出现在启用了 **New XSharedPreferences** 后依然出现文件权限错误问题，若你能正常使用 **YukiHookPrefsBridge** 就不建议启用此功能。
 
 :::
 
@@ -530,7 +538,7 @@ inline fun configs(initiate: Configs.() -> Unit)
 
 **功能描述**
 
-> 对 `Configs` 类实现了一个 `lambda` 方法体。
+> 对 `Configs` 类实现了一个 **lambda** 方法体。
 
 你可以轻松地调用它进行配置。
 
@@ -600,18 +608,18 @@ object HookEntry : IYukiHookXposedInit {
 object HookEntry : IYukiHookXposedInit {
 
     override fun onInit() {
-        YukiHookLogger.Configs.tag = "YukiHookAPI"
-        YukiHookLogger.Configs.isEnable = true
-        YukiHookLogger.Configs.isRecord = false
-        YukiHookLogger.Configs.elements(
-            YukiHookLogger.Configs.TAG,
-            YukiHookLogger.Configs.PRIORITY,
-            YukiHookLogger.Configs.PACKAGE_NAME,
-            YukiHookLogger.Configs.USER_ID
+        YLog.Configs.tag = "YukiHookAPI"
+        YLog.Configs.isEnable = true
+        YLog.Configs.isRecord = false
+        YLog.Configs.elements(
+            YLog.Configs.TAG,
+            YLog.Configs.PRIORITY,
+            YLog.Configs.PACKAGE_NAME,
+            YLog.Configs.USER_ID
         )
         YukiHookAPI.Configs.isDebug = BuildConfig.DEBUG
         YukiHookAPI.Configs.isEnableModuleAppResourcesCache = true
-        YukiHookAPI.Configs.isEnableHookModuleStatus = true
+        YukiHookAPI.InjectYukiHookWithXposed.isUsingXposedModuleStatus = true
         YukiHookAPI.Configs.isEnableHookSharedPreferences = false
         YukiHookAPI.Configs.isEnableDataChannel = true
     }

@@ -1,36 +1,31 @@
 /*
  * YukiHookAPI - An efficient Hook API and Xposed Module solution built in Kotlin.
- * Copyright (C) 2019-2023 HighCapable
- * https://github.com/fankes/YukiHookAPI
+ * Copyright (C) 2019 HighCapable
+ * https://github.com/HighCapable/YukiHookAPI
  *
- * MIT License
+ * Apache License Version 2.0
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  * This file is created by fankes on 2022/2/2.
  */
-@file:Suppress("unused", "UNCHECKED_CAST")
+@file:Suppress("unused", "UNCHECKED_CAST", "NON_PUBLIC_CALL_FROM_PUBLIC_INLINE")
 
 package com.highcapable.yukihookapi.hook.factory
 
 import com.highcapable.yukihookapi.hook.bean.CurrentClass
 import com.highcapable.yukihookapi.hook.bean.GenericClass
+import com.highcapable.yukihookapi.hook.bean.VariousClass
 import com.highcapable.yukihookapi.hook.core.finder.base.rules.ModifierRules
 import com.highcapable.yukihookapi.hook.core.finder.classes.DexClassFinder
 import com.highcapable.yukihookapi.hook.core.finder.members.ConstructorFinder
@@ -38,6 +33,7 @@ import com.highcapable.yukihookapi.hook.core.finder.members.FieldFinder
 import com.highcapable.yukihookapi.hook.core.finder.members.MethodFinder
 import com.highcapable.yukihookapi.hook.core.finder.tools.ReflectionTool
 import com.highcapable.yukihookapi.hook.core.finder.type.factory.ClassConditions
+import com.highcapable.yukihookapi.hook.core.finder.type.factory.ClassLoaderInitializer
 import com.highcapable.yukihookapi.hook.core.finder.type.factory.ConstructorConditions
 import com.highcapable.yukihookapi.hook.core.finder.type.factory.FieldConditions
 import com.highcapable.yukihookapi.hook.core.finder.type.factory.MethodConditions
@@ -68,6 +64,7 @@ import java.lang.reflect.Field
 import java.lang.reflect.Member
 import java.lang.reflect.Method
 import java.lang.reflect.ParameterizedType
+import kotlin.reflect.KProperty
 
 /**
  * 定义一个 [Class] 中的 [Member] 类型
@@ -84,11 +81,83 @@ enum class MembersType {
 }
 
 /**
+ * 懒装载 [Class] 实例
+ * @param instance 当前实例
+ * @param initialize 是否初始化
+ * @param loader [ClassLoader] 装载实例
+ */
+open class LazyClass<T> internal constructor(
+    private val instance: Any,
+    private val initialize: Boolean,
+    private val loader: ClassLoaderInitializer?,
+) {
+
+    /** 当前实例 */
+    private var baseInstance: Class<T>? = null
+
+    /**
+     * 获取非空实例
+     * @return [Class]<[T]>
+     */
+    internal val nonNull get(): Class<T> {
+        if (baseInstance == null) baseInstance = when (instance) {
+            is String -> instance.toClass(loader?.invoke(), initialize) as Class<T>
+            is VariousClass -> instance.get(loader?.invoke(), initialize) as Class<T>
+            else -> error("Unknown lazy class type \"$instance\"")
+        }
+        return baseInstance ?: error("Exception has been thrown above")
+    }
+
+    /**
+     * 获取可空实例
+     * @return [Class]<[T]> or null
+     */
+    internal val nullable get(): Class<T>? {
+        if (baseInstance == null) baseInstance = when (instance) {
+            is String -> instance.toClassOrNull(loader?.invoke(), initialize) as? Class<T>?
+            is VariousClass -> instance.getOrNull(loader?.invoke(), initialize) as? Class<T>?
+            else -> error("Unknown lazy class type \"$instance\"")
+        }
+        return baseInstance
+    }
+
+    /**
+     * 非空实例
+     * @param instance 当前实例
+     * @param initialize 是否初始化
+     * @param loader [ClassLoader] 装载实例
+     */
+    class NonNull<T> internal constructor(
+        instance: Any,
+        initialize: Boolean,
+        loader: ClassLoaderInitializer?,
+    ) : LazyClass<T>(instance, initialize, loader) {
+
+        operator fun getValue(thisRef: Any?, property: KProperty<*>) = nonNull
+    }
+
+    /**
+     * 可空实例
+     * @param instance 当前实例
+     * @param initialize 是否初始化
+     * @param loader [ClassLoader] 装载实例
+     */
+    class Nullable<T> internal constructor(
+        instance: Any,
+        initialize: Boolean,
+        loader: ClassLoaderInitializer?,
+    ) : LazyClass<T>(instance, initialize, loader) {
+
+        operator fun getValue(thisRef: Any?, property: KProperty<*>) = nullable
+    }
+}
+
+/**
  * 写出当前 [ClassLoader] 下所有 [Class] 名称数组
  *
- * - ❗此方法在 [Class] 数量过多时会非常耗时
+ * - 此方法在 [Class] 数量过多时会非常耗时
  *
- * - ❗若要按指定规则查找一个 [Class] - 请使用 [searchClass] 方法
+ * - 若要按指定规则查找一个 [Class] - 请使用 [searchClass] 方法
  * @return [List]<[String]>
  * @throws IllegalStateException 如果当前 [ClassLoader] 不是 [BaseDexClassLoader]
  */
@@ -97,11 +166,11 @@ fun ClassLoader.listOfClasses() = ReflectionTool.findDexClassList(loader = this)
 /**
  * 通过当前 [ClassLoader] 按指定条件查找并得到 Dex 中的 [Class]
  *
- * - ❗此方法在 [Class] 数量过多及查找条件复杂时会非常耗时
+ * - 此方法在 [Class] 数量过多及查找条件复杂时会非常耗时
  *
- * - ❗建议启用 [async] 或设置 [name] 参数 - [name] 参数将在 Hook APP (宿主) 不同版本中自动进行本地缓存以提升效率
+ * - 建议启用 [async] 或设置 [name] 参数 - [name] 参数将在 Hook APP (宿主) 不同版本中自动进行本地缓存以提升效率
  *
- * - ❗此功能尚在试验阶段 - 性能与稳定性可能仍然存在问题 - 使用过程遇到问题请向我们报告并帮助我们改进
+ * - 此功能尚在实验阶段 - 性能与稳定性可能仍然存在问题 - 使用过程遇到问题请向我们报告并帮助我们改进
  * @param name 标识当前 [Class] 缓存的名称 - 不设置将不启用缓存 - 启用缓存自动启用 [async]
  * @param async 是否启用异步 - 默认否
  * @param initiate 方法体
@@ -113,11 +182,11 @@ inline fun ClassLoader.searchClass(name: String = "", async: Boolean = false, in
 /**
  * 监听当前 [ClassLoader] 的 [ClassLoader.loadClass] 方法装载
  *
- * - ❗请注意只有当前 [ClassLoader] 有主动使用 [ClassLoader.loadClass] 事件时才能被捕获
+ * - 请注意只有当前 [ClassLoader] 有主动使用 [ClassLoader.loadClass] 事件时才能被捕获
  *
- * - ❗这是一个实验性功能 - 一般情况下不会用到此方法 - 不保证不会发生错误
+ * - 这是一个实验性功能 - 一般情况下不会用到此方法 - 不保证不会发生错误
  *
- * - ❗只能在 (Xposed) 宿主环境使用此功能 - 其它环境下使用将不生效且会打印警告信息
+ * - 只能在 (Xposed) 宿主环境使用此功能 - 其它环境下使用将不生效且会打印警告信息
  * @param result 回调 - ([Class] 实例对象)
  */
 fun ClassLoader.onLoadClass(result: (Class<*>) -> Unit) = AppParasitics.hookClassLoader(loader = this, result)
@@ -224,9 +293,9 @@ fun Class<*>.toJavaPrimitiveType() = when (this) {
 /**
  * 通过字符串类名转换为 [loader] 中的实体类
  *
- * - ❗此方法已弃用 - 在之后的版本中将直接被删除
+ * - 此方法已弃用 - 在之后的版本中将直接被删除
  *
- * - ❗请现在转移到 [toClass]
+ * - 请现在迁移到 [toClass]
  * @return [Class]
  * @throws NoClassDefFoundError 如果找不到 [Class] 或设置了错误的 [ClassLoader]
  */
@@ -287,6 +356,68 @@ inline fun <reified T> classOf(loader: ClassLoader? = null, initialize: Boolean 
     loader?.let { T::class.java.name.toClass(loader, initialize) as Class<T> } ?: T::class.java
 
 /**
+ * 懒装载 [Class]
+ * @param name 完整类名
+ * @param initialize 是否初始化 [Class] 的静态方法块 - 默认否
+ * @param loader [ClassLoader] 装载实例 - 默认空 - 不填使用默认 [ClassLoader]
+ * @return [LazyClass.NonNull]
+ */
+fun lazyClass(name: String, initialize: Boolean = false, loader: ClassLoaderInitializer? = null) =
+    lazyClass<Any>(name, initialize, loader)
+
+/**
+ * 懒装载 [Class]<[T]>
+ * @param name 完整类名
+ * @param initialize 是否初始化 [Class] 的静态方法块 - 默认否
+ * @param loader [ClassLoader] 装载实例 - 默认空 - 不填使用默认 [ClassLoader]
+ * @return [LazyClass.NonNull]<[T]>
+ */
+@JvmName("lazyClass_Generics")
+inline fun <reified T> lazyClass(name: String, initialize: Boolean = false, noinline loader: ClassLoaderInitializer? = null) =
+    LazyClass.NonNull<T>(name, initialize, loader)
+
+/**
+ * 懒装载 [Class]
+ * @param variousClass [VariousClass]
+ * @param initialize 是否初始化 [Class] 的静态方法块 - 默认否
+ * @param loader [ClassLoader] 装载实例 - 默认空 - 不填使用默认 [ClassLoader]
+ * @return [LazyClass.NonNull]
+ */
+fun lazyClass(variousClass: VariousClass, initialize: Boolean = false, loader: ClassLoaderInitializer? = null) =
+    LazyClass.NonNull<Any>(variousClass, initialize, loader)
+
+/**
+ * 懒装载 [Class]
+ * @param name 完整类名
+ * @param initialize 是否初始化 [Class] 的静态方法块 - 默认否
+ * @param loader [ClassLoader] 装载实例 - 默认空 - 不填使用默认 [ClassLoader]
+ * @return [LazyClass.Nullable]
+ */
+fun lazyClassOrNull(name: String, initialize: Boolean = false, loader: ClassLoaderInitializer? = null) =
+    lazyClassOrNull<Any>(name, initialize, loader)
+
+/**
+ * 懒装载 [Class]<[T]>
+ * @param name 完整类名
+ * @param initialize 是否初始化 [Class] 的静态方法块 - 默认否
+ * @param loader [ClassLoader] 装载实例 - 默认空 - 不填使用默认 [ClassLoader]
+ * @return [LazyClass.Nullable]<[T]>
+ */
+@JvmName("lazyClassOrNull_Generics")
+inline fun <reified T> lazyClassOrNull(name: String, initialize: Boolean = false, noinline loader: ClassLoaderInitializer? = null) =
+    LazyClass.Nullable<T>(name, initialize, loader)
+
+/**
+ * 懒装载 [Class]
+ * @param variousClass [VariousClass]
+ * @param initialize 是否初始化 [Class] 的静态方法块 - 默认否
+ * @param loader [ClassLoader] 装载实例 - 默认空 - 不填使用默认 [ClassLoader]
+ * @return [LazyClass.Nullable]
+ */
+fun lazyClassOrNull(variousClass: VariousClass, initialize: Boolean = false, loader: ClassLoaderInitializer? = null) =
+    LazyClass.Nullable<Any>(variousClass, initialize, loader)
+
+/**
  * 通过字符串类名使用指定的 [ClassLoader] 查找是否存在
  * @param loader [Class] 所在的 [ClassLoader] - 不填使用默认 [ClassLoader]
  * @return [Boolean] 是否存在
@@ -333,21 +464,21 @@ inline fun Class<*>.hasModifiers(conditions: ModifierConditions) = conditions(Mo
  * @param initiate 查找方法体
  * @return [FieldFinder.Result]
  */
-inline fun Class<*>.field(initiate: FieldConditions) = FieldFinder(classSet = this).apply(initiate).build()
+inline fun Class<*>.field(initiate: FieldConditions = {}) = FieldFinder(classSet = this).apply(initiate).build()
 
 /**
  * 查找并得到方法
  * @param initiate 查找方法体
  * @return [MethodFinder.Result]
  */
-inline fun Class<*>.method(initiate: MethodConditions) = MethodFinder(classSet = this).apply(initiate).build()
+inline fun Class<*>.method(initiate: MethodConditions = {}) = MethodFinder(classSet = this).apply(initiate).build()
 
 /**
  * 查找并得到构造方法
  * @param initiate 查找方法体
  * @return [ConstructorFinder.Result]
  */
-inline fun Class<*>.constructor(initiate: ConstructorConditions = { emptyParam() }) = ConstructorFinder(classSet = this).apply(initiate).build()
+inline fun Class<*>.constructor(initiate: ConstructorConditions = {}) = ConstructorFinder(classSet = this).apply(initiate).build()
 
 /**
  * 获得当前 [Class] 的泛型父类
@@ -372,7 +503,7 @@ inline fun Class<*>.generic(initiate: GenericClass.() -> Unit) = generic()?.appl
  * @return [CurrentClass]
  */
 inline fun <reified T : Any> T.current(ignored: Boolean = false) =
-    CurrentClass(javaClass, instance = this).apply { isShutErrorPrinting = ignored }
+    CurrentClass(javaClass, instance = this).apply { isIgnoreErrorLogs = ignored }
 
 /**
  * 获得当前实例的类操作对象
@@ -388,9 +519,9 @@ inline fun <reified T : Any> T.current(ignored: Boolean = false, initiate: Curre
 /**
  * 通过构造方法创建新实例 - 任意类型 [Any]
  *
- * - ❗此方法已弃用 - 在之后的版本中将直接被删除
+ * - 此方法已弃用 - 在之后的版本中将直接被删除
  *
- * - ❗请现在转移到 [buildOf]
+ * - 请现在迁移到 [buildOf]
  * @return [Any] or null
  */
 @Deprecated(message = "请使用新的命名方法", ReplaceWith("buildOf(*param, initiate)"))

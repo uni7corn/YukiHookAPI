@@ -1,27 +1,21 @@
 /*
  * YukiHookAPI - An efficient Hook API and Xposed Module solution built in Kotlin.
- * Copyright (C) 2019-2023 HighCapable
- * https://github.com/fankes/YukiHookAPI
+ * Copyright (C) 2019 HighCapable
+ * https://github.com/HighCapable/YukiHookAPI
  *
- * MIT License
+ * Apache License Version 2.0
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  * This file is created by fankes on 2022/2/2.
  * This file is modified by fankes on 2022/4/22.
@@ -39,7 +33,7 @@ import com.highcapable.yukihookapi.hook.xposed.bridge.event.YukiXposedEvent
 /**
  * [YukiHookAPI] 的 Xposed 装载 API 调用接口
  *
- * - ❗请在此类上添加注解 [InjectYukiHookWithXposed] 标记模块 Hook 入口
+ * - 请在此类上添加注解 [InjectYukiHookWithXposed] 标记模块 Hook 入口
  *
  * [YukiHookAPI] 初始化时将自动调用 [onInit] 方法
  *
@@ -51,16 +45,16 @@ import com.highcapable.yukihookapi.hook.xposed.bridge.event.YukiXposedEvent
  *
  * 你还可以实现监听原生 Xposed API 功能 - 重写 [onXposedEvent] 方法即可
  *
- * 详情请参考 [IYukiHookXposedInit 接口](https://fankes.github.io/YukiHookAPI/zh-cn/config/xposed-using#iyukihookxposedinit-%E6%8E%A5%E5%8F%A3)
+ * 详情请参考 [IYukiHookXposedInit 接口](https://highcapable.github.io/YukiHookAPI/zh-cn/config/xposed-using#iyukihookxposedinit-%E6%8E%A5%E5%8F%A3)
  *
- * For English version, see [IYukiHookXposedInit Interface](https://fankes.github.io/YukiHookAPI/en/config/xposed-using#iyukihookxposedinit-interface)
+ * For English version, see [IYukiHookXposedInit Interface](https://highcapable.github.io/YukiHookAPI/en/config/xposed-using#iyukihookxposedinit-interface)
  */
 interface IYukiHookXposedInit {
 
     /**
      * 配置 [YukiHookAPI.Configs] 的初始化方法
      *
-     * - ❗在这里只能进行初始化配置 - 不能进行 Hook 操作
+     * - 在这里只能进行初始化配置 - 不能进行 Hook 操作
      *
      * 此方法可选 - 你也可以选择不对 [YukiHookAPI.Configs] 进行配置
      */
@@ -90,7 +84,7 @@ interface IYukiHookXposedInit {
      *
      * [YukiXposedEvent.onHandleInitPackageResources]
      *
-     * - ❗此接口仅供监听和实现原生 Xposed API 的功能 - 请不要在这里操作 [YukiHookAPI]
+     * - 此接口仅供监听和实现原生 Xposed API 的功能 - 请不要在这里操作 [YukiHookAPI]
      */
     fun onXposedEvent() {}
 }

@@ -12,7 +12,7 @@
 fun configs(initiate: Configs.() -> Unit)
 ```
 
-`configs` 方法对 `Configs` 类实现了一个 `lambda` 方法体，你可以轻松地调用它进行配置。
+`configs` 方法对 `Configs` 类实现了一个 **lambda** 方法体，你可以轻松地调用它进行配置。
 
 ::: tip
 
@@ -51,9 +51,12 @@ fun encase(initiate: PackageParam.() -> Unit)
 ```kotlin
 YukiHookAPI.encase {
     loadApp(name = "com.example.demo") {
-        findClass(name = "$packageName.DemoClass").hook { 
-            // Your code here.
-        }
+        "$packageName.DemoClass".toClass()
+            .method { 
+                // Your code here.
+            }.hook {
+                // Your code here.
+            }
     }
 }
 ```
@@ -63,9 +66,12 @@ YukiHookAPI.encase {
 ```kotlin
 encase {
     loadApp(name = "com.example.demo") {
-        findClass(name = "$packageName.DemoClass").hook { 
-            // Your code here.
-        }
+        "$packageName.DemoClass".toClass()
+            .method { 
+                // Your code here.
+            }.hook {
+                // Your code here.
+            }
     }
 }
 ```
@@ -120,14 +126,20 @@ object CustomHooker : YukiBaseHooker() {
 
     override fun onHook() {
         loadApp(name = "com.example.demo1") {
-            findClass(name = "$packageName.DemoClass").hook { 
-                // Your code here.
-            }
+            "$packageName.DemoClass".toClass()
+                .method { 
+                    // Your code here.
+                }.hook {
+                    // Your code here.
+                }
         }
         loadApp(name = "com.example.demo2") {
-            findClass(name = "$packageName.CustomClass").hook { 
-                // Your code here.
-            }
+            "$packageName.CustomClass".toClass()
+                .method { 
+                    // Your code here.
+                }.hook {
+                    // Your code here.
+                }
         }
     }
 }
@@ -148,9 +160,12 @@ object HookEntry : IYukiHookXposedInit {
 object ChildCustomHooker : YukiBaseHooker() {
 
     override fun onHook() {
-        findClass(name = "$packageName.DemoClass").hook { 
-            // Your code here.
-        }
+        "$packageName.DemoClass".toClass()
+            .method { 
+                // Your code here.
+            }.hook {
+                // Your code here.
+            }
     }
 }
 ```
@@ -163,9 +178,12 @@ object ChildCustomHooker : YukiBaseHooker() {
 object FirstHooker : YukiBaseHooker() {
 
     override fun onHook() {
-        findClass(name = "$packageName.DemoClass").hook { 
-            // Your code here.
-        }
+        "$packageName.DemoClass".toClass()
+            .method { 
+                // Your code here.
+            }.hook {
+                // Your code here.
+            }
         loadHooker(SecondHooker)
         loadHooker(ThirdHooker)
     }
@@ -233,9 +251,12 @@ encase {
 ```kotlin
 encase {
     loadApp(name = "com.example.demo") {
-        findClass(name = "$packageName.DemoClass").hook { 
-            // Your code here.
-        }
+        "$packageName.DemoClass".toClass()
+            .method { 
+                // Your code here.
+            }.hook {
+                // Your code here.
+            }
         // 创建一个 Resources Hook (固定用法)
         resources().hook {
             // Your code here.
@@ -260,9 +281,12 @@ encase {
         }
     }
     loadApp(name = "com.example.demo") {
-        findClass(name = "$packageName.DemoClass").hook { 
-            // Your code here.
-        }
+        "$packageName.DemoClass".toClass()
+            .method { 
+                // Your code here.
+            }.hook {
+                // Your code here.
+            }
         // 在 APP 中创建 Resources Hook
         resources().hook {
             // Your code here.
@@ -295,11 +319,14 @@ encase {
 
 ```kotlin
 encase {
-    // ❗错误的使用方法，不能直接开始 Hook
-    findClass(name = "com.example.demo.DemoClass").hook {
-        // ...
-    }
-    // ❗错误的使用方法，不能直接开始 Hook
+    // 错误的使用方法，不能直接开始 Hook
+    "com.example.demo.DemoClass".toClass()
+        .method { 
+            // Your code here.
+        }.hook {
+            // Your code here.
+        }
+    // 错误的使用方法，不能直接开始 Hook
     resources().hook {
         // ...
     }
@@ -324,10 +351,13 @@ object HookEntry : IYukiHookXposedInit {
 object CustomHooker : YukiBaseHooker() {
 
     override fun onHook() {
-        // ❗错误的使用方法，由于外层没有任何判断对象，不能直接开始 Hook
-        findClass(name = "com.example.demo.DemoClass").hook {
-            // ...
-        }
+        // 错误的使用方法，由于外层没有任何判断对象，不能直接开始 Hook
+        "com.example.demo.DemoClass".toClass()
+            .method { 
+                // Your code here.
+            }.hook {
+                // Your code here.
+            }
     }
 }
 ```
@@ -353,9 +383,12 @@ encase {
     loadApp(/** name 参数可选 */) {
         loadHooker(CustomHooker)
          // ✅ 正确的使用方法，在 APP 作用域内 Hook
-        findClass(name = "com.example.demo.DemoClass").hook {
-            // ...
-        }
+        "com.example.demo.DemoClass".toClass()
+            .method { 
+                // Your code here.
+            }.hook {
+                // Your code here.
+            }
         // ✅ 正确的使用方法，在 APP 作用域内 Hook
         resources().hook {
             // ...
@@ -379,9 +412,12 @@ object CustomHooker : YukiBaseHooker() {
     override fun onHook() {
         // ✅ 正确的使用方法，由于外层没有任何判断对象，需要判断 APP 作用域后再进行 Hook
         loadApp(/** name 参数可选 */) {
-            findClass(name = "com.example.demo.DemoClass").hook {
-                // ...
-            }
+            "com.example.demo.DemoClass".toClass()
+                .method { 
+                    // Your code here.
+                }.hook {
+                    // Your code here.
+                }
         }
     }
 }

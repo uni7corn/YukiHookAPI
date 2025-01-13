@@ -2,7 +2,7 @@
 
 > `YukiHookAPI` encapsulates a set of reflection API with near-zero reflection writing for developers, which can almost completely replace the usage of reflection API in Java.
 
-The core part of this functionality has been decoupled into the [YukiReflection](https://github.com/fankes/YukiReflection) project, which can be used independently in any Java or Android project.
+The core part of this functionality has been decoupled into the [YukiReflection](https://github.com/HighCapable/YukiReflection) project, which can be used independently in any Java or Android project.
 
 Now `YukiReflection` is integrated into `YukiHookAPI` as a core dependency.
 
@@ -75,6 +75,54 @@ var instance = classOf<Test>(customClassLoader)
 ::: tip
 
 For more functions, please refer to [classOf](../public/com/highcapable/yukihookapi/hook/factory/ReflectionFactory#classof-method), [String.toClass](../public/com/highcapable/yukihookapi/hook/factory/ReflectionFactory#string-toclass-ext-method), [String.toClassOrNull](../public/com/highcapable/yukihookapi/hook/factory/ReflectionFactory#string-toclassornull-ext-method), [PackageParam → String+ VariousClass.toClass](../public/com/highcapable/yukihookapi/hook/param/PackageParam#string-variousclass-toclass-i-ext-method), [PackageParam → String+VariousClass.toClassOrNull](../public/com/highcapable/yukihookapi/hook/param/PackageParam#string-variousclass-toclassornull-i-ext-method) methods.
+
+:::
+
+### Lazy Loading
+
+Suppose we want to get a `Class` that cannot be called directly, but we do not need this `Class` immediately.
+
+At this time, you can use `lazyClass` to complete this function.
+
+> The following example
+
+```kotlin
+// Lazy loading of this Class
+// If you are currently in a PackageParam environment, then you do not need to consider ClassLoader
+val instance by lazyClass("com.demo.Test")
+// Customize the ClassLoader where the Class is located
+val customClassLoader: ClassLoader? = ... // Assume this is your ClassLoader
+val instance by lazyClass("com.demo.Test") { customClassLoader }
+// Call this Class at the appropriate time
+instance.method {
+    // ...
+}
+```
+
+If the current `Class` does not exist, using the above method will throw an exception.
+
+If you are not sure whether `Class` exists, you can refer to the following solution.
+
+> The following example
+
+```kotlin
+// Lazy loading of this Class
+// If you are currently in a PackageParam environment, then you do not need to consider ClassLoader
+// If not available, the result will be null but no exception will be thrown
+val instance by lazyClassOrNull("com.demo.Test")
+// Customize the ClassLoader where the Class is located
+val customClassLoader: ClassLoader? = ... // Assume this is your ClassLoader
+// If not available, the result will be null but no exception will be thrown
+val instance by lazyClassOrNull("com.demo.Test") { customClassLoader }
+// Call this Class at the appropriate time
+instance?.method {
+    // ...
+}
+```
+
+::: tip
+
+For more functions, please refer to [lazyClass](../public/com/highcapable/yukihookapi/hook/factory/ReflectionFactory#lazyclass-method), [lazyClassOrNull](../public/com/highcapable/yukihookapi/hook/factory/ReflectionFactory#lazyclassornull-method), [PackageParam → lazyClass](../public/com/highcapable/yukihookapi/hook/param/PackageParam#lazyclass-method), [PackageParam → lazyClassOrNull](../public/com/highcapable/yukihookapi/hook/param/PackageParam#lazyclassornull-method) methods.
 
 :::
 
@@ -153,7 +201,7 @@ Please note that the more the same type **Class** is matched, the slower the spe
 
 ::: danger
 
-After **YukiHookAPI** 2.x.x released, this function will be deprecated and will no longer be migrated to [YukiReflection](https://github.com/fankes/YukiReflection).
+After **YukiHookAPI** **2.0.0** released, this function will be deprecated and will no longer be migrated to [YukiReflection](https://github.com/HighCapable/YukiReflection).
 
 We welcome all developers to start using [DexKit](https://github.com/LuckyPray/DexKit), which is a high-performance runtime parsing library for **Dex** implemented in C++, which is more efficient than the Java layer in terms of performance, efficient and excellent, it is still in the development stage, your valuable suggestions are welcome.
 
@@ -1170,7 +1218,7 @@ instance.current {
         name = "stop"
         emptyParam()
     }.call()
-// ❗ Note that because current() returns the CurrentClass object itself
+//  Note that because current() returns the CurrentClass object itself
 // It CANNOT BE CALLED like the following
 instance.current().current()
 ```
@@ -1298,15 +1346,12 @@ Here's how the `getString` method in this `Class` Hooks.
 > The following example
 
 ```kotlin
-Test::class.java.hook {
-    injectMember {
-        method {
-            name = "getString"
-            emptyParam()
-            returnType = StringClass
-        }
-        replaceTo("Hooked")
-    }
+Test::class.java.method {
+    name = "getString"
+    emptyParam()
+    returnType = StringClass
+}.hook {
+    replaceTo("Hooked")
 }
 ```
 
@@ -1447,33 +1492,7 @@ Test::class.java.method {
 }
 ```
 
-Take the current `Class` as an example, if [Multiple Find](#multiple-find) is used in conjunction with `RemedyPlan` when creating a Hook, you need to change the usage slightly.
-
-> The following example
-
-```kotlin
-injectMember {
-    method {
-        name = "doTask"
-        emptyParam()
-    }.remedys {
-        method {
-            name = "doTask"
-            paramCount(0..1)
-        }
-        method {
-            name = "doTask"
-            paramCount(1..2)
-        }
-    }.all()
-    beforeHook {}
-    afterHook {}
-}
-```
-
 ::: tip
-
-When creating a Hook, please refer to [MethodFinder.Process.all](../public/com/highcapable/yukihookapi/hook/core/finder/members/MethodFinder#all-method), [ConstructorFinder.Process.all]( ../public/com/highcapable/yukihookapi/hook/core/finder/members/ConstructorFinder#all-method) methods.
 
 For more functions, please refer to [MethodFinder.RemedyPlan](../public/com/highcapable/yukihookapi/hook/core/finder/members/MethodFinder#remedyplan-class), [ConstructorFinder.RemedyPlan](../public/com/highcapable/yukihookapi/hook/core/finder/members/ConstructorFinder#remedyplan-class), [FieldFinder.RemedyPlan](../public/com/highcapable/yukihookapi/hook/core/finder/members/FieldFinder#remedyplan-class) .
 
@@ -1578,15 +1597,7 @@ For more functions, please refer to [VariousClass](../public/com/highcapable/yuk
 
 If it is used when creating a Hook, it can be more convenient, and it can also automatically intercept the exception that `Class` cannot be found.
 
-> The following example
-
-```kotlin
-findClass("com.demo.ATest", "com.demo.BTest").hook {
-    // Your code here.
-}
-```
-
-You can also define this `Class` as a constant type to use.
+You can define this `Class` as a constant type to use.
 
 > The following example
 
@@ -1598,12 +1609,6 @@ ABTestClass.hook {
     // Your code here.
 }
 ```
-
-::: tip
-
-For more functions, please refer to the [PackageParam.findClass](../public/com/highcapable/yukihookapi/hook/param/PackageParam#findclass-method) method.
-
-:::
 
 ### Calling Generics
 
@@ -1685,11 +1690,7 @@ For more functions, please refer to [CurrentClass.generic](../public/com/highcap
 
 #### Restrictive Find Conditions
 
-::: danger
-
-In find conditions you can only use **index** function once except **order**.
-
-:::
+In find conditions you can <u>**only**</u> use `index` function once except `order`.
 
 > The following example
 
@@ -1697,7 +1698,7 @@ In find conditions you can only use **index** function once except **order**.
 method {
     name = "test"
     param(BooleanType).index(num = 2)
-    // ❗ Wrong usage, please keep only one index method
+    //  Wrong usage, please keep only one index method
     returnType(StringClass).index(num = 1)
 }
 ```
@@ -1716,11 +1717,7 @@ method {
 
 #### Necessary Find Conditions
 
-::: danger
-
 In common method find conditions, <u>**even methods without parameters need to set find conditions**</u>.
-
-:::
 
 Suppose we have the following `Class`.
 
@@ -1777,9 +1774,7 @@ In the past historical versions of the API, it was allowed to match the method w
 
 :::
 
-#### Abbreviated Find Conditions
-
-> In the construction method find conditions, <u>**constructors without parameters do not need to fill in the find conditions**</u>.
+In the find conditions for constructors, <u>**even constructors without parameters need to set find conditions**</u>.
 
 Suppose we have the following `Class`.
 
@@ -1794,7 +1789,7 @@ public class TestFoo {
 }
 ```
 
-We want to get the `public TestFoo()` constructor, which can be written as follows.
+To get the `public TestFoo()` constructor, we must write it in the following form.
 
 > The following example
 
@@ -1802,31 +1797,57 @@ We want to get the `public TestFoo()` constructor, which can be written as follo
 TestFoo::class.java.constructor { emptyParam() }
 ```
 
-The above example can successfully obtain the `public TestFoo()` constructor, but it feels a bit cumbersome.
+The above example can successfully obtain the `public TestFoo()` constructor.
 
-Unlike normal methods, since the constructor does not need to consider the `name`, when the constructor has no parameters, we can omit the `emptyParam` parameter.
+If you write `constructor()` and miss `emptyParam()`, the result found at this time will be the first one in bytecode order, <u>**may not be parameterless** </u>.
+
+::: tip Compatibility Notes
+
+In past historical versions of the API, if the constructor does not fill in any search parameters, the constructor will not be found directly. 
+
+<u>**This is a BUG and has been fixed in the latest version**</u>, please make sure you are using the latest API version.
+
+:::
+
+::: danger API Behavior Changes
+
+In **1.2.0** and later versions, the behavior of **constructor()** is no longer **constructor { emptyParam() }** but **constructor {}**, please pay attention to the behavior change reasonably adjust the find parameters.
+
+:::
+
+#### No Find Conditions
+
+Without setting find conditions, using `field()`, `constructor()`, `method()` will return all members under the current `Class`.
+
+Using `get(...)` or `give()` will only get the first bit in bytecode order.
 
 > The following example
 
 ```kotlin
-TestFoo::class.java.constructor()
+Test::class.java.field().get(...)
+Test::class.java.method().give()
+```
+
+If you want to get all members, you can use `all(...)` or `giveAll()`
+
+> The following example
+
+```kotlin
+Test::class.java.field().all(...)
+Test::class.java.method().giveAll()
 ```
 
 ::: tip Compatibility Notes
 
-In the past historical versions of the API, if the constructor does not fill in any find conditions, the constructor will not be found directly.
+In past historical versions of the API, failure to set find conditions will throw an exception.
 
-<u>**This is a bug, the latest version has been fixed**</u>, please make sure you are using the latest API version.
+This feature was added in **1.2.0** and later versions.
 
 :::
 
 #### Bytecode Type
 
-::: danger
-
-In the bytecode call result, the **cast** method can only specify the type corresponding to the bytecode.
-
-:::
+In the bytecode call result, the **cast** method can <u>**only**</u> specify the type corresponding to the bytecode.
 
 For example we want to get a field of type `Boolean` and cast it to `String`.
 
@@ -1838,7 +1859,7 @@ The following is the wrong way to use it.
 field {
     name = "test"
     type = BooleanType
-}.get().string() // ❗ Wrong usage, must be cast to the bytecode target type
+}.get().string() //  Wrong usage, must be cast to the bytecode target type
 ```
 
 The following is the correct way to use it.
@@ -1865,7 +1886,7 @@ field {
 }
 ```
 
-Expressing the type of `Boolean::class.javaPrimitiveType` in `Kotlin` is very long and inconvenient.
+Expressing the type of `Boolean::class.javaPrimitiveType` in Kotlin is very long and inconvenient.
 
 Therefore, `YukiHookAPI` encapsulates common type calls for developers, including Android related types and Java common types and **primitive type keywords**.
 

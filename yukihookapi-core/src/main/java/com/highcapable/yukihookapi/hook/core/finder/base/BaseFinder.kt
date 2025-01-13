@@ -1,33 +1,26 @@
 /*
  * YukiHookAPI - An efficient Hook API and Xposed Module solution built in Kotlin.
- * Copyright (C) 2019-2023 HighCapable
- * https://github.com/fankes/YukiHookAPI
+ * Copyright (C) 2019 HighCapable
+ * https://github.com/HighCapable/YukiHookAPI
  *
- * MIT License
+ * Apache License Version 2.0
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  * This file is created by fankes on 2022/9/4.
  */
 package com.highcapable.yukihookapi.hook.core.finder.base
 
-import com.highcapable.yukihookapi.annotation.YukiPrivateApi
 import com.highcapable.yukihookapi.hook.bean.VariousClass
 import com.highcapable.yukihookapi.hook.core.finder.base.data.BaseRulesData
 import com.highcapable.yukihookapi.hook.factory.toClass
@@ -41,20 +34,18 @@ import kotlin.math.abs
 abstract class BaseFinder {
 
     /** 当前查找条件规则数据 */
-    @PublishedApi
     internal abstract val rulesData: BaseRulesData
 
     /**
      * 字节码、数组下标筛选数据类型
      */
-    @PublishedApi
     internal enum class IndexConfigType { ORDER, MATCH }
 
     /**
      * 字节码、数组下标筛选实现类
      * @param type 类型
      */
-    inner class IndexTypeCondition @PublishedApi internal constructor(private val type: IndexConfigType) {
+    inner class IndexTypeCondition internal constructor(private val type: IndexConfigType) {
 
         /**
          * 设置下标
@@ -78,7 +69,7 @@ abstract class BaseFinder {
         /**
          * 字节码、数组下标排序实现类
          *
-         * - ❗请使用 [index] 方法来获取 [IndexTypeConditionSort]
+         * - 请使用 [index] 方法来获取 [IndexTypeConditionSort]
          */
         inner class IndexTypeConditionSort internal constructor() {
 
@@ -120,27 +111,24 @@ abstract class BaseFinder {
     /**
      * 返回结果实现类
      *
-     * - ❗此功能交由方法体自动完成 - 你不应该手动调用此方法
+     * - 此功能交由方法体自动完成 - 你不应该手动调用此方法
      * @return [BaseResult]
      */
-    @YukiPrivateApi
-    abstract fun build(): BaseResult
+    internal abstract fun build(): BaseResult
 
     /**
      * 返回只有异常的结果实现类
      *
-     * - ❗此功能交由方法体自动完成 - 你不应该手动调用此方法
+     * - 此功能交由方法体自动完成 - 你不应该手动调用此方法
      * @param throwable 异常
      * @return [BaseResult]
      */
-    @YukiPrivateApi
-    abstract fun failure(throwable: Throwable?): BaseResult
+    internal abstract fun failure(throwable: Throwable?): BaseResult
 
     /**
      * 查找结果实现、处理类接口
      *
-     * - ❗此功能交由方法体自动完成 - 你不应该手动继承此接口
+     * - 此功能交由方法体自动完成 - 你不应该手动继承此接口
      */
-    @YukiPrivateApi
     interface BaseResult
 }

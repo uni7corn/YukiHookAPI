@@ -1,27 +1,21 @@
 /*
  * YukiHookAPI - An efficient Hook API and Xposed Module solution built in Kotlin.
- * Copyright (C) 2019-2023 HighCapable
- * https://github.com/fankes/YukiHookAPI
+ * Copyright (C) 2019 HighCapable
+ * https://github.com/HighCapable/YukiHookAPI
  *
- * MIT License
+ * Apache License Version 2.0
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  * This file is created by fankes on 2022/8/14.
  * Thanks for providing https://github.com/cinit/QAuxiliary/blob/main/app/src/main/java/io/github/qauxv/lifecycle/Parasitics.java
@@ -47,7 +41,6 @@ import android.content.res.Configuration
 import android.content.res.Resources
 import android.os.Build
 import android.os.Handler
-import android.util.ArrayMap
 import androidx.annotation.RequiresApi
 import com.highcapable.yukihookapi.YukiHookAPI
 import com.highcapable.yukihookapi.hook.core.api.compat.HookApiProperty
@@ -63,8 +56,7 @@ import com.highcapable.yukihookapi.hook.factory.hasMethod
 import com.highcapable.yukihookapi.hook.factory.method
 import com.highcapable.yukihookapi.hook.factory.toClass
 import com.highcapable.yukihookapi.hook.factory.toClassOrNull
-import com.highcapable.yukihookapi.hook.log.yLoggerE
-import com.highcapable.yukihookapi.hook.log.yLoggerW
+import com.highcapable.yukihookapi.hook.log.YLog
 import com.highcapable.yukihookapi.hook.type.android.ActivityManagerClass
 import com.highcapable.yukihookapi.hook.type.android.ActivityManagerNativeClass
 import com.highcapable.yukihookapi.hook.type.android.ActivityTaskManagerClass
@@ -112,12 +104,15 @@ internal object AppParasitics {
     private var isClassLoaderHooked = false
 
     /** [ClassLoader] 监听回调数组 */
-    private var classLoaderCallbacks = ArrayMap<Int, (Class<*>) -> Unit>()
+    private var classLoaderCallbacks = mutableMapOf<Int, (Class<*>) -> Unit>()
+
+    /** 当前 Hook APP (宿主) 的生命周期演绎者数组 */
+    private val appLifecycleActors = mutableMapOf<String, AppLifecycleActor>()
 
     /**
      * 当前 Hook APP (宿主) 的全局生命周期 [Application]
      *
-     * 需要 [YukiHookAPI.Configs.isEnableDataChannel] or [AppLifecycleCallback.isCallbackSetUp] 才会生效
+     * 需要 [YukiHookAPI.Configs.isEnableDataChannel] or [appLifecycleActors] 不为空才会生效
      */
     internal var hostApplication: Application? = null
 
@@ -199,7 +194,7 @@ internal object AppParasitics {
      */
     internal fun hookClassLoader(loader: ClassLoader?, result: (Class<*>) -> Unit) {
         if (loader == null) return
-        if (YukiXposedModule.isXposedEnvironment.not()) return yLoggerW(msg = "You can only use hook ClassLoader method in Xposed Environment")
+        if (YukiXposedModule.isXposedEnvironment.not()) return YLog.innerW("You can only use hook ClassLoader method in Xposed Environment")
         classLoaderCallbacks[loader.hashCode()] = result
         if (isClassLoaderHooked) return
         runCatching {
@@ -211,7 +206,7 @@ internal object AppParasitics {
                 }
             })
             isClassLoaderHooked = true
-        }.onFailure { yLoggerW(msg = "Try to hook ClassLoader failed: $it") }
+        }.onFailure { YLog.innerW("Try to hook ClassLoader failed: $it") }
     }
 
     /**
@@ -226,8 +221,7 @@ internal object AppParasitics {
                     if ((param.args?.get(0) as? String?)?.endsWith("preferences.xml") == true) param.args?.set(1, 1)
                 }
             })
-        if (YukiHookAPI.Configs.isEnableHookModuleStatus.not()) return
-        YukiXposedModuleStatus.IMPL_CLASS_NAME.toClassOrNull(loader)?.apply {
+        YukiXposedModuleStatus.className.toClassOrNull(loader)?.apply {
             if (type != HookEntryType.RESOURCES) {
                 YukiHookHelper.hook(method { name = YukiXposedModuleStatus.IS_ACTIVE_METHOD_NAME },
                     object : YukiMemberReplacement() {
@@ -269,36 +263,44 @@ internal object AppParasitics {
          * @param throwable 当前异常
          */
         fun YukiHookCallback.Param.throwToAppOrLogger(throwable: Throwable) {
-            if (AppLifecycleCallback.isOnFailureThrowToApp) this.throwable = throwable
-            else yLoggerE(msg = "An exception occurred during AppLifecycle event", e = throwable)
+            if (AppLifecycleActor.isOnFailureThrowToApp != false) this.throwable = throwable
+            else YLog.innerE("An exception occurred during AppLifecycle event", e = throwable)
         }
         /** Hook [Application] 装载方法 */
         runCatching {
-            if (AppLifecycleCallback.isCallbackSetUp) {
+            if (appLifecycleActors.isNotEmpty()) {
                 YukiHookHelper.hook(ApplicationClass.method { name = "attach"; param(ContextClass) }, object : YukiMemberHook() {
                     override fun beforeHookedMember(param: Param) {
                         runCatching {
-                            (param.args?.get(0) as? Context?)?.also { AppLifecycleCallback.attachBaseContextCallback?.invoke(it, false) }
+                            appLifecycleActors.forEach { (_, actor) ->
+                                (param.args?.get(0) as? Context?)?.also { actor.attachBaseContextCallback?.invoke(it, false) }
+                            }
                         }.onFailure { param.throwToAppOrLogger(it) }
                     }
 
                     override fun afterHookedMember(param: Param) {
                         runCatching {
-                            (param.args?.get(0) as? Context?)?.also { AppLifecycleCallback.attachBaseContextCallback?.invoke(it, true) }
+                            appLifecycleActors.forEach { (_, actor) ->
+                                (param.args?.get(0) as? Context?)?.also { actor.attachBaseContextCallback?.invoke(it, true) }
+                            }
                         }.onFailure { param.throwToAppOrLogger(it) }
                     }
                 })
                 YukiHookHelper.hook(ApplicationClass.method { name = "onTerminate" }, object : YukiMemberHook() {
                     override fun afterHookedMember(param: Param) {
                         runCatching {
-                            (param.instance as? Application?)?.also { AppLifecycleCallback.onTerminateCallback?.invoke(it) }
+                            appLifecycleActors.forEach { (_, actor) ->
+                                (param.instance as? Application?)?.also { actor.onTerminateCallback?.invoke(it) }
+                            }
                         }.onFailure { param.throwToAppOrLogger(it) }
                     }
                 })
                 YukiHookHelper.hook(ApplicationClass.method { name = "onLowMemory" }, object : YukiMemberHook() {
                     override fun afterHookedMember(param: Param) {
                         runCatching {
-                            (param.instance as? Application?)?.also { AppLifecycleCallback.onLowMemoryCallback?.invoke(it) }
+                            appLifecycleActors.forEach { (_, actor) ->
+                                (param.instance as? Application?)?.also { actor.onLowMemoryCallback?.invoke(it) }
+                            }
                         }.onFailure { param.throwToAppOrLogger(it) }
                     }
                 })
@@ -307,7 +309,7 @@ internal object AppParasitics {
                         runCatching {
                             val self = param.instance as? Application? ?: return
                             val type = param.args?.get(0) as? Int? ?: return
-                            AppLifecycleCallback.onTrimMemoryCallback?.invoke(self, type)
+                            appLifecycleActors.forEach { (_, actor) -> actor.onTrimMemoryCallback?.invoke(self, type) }
                         }.onFailure { param.throwToAppOrLogger(it) }
                     }
                 })
@@ -316,12 +318,12 @@ internal object AppParasitics {
                         runCatching {
                             val self = param.instance as? Application? ?: return
                             val config = param.args?.get(0) as? Configuration? ?: return
-                            AppLifecycleCallback.onConfigurationChangedCallback?.invoke(self, config)
+                            appLifecycleActors.forEach { (_, actor) -> actor.onConfigurationChangedCallback?.invoke(self, config) }
                         }.onFailure { param.throwToAppOrLogger(it) }
                     }
                 })
             }
-            if (YukiHookAPI.Configs.isEnableDataChannel || AppLifecycleCallback.isCallbackSetUp)
+            if (YukiHookAPI.Configs.isEnableDataChannel || appLifecycleActors.isNotEmpty())
                 YukiHookHelper.hook(InstrumentationClass.method { name = "callApplicationOnCreate" }, object : YukiMemberHook() {
                     override fun afterHookedMember(param: Param) {
                         runCatching {
@@ -348,14 +350,16 @@ internal object AppParasitics {
                                     }
                                 }
                                 hostApplication = it
-                                AppLifecycleCallback.onCreateCallback?.invoke(it)
-                                AppLifecycleCallback.onReceiverActionsCallbacks.takeIf { e -> e.isNotEmpty() }?.forEach { (_, e) ->
-                                    if (e.first.isNotEmpty()) IntentFilter().apply {
-                                        e.first.forEach { action -> addAction(action) }
-                                    }.registerReceiver(e.second)
+                                appLifecycleActors.forEach { (_, actor) ->
+                                    actor.onCreateCallback?.invoke(it)
+                                    actor.onReceiverActionsCallbacks.takeIf { e -> e.isNotEmpty() }?.forEach { (_, e) ->
+                                        if (e.first.isNotEmpty()) IntentFilter().apply {
+                                            e.first.forEach { action -> addAction(action) }
+                                        }.registerReceiver(e.second)
+                                    }
+                                    actor.onReceiverFiltersCallbacks.takeIf { e -> e.isNotEmpty() }
+                                        ?.forEach { (_, e) -> e.first.registerReceiver(e.second) }
                                 }
-                                AppLifecycleCallback.onReceiverFiltersCallbacks.takeIf { e -> e.isNotEmpty() }
-                                    ?.forEach { (_, e) -> e.first.registerReceiver(e.second) }
                                 runCatching {
                                     /** 过滤系统框架与一系列服务组件包名不唯一的情况 */
                                     if (isDataChannelRegistered ||
@@ -378,14 +382,14 @@ internal object AppParasitics {
     internal fun injectModuleAppResources(hostResources: Resources) {
         if (YukiXposedModule.isXposedEnvironment) runCatching {
             if (currentPackageName == YukiXposedModule.modulePackageName)
-                return yLoggerE(msg = "You cannot inject module resources into yourself")
+                return YLog.innerE("You cannot inject module resources into yourself")
             hostResources.assets.current(ignored = true).method {
                 name = "addAssetPath"
                 param(StringClass)
             }.call(YukiXposedModule.moduleAppFilePath)
         }.onFailure {
-            yLoggerE(msg = "Failed to inject module resources into [$hostResources]", e = it)
-        } else yLoggerW(msg = "You can only inject module resources in Xposed Environment")
+            YLog.innerE("Failed to inject module resources into [$hostResources]", it)
+        } else YLog.innerW("You can only inject module resources in Xposed Environment")
     }
 
     /**
@@ -396,9 +400,9 @@ internal object AppParasitics {
     @RequiresApi(Build.VERSION_CODES.N)
     internal fun registerModuleAppActivities(context: Context, proxy: Any?) {
         if (isActivityProxyRegistered) return
-        if (YukiXposedModule.isXposedEnvironment.not()) return yLoggerW(msg = "You can only register Activity Proxy in Xposed Environment")
-        if (context.packageName == YukiXposedModule.modulePackageName) return yLoggerE(msg = "You cannot register Activity Proxy into yourself")
-        if (Build.VERSION.SDK_INT < 24) return yLoggerE(msg = "Activity Proxy only support for Android 7.0 (API 24) or higher")
+        if (YukiXposedModule.isXposedEnvironment.not()) return YLog.innerW("You can only register Activity Proxy in Xposed Environment")
+        if (context.packageName == YukiXposedModule.modulePackageName) return YLog.innerE("You cannot register Activity Proxy into yourself")
+        if (Build.VERSION.SDK_INT < 24) return YLog.innerE("Activity Proxy only support for Android 7.0 (API 24) or higher")
         runCatching {
             ActivityProxyConfig.apply {
                 proxyIntentName = "${YukiXposedModule.modulePackageName}.ACTIVITY_PROXY_INTENT"
@@ -444,19 +448,27 @@ internal object AppParasitics {
                 }
             }
             isActivityProxyRegistered = true
-        }.onFailure { yLoggerE(msg = "Activity Proxy initialization failed because got an Exception", e = it) }
+        }.onFailure { YLog.innerE("Activity Proxy initialization failed because got an exception", it) }
     }
 
     /**
-     * 当前 Hook APP (宿主) 的生命周期回调处理类
+     * 当前 Hook APP (宿主) 的生命周期演绎者
      */
-    internal object AppLifecycleCallback {
+    internal class AppLifecycleActor {
 
-        /** 是否已设置回调 */
-        internal var isCallbackSetUp = false
+        internal companion object {
 
-        /** 是否在发生异常时将异常抛出给宿主 */
-        internal var isOnFailureThrowToApp = true
+            /** 是否在发生异常时将异常抛出给宿主 */
+            internal var isOnFailureThrowToApp: Boolean? = null
+
+            /**
+             * 获取、创建新的 [AppLifecycleActor]
+             * @param instance 实例
+             * @return [AppLifecycleActor]
+             */
+            internal fun get(instance: Any) =
+                appLifecycleActors[instance.toString()] ?: AppLifecycleActor().apply { appLifecycleActors[instance.toString()] = this }
+        }
 
         /** [Application.attachBaseContext] 回调 */
         internal var attachBaseContextCallback: ((Context, Boolean) -> Unit)? = null
@@ -477,9 +489,9 @@ internal object AppParasitics {
         internal var onConfigurationChangedCallback: ((Application, Configuration) -> Unit)? = null
 
         /** 系统广播监听回调 */
-        internal val onReceiverActionsCallbacks = ArrayMap<String, Pair<Array<out String>, (Context, Intent) -> Unit>>()
+        internal val onReceiverActionsCallbacks = mutableMapOf<String, Pair<Array<out String>, (Context, Intent) -> Unit>>()
 
         /** 系统广播监听回调 */
-        internal val onReceiverFiltersCallbacks = ArrayMap<String, Pair<IntentFilter, (Context, Intent) -> Unit>>()
+        internal val onReceiverFiltersCallbacks = mutableMapOf<String, Pair<IntentFilter, (Context, Intent) -> Unit>>()
     }
 }

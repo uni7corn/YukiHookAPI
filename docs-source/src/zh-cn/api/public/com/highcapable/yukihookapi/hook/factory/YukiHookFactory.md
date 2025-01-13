@@ -14,7 +14,7 @@ pageClass: code-page
 
 **功能描述**
 
-> 这是 `YukiHookAPI` 相关 `lambda` 方法的封装类以及部分 API 用法。
+> 这是 `YukiHookAPI` 相关 **lambda** 方法的封装类以及部分 API 用法。
 
 ## IYukiHookXposedInit.configs <span class="symbol">- ext-method</span>
 
@@ -64,7 +64,7 @@ fun IYukiHookXposedInit.encase(vararg hooker: YukiBaseHooker)
 
 `v1.1.9` `作废`
 
-请转移到 `prefs` 方法
+请迁移到 `prefs` 方法
 
 <h2 class="deprecated">Context.modulePrefs - ext-method</h2>
 
@@ -74,7 +74,7 @@ fun IYukiHookXposedInit.encase(vararg hooker: YukiBaseHooker)
 
 `v1.1.9` `作废`
 
-请转移到 `prefs` 方法
+请迁移到 `prefs` 方法
 
 ## Context.prefs <span class="symbol">- ext-method</span>
 
@@ -216,7 +216,7 @@ fun Context.applyModuleTheme(theme: Int, configuration: Configuration?): ModuleC
 
 `v1.0.91` `移除`
 
-请转移到 `YukiHookAPI.Status.isSupportResourcesHook`
+请迁移到 `YukiHookAPI.Status.isSupportResourcesHook`
 
 <h2 class="deprecated">isModuleActive - field</h2>
 
@@ -226,7 +226,7 @@ fun Context.applyModuleTheme(theme: Int, configuration: Configuration?): ModuleC
 
 `v1.0.91` `移除`
 
-请转移到 `YukiHookAPI.Status.isModuleActive`
+请迁移到 `YukiHookAPI.Status.isModuleActive`
 
 <h2 class="deprecated">isXposedModuleActive - field</h2>
 
@@ -236,7 +236,7 @@ fun Context.applyModuleTheme(theme: Int, configuration: Configuration?): ModuleC
 
 `v1.0.91` `移除`
 
-请转移到 `YukiHookAPI.Status.isXposedModuleActive`
+请迁移到 `YukiHookAPI.Status.isXposedModuleActive`
 
 <h2 class="deprecated">isTaiChiModuleActive - field</h2>
 
@@ -246,7 +246,7 @@ fun Context.applyModuleTheme(theme: Int, configuration: Configuration?): ModuleC
 
 `v1.0.91` `移除`
 
-请转移到 `YukiHookAPI.Status.isTaiChiModuleActive`
+请迁移到 `YukiHookAPI.Status.isTaiChiModuleActive`
 
 <h1 class="deprecated">YukiHookModuleStatus - class</h1>
 
@@ -256,4 +256,4 @@ fun Context.applyModuleTheme(theme: Int, configuration: Configuration?): ModuleC
 
 `v1.0.91` `作废`
 
-请转移到 `YukiHookAPI.Status`
+请迁移到 `YukiHookAPI.Status`

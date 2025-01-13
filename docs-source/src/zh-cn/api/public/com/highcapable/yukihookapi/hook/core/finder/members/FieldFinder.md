@@ -281,12 +281,16 @@ inner class Result internal constructor()
 #### onFind <span class="symbol">- method</span>
 
 ```kotlin:no-line-numbers
-fun onFind(initiate: HashSet<Field>.() -> Unit)
+fun onFind(initiate: MutableList<Field>.() -> Unit)
 ```
 
 **变更记录**
 
 `v1.1.0` `新增`
+
+`v1.2.0` `修改`
+
+`initiate` 类型由 `HashSet` 修改为 `MutableList`
 
 **功能描述**
 
@@ -309,7 +313,7 @@ field {
 ## Result <span class="symbol">- class</span>
 
 ```kotlin:no-line-numbers
-inner class Result internal constructor(internal val isNoSuch: Boolean, private val throwable: Throwable?) : BaseResult
+inner class Result internal constructor(internal val isNoSuch: Boolean, internal val throwable: Throwable?) : BaseResult
 ```
 
 **变更记录**
@@ -344,7 +348,7 @@ inline fun result(initiate: Result.() -> Unit): Result
 
 **功能示例**
 
-你可以使用 `lambda` 形式创建 `Result` 类。
+你可以使用 **lambda** 形式创建 `Result` 类。
 
 > 示例如下
 
@@ -404,12 +408,16 @@ field {
 ### all <span class="symbol">- method</span>
 
 ```kotlin:no-line-numbers
-fun all(instance: Any?): ArrayList<Instance>
+fun all(instance: Any?): MutableList<Instance>
 ```
 
 **变更记录**
 
 `v1.1.0` `新增`
+
+`v1.2.0` `修改`
+
+返回值类型由 `ArrayList` 修改为 `MutableList`
 
 **功能描述**
 
@@ -452,12 +460,16 @@ fun give(): Field?
 ### giveAll <span class="symbol">- method</span>
 
 ```kotlin:no-line-numbers
-fun giveAll(): HashSet<Field>
+fun giveAll(): MutableList<Field>
 ```
 
 **变更记录**
 
 `v1.1.0` `新增`
+
+`v1.2.0` `修改`
+
+返回值类型由 `HashSet` 修改为 `MutableList`
 
 **功能描述**
 
@@ -465,7 +477,7 @@ fun giveAll(): HashSet<Field>
 
 返回全部查找条件匹配的多个 `Field` 实例。
 
-在查找条件找不到任何结果的时候将返回空的 `HashSet`。
+在查找条件找不到任何结果的时候将返回空的 `MutableList`。
 
 ### wait <span class="symbol">- method</span>
 
@@ -494,12 +506,16 @@ fun wait(instance: Any?, initiate: Instance.() -> Unit)
 ### waitAll <span class="symbol">- method</span>
 
 ```kotlin:no-line-numbers
-fun waitAll(instance: Any?, initiate: ArrayList<Instance>.() -> Unit)
+fun waitAll(instance: Any?, initiate: MutableList<Instance>.() -> Unit)
 ```
 
 **变更记录**
 
 `v1.1.0` `新增`
+
+`v1.2.0` `修改`
+
+`initiate` 类型由 `ArrayList` 修改为 `MutableList`
 
 **功能描述**
 
@@ -594,7 +610,7 @@ fun ignored(): Result
 
 `v1.1.0` `作废`
 
-请转移到新方法 `ignored()`
+请迁移到新方法 `ignored()`
 
 ### Instance <span class="symbol">- class</span>
 

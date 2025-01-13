@@ -46,14 +46,14 @@ You try to load the `encase` method in the `onInit` or `onXposedEvent` method of
 object HookEntry : IYukiHookXposedInit {
 
     override fun onInit() {
-        // ❗ Wrong usage
+        //  Wrong usage
         YukiHookAPI.encase {
             // Your code here.
         }
     }
 
     override fun onXposedEvent() {
-        // ❗ Wrong usage
+        //  Wrong usage
         YukiHookAPI.encase {
             // Your code here.
         }
@@ -226,7 +226,7 @@ If the problem persists, please bring detailed logs for feedback.
 
 ::: danger loggerE
 
-Hooked Member with a finding error by **CLASS**
+Hooked Member with a finding error / by **CLASS**
 
 :::
 
@@ -242,7 +242,7 @@ Please check the previous error log before this error occurs, maybe there is an 
 
 ::: danger loggerE
 
-Hooked Member cannot be non-null by **CLASS**
+Hooked Member cannot be null / by **CLASS**
 
 :::
 
@@ -255,7 +255,7 @@ After the Hook is executed, the `member` of the Hook is `null` and the target Ho
 ```kotlin
 injectMember {
     // There are no search conditions for methods and constructors that require hooks
-    afterHook {
+    after {
         // ...
     }
 }
@@ -273,7 +273,7 @@ injectMember {
     method {
         // Your code here.
     }
-    afterHook {
+    after {
         // ...
     }
 }
@@ -302,13 +302,12 @@ private boolean test()
 Below is an error case.
 
 ```kotlin
-injectMember {
-    method {
-        name = "test"
-        emptyParam()
-    }
+method {
+    name = "test"
+    emptyParam()
+}.hook {
     // <Scenario 1> Set the wrong type, the original type is Boolean
-    beforeHook {
+    before {
         result = 0
     }
     // <Scenario 2> Return the wrong type, the original type is Boolean
@@ -322,7 +321,7 @@ injectMember {
 
 ::: warning
 
-If the above scenario occurs in **beforeHook** or **afterHook**, it will cause the Host App to throw an exception from **XposedBridge** (which will expose the fact of being Hooked).
+If the above scenario occurs in **before** or **after**, it will cause the Host App to throw an exception from **XposedBridge** (which will expose the fact of being Hooked).
 
 :::
 
@@ -334,7 +333,7 @@ Please confirm the correct return value type of the current Hook method, modify 
 
 ::: danger loggerE
 
-Hook initialization failed because got an Exception
+Hook initialization failed because got an exception
 
 :::
 
@@ -350,7 +349,7 @@ This is a reminder that an exception occurred during the Hook preparation stage,
 
 ::: danger loggerE
 
-Try to hook **NAME**\[**NAME**\] got an Exception
+Try to hook **NAME**\[**NAME**\] got an exception
 
 :::
 
@@ -379,15 +378,15 @@ A disallowed parameter type was set when looking up methods, constructors, and v
 ```kotlin
 // Find a method
 method {
-    // ❗ Invalid type example is set
+    //  Invalid type example is set
     param(false, 1, 0)
-    // ❗ Invalid type example is set
+    //  Invalid type example is set
     returnType = false
 }
 
 // Find a variable
 field {
-    // ❗ Invalid type example is set
+    //  Invalid type example is set
     type = false
 }
 ```
@@ -447,30 +446,6 @@ When using `RemedyPlan` to search for methods, constructors, and variables, the 
 **Solution**
 
 Please confirm the `RemedyPlan` parameter you set and the `Class` that exists in the Host App, and try again.
-
-###### exception
-
-::: danger loggerE
-
-You must set a condition when finding a Method/Constructor/Field
-
-:::
-
-**Abnormal**
-
-No conditions are set when looking for methods, constructors, and variables.
-
-> The following example
-
-```kotlin
-method {
-    // No conditions are set here
-}
-```
-
-**Solution**
-
-Please complete your search criteria and try again.
 
 ###### exception
 
@@ -650,6 +625,36 @@ After troubleshooting your own code problems, please provide detailed logs for f
 
 ::: danger loggerE
 
+Failed to got Host Resources
+
+:::
+
+**Abnormal**
+
+Failed to obtain the Host App's original Resources instance object when using `replaceTo { ... }` or `replaceToModuleResource { ... }` when finding Resources.
+
+> The following example
+
+```kotlin
+conditions {
+    name = "test"
+    string()
+}
+replaceTo { "${it}_some_text" }
+```
+
+**Solution**
+
+Under normal circumstances, this error will basically not occur.
+
+If this error occurs, it may be a problem with the currently used Hook Framework.
+
+After troubleshooting your own code problems, please provide detailed logs for feedback.
+
+###### exception
+
+::: danger loggerE
+
 Resources Hook condition name/type cannot be empty \[**TAG**\]
 
 :::
@@ -704,7 +709,7 @@ The current Hook Framework needs to support and enable the Resources Hook functi
 
 ::: danger loggerE
 
-Resources Hook got an Exception \[**TAG**\]
+Resources Hook got an exception \[**TAG**\]
 
 :::
 
@@ -892,7 +897,7 @@ If you must obtain the resources of the Module App itself, please use it directl
 
 ::: danger loggerE
 
-Activity Proxy initialization failed because got an Exception
+Activity Proxy initialization failed because got an exception
 
 :::
 
@@ -912,7 +917,7 @@ If you cannot find the description of the relevant error log, after eliminating 
 
 ::: danger loggerE
 
-Activity Proxy got an Exception in msg.what \[**WHAT**\]
+Activity Proxy got an exception in msg.what \[**WHAT**\]
 
 :::
 
@@ -941,7 +946,7 @@ Invalid parameters were filled in when injecting Module App's `Activity` using `
 > The following example
 
 ```kotlin
-// ❗ The content filled in here is just an example
+//  The content filled in here is just an example
 // And the proxy is filled with invalid parameters that cannot be understood
 registerModuleAppActivities(proxy = false)
 ```
@@ -1075,48 +1080,6 @@ Please make sure you have loaded the `encase` method of `YukiHookAPI` in the cor
 
 ###### exception
 
-::: danger UnsupportedOperationException
-
-!!!DANGEROUS!!! Hook \[**CLASS**\] Class is a dangerous behavior! \[**CONTENT**\] \[**SOLVE**\]
-
-:::
-
-**Abnormal**
-
-You tried to hook a `Class` object in the list of dangerous behaviors, such as `Class`, `ClassLoader`, `Method`.
-
-> The following example
-
-```kotlin
-// <Scenario 1>
-JavaClassLoader.hook {
-    // ...
-}
-// <Scenario 2>
-JavaClass.hook {
-    // ...
-}
-// <Scenario 3>
-JavaMethod.hook {
-    // ...
-}
-// ...
-```
-
-**Solution**
-
-These functions are internal to the system, <u>**they should not be hooked, may not be supported on some Hook Frameworks, and may cause other errors**</u>, please try to replace the hook point.
-
-::: tip
-
-If you still want to use this feature, please refer to [YukiMemberHookCreator.useDangerousOperation](../api/public/com/highcapable/yukihookapi/hook/core/YukiMemberHookCreator#usedangerousoperation-method) method.
-
-But **It is strongly recommended not to do this, please do not report any problems, <u>all the consequences will be borne by yourself</u>**.
-
-:::
-
-###### exception
-
 ::: danger NoClassDefFoundError
 
 Can't find this Class in \[**CLASSLOADER**\]: **CONTENT** Generated by YukiHookAPI#ReflectionTool
@@ -1241,7 +1204,7 @@ class MyApplication : Application() {
 
     override fun attachBaseContext(base: Context?) {
         YukiHookAPI.encase(base) {
-            // ❗ Can't use prefs in this case
+            //  Can't use prefs in this case
             prefs.getBoolean("test_data")
         }
         super.attachBaseContext(base)
@@ -1299,7 +1262,7 @@ class MyApplication : Application() {
 
     override fun attachBaseContext(base: Context?) {
         YukiHookAPI.encase(base) {
-            // ❗ dataChannel cannot be used in this case
+            //  dataChannel cannot be used in this case
             dataChannel.wait(key = "test_data") {
                 // ...
             }
@@ -1323,7 +1286,7 @@ Xposed modulePackageName load failed, please reset and rebuild it
 
 **Abnormal**
 
-When using `YYukiHookPrefsBridge` or `YukiHookDataChannel` in the Hook process, the `modulePackageName` at load time cannot be read, resulting in the package name of the own Module App cannot be determined.
+When using `YukiHookPrefsBridge` or `YukiHookDataChannel` in the Hook process, the `modulePackageName` at load time cannot be read, resulting in the package name of the own Module App cannot be determined.
 
 **Solution**
 
@@ -1348,7 +1311,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // ❗ Wrong usage
+        //  Wrong usage
         // Constructor has been set to private in API 1.0.88 and later
         YukiHookPrefsBridge().getBoolean("test_data")
     }
@@ -1485,7 +1448,7 @@ Custom Hooking Members is empty
 injectMember {
     // Method parameters in parentheses are left blank
     members()
-    afterHook {
+    after {
         // ...
     }
 }
@@ -1512,7 +1475,7 @@ HookParam Method args index must be >= 0
 ```kotlin
 injectMember {
     // ...
-    afterHook {
+    after {
         // Assume param is empty
         args().last()...
         // Set an index less than 0
@@ -1542,7 +1505,7 @@ An object that calls an `instance` variable or `instance` method in a `HookParam
 ```kotlin
 injectMember {
     // ...
-    afterHook {
+    after {
         // This variable is called
         instance...
         // This method is called
@@ -1576,7 +1539,7 @@ The `args` variable is called in `HookParam`, but the parameter array of the cur
 ```kotlin
 injectMember {
     // ...
-    afterHook {
+    after {
         // This variable is called
         args...
     }
@@ -1606,7 +1569,7 @@ Call the `member` variable in `HookParam` but cannot get the method and construc
 ```kotlin
 injectMember {
     // ...
-    afterHook {
+    after {
         // This variable is called
         member...
     }
@@ -1636,7 +1599,7 @@ Calling the `method` variable in `HookParam` but not getting the method instance
 ```kotlin
 injectMember {
     // ...
-    afterHook {
+    after {
         // This variable is called
         method...
     }
@@ -1666,7 +1629,7 @@ A method instance for calling a `constructor` variable in a `HookParam` but not 
 ```kotlin
 injectMember {
     // ...
-    afterHook {
+    after {
         // This variable is called
         constructor...
     }
@@ -1696,7 +1659,7 @@ Invoking the `instance` method in a `HookParam` specifies the wrong type.
 ```kotlin
 injectMember {
     // ...
-    afterHook {
+    after {
         // The type is cast to Activity
         // But assumes the current instance's type is not this type
         instance<Activity>()...
@@ -1727,7 +1690,7 @@ The `ArgsModifyer.set` method is called in `HookParam` but the method parameter 
 ```kotlin
 injectMember {
     // ...
-    afterHook {
+    after {
         // This method is called
         args(...).set(...)
     }
@@ -1755,7 +1718,7 @@ Calling the `ArgsModifyer.set` method in `HookParam` specifies an array number b
 ```kotlin
 injectMember {
     // ...
-    afterHook {
+    after {
         // The subscript starts from 0
         // Assuming the original parameter subscript is 5, but fill in 6 here
         args(index = 6).set(...)
@@ -1837,6 +1800,38 @@ TargetClass.hook {
 Using `instanceClass` directly in `hook` is very dangerous, if the Class does not exist, it will directly cause the Hook process to "die".
 
 For details, please refer to [Status Monitor](../guide/example#status-monitor).
+
+###### exception
+
+::: danger IllegalStateException 
+
+Use of searchClass { ... }.hook { ... } is an error, please use like searchClass { ... }.get()?.hook { ... }
+
+:::
+
+**Abnormal**
+
+The Hook instance are created directly using the `searchClass { ... }.hook { ... }` method.
+
+**Solution**
+
+Please use `searchClass { ... }.get()?.hook { ... }` to create a Hook instance.
+
+###### exception
+
+::: danger IllegalStateException 
+
+This type \[**TYPE**\] not support to hook, supported are Constructors and Methods
+
+:::
+
+**Abnormal**
+
+Using `Member.hook { ... }` creates member objects that do not support Hooks, such as `Field`.
+
+**Solution**
+
+You can only Hook `Constructor` and `Method`.
 
 ###### exception
 

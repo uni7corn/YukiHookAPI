@@ -7,6 +7,7 @@ repositories:
     scope: PLUGINS
   google:
   maven-central:
+  jit-pack:
   rovo89-xposed-api:
     scope: LIBRARIES
     url: https://api.xposed.info/
@@ -18,22 +19,22 @@ repositories:
 plugins:
   org.jetbrains.kotlin.jvm:
     alias: kotlin-jvm
-    version: 1.9.10
+    version: 2.0.21
   org.jetbrains.kotlin.android:
     alias: kotlin-android
     version-ref: kotlin-jvm
   com.google.devtools.ksp:
     alias: kotlin-ksp
-    version: 1.9.10-1.0.13
+    version: 2.0.21-1.0.27
   com.android.application:
     alias: android-application
-    version: 8.1.1
+    version: 8.5.2
   com.android.library:
     alias: android-library
     version-ref: android-application
   com.vanniktech.maven.publish:
     alias: maven-publish
-    version: 0.25.3
+    version: 0.30.0
 
 libraries:
   de.robv.android.xposed:
@@ -41,42 +42,47 @@ libraries:
       version: 82
       repositories:
         rovo89-xposed-api
+  com.github.tiann:
+    FreeReflection:
+      version: 3.2.2
+      repositories:
+        jit-pack
   com.google.devtools.ksp:
     symbol-processing-api:
-      version: 1.9.10-1.0.13
+      version-ref: <plugins>::kotlin-ksp
   com.google.auto.service:
     auto-service-annotations:
-      version: 1.0.1
+      version: 1.1.1
   dev.zacsweers.autoservice:
     auto-service-ksp:
-      version: 1.0.0
+      version: 1.2.0
   androidx.annotation:
     annotation:
-      version: 1.6.0
+      version: 1.9.1
   androidx.preference:
     preference-ktx:
-      version: 1.2.0
+      version: 1.2.1
   androidx.core:
     core-ktx:
-      version: 1.10.0
+      version: 1.15.0
   androidx.appcompat:
     appcompat:
-      version: 1.6.1
+      version: 1.7.0
   androidx.lifecycle:
     lifecycle-viewmodel-ktx:
-      version: 2.6.1
+      version: 2.8.7
   com.google.android.material:
     material:
-      version: 1.8.0
+      version: 1.12.0
   androidx.constraintlayout:
     constraintlayout:
-      version: 2.1.4
+      version: 2.2.0
   androidx.test.ext:
     junit:
-      version: 1.1.5
+      version: 1.2.1
   androidx.test.espresso:
     espresso-core:
-      version: 3.5.1
+      version: 3.6.1
   junit:
     junit:
       version: 4.13.2

@@ -1,15 +1,21 @@
 # Yuki Hook API
 
-[![GitHub license](https://img.shields.io/github/license/fankes/YukiHookAPI?color=blue)](https://github.com/fankes/YukiHookAPI/blob/master/LICENSE)
-[![GitHub release](https://img.shields.io/github/v/release/fankes/YukiHookAPI?display_name=release&logo=github&color=green)](https://github.com/fankes/YukiHookAPI/releases)
+[![GitHub license](https://img.shields.io/github/license/HighCapable/YukiHookAPI?color=blue)](https://github.com/HighCapable/YukiHookAPI/blob/master/LICENSE)
+[![GitHub release](https://img.shields.io/github/v/release/HighCapable/YukiHookAPI?display_name=release&logo=github&color=green)](https://github.com/HighCapable/YukiHookAPI/releases)
 [![Telegram](https://img.shields.io/badge/discussion-Telegram-blue.svg?logo=telegram)](https://t.me/YukiHookAPI)
 [![Telegram](https://img.shields.io/badge/discussion%20dev-Telegram-blue.svg?logo=telegram)](https://t.me/HighCapable_Dev)
+[![QQ](https://img.shields.io/badge/discussion%20dev-QQ-blue.svg?logo=tencent-qq&logoColor=red)](https://qm.qq.com/cgi-bin/qm/qr?k=Pnsc5RY6N2mBKFjOLPiYldbAbprAU3V7&jump_from=webapi&authKey=X5EsOVzLXt1dRunge8ryTxDRrh9/IiW1Pua75eDLh9RE3KXE+bwXIYF5cWri/9lf)
 
-<img src="https://github.com/fankes/YuKiHookAPI/blob/master/img-src/icon.png?raw=true" width = "100" height = "100" alt="LOGO"/>
+<img src="img-src/icon.png" width = "100" height = "100" alt="LOGO"/>
 
 ⛱️ 一个使用 Kotlin 构建的高效 Hook API 与 Xposed 模块解决方案。
 
-[English](https://github.com/fankes/YukiHookAPI/blob/master/README.md) | 简体中文
+[English](README.md) | 简体中文
+
+| <img src="https://github.com/HighCapable/.github/blob/main/img-src/logo.jpg?raw=true" width = "30" height = "30" alt="LOGO"/> | [HighCapable](https://github.com/HighCapable) |
+|-------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------|
+
+这个项目属于上述组织，**点击上方链接关注这个组织**，发现更多好项目。
 
 ## 这是什么
 
@@ -21,9 +27,9 @@
 
 ## 开始使用
 
-[点击这里](https://fankes.github.io/YukiHookAPI/zh-cn/) 前往文档页面查看更多详细教程和内容。
+[点击这里](https://highcapable.github.io/YukiHookAPI/zh-cn/) 前往文档页面查看更多详细教程和内容。
 
-有关支持性的相关信息，你可以直接 [点击这里](https://fankes.github.io/YukiHookAPI/zh-cn/guide/supportive) 进行查看。
+有关支持性的相关信息，你可以直接 [点击这里](https://highcapable.github.io/YukiHookAPI/zh-cn/guide/supportive) 进行查看。
 
 ## 合作项目
 
@@ -46,30 +52,31 @@
 | [QDReadHook](https://github.com/xihan123/QDReadHook)                            | [xihan123](https://github.com/xihan123)         |
 | [HXReadHook](https://github.com/xihan123/HXReadHook)                            | [xihan123](https://github.com/xihan123)         |
 | [WxRecordRead](https://github.com/pwh-pwh/wxrecordread)                         | [Coderpwh](https://github.com/pwh-pwh)          |
+| [FuckShake](https://github.com/pwh-pwh/fuck_shake)                              | [Coderpwh](https://github.com/pwh-pwh)          |
 | [MIUI更新进化](https://miup.utssg.xyz)                                              | [ZQDesigned](https://github.com/ZQDesigned)     |
 | [MIUI录屏进化](https://www.coolapk.com/apk/UTSSG.ZQDesigned.miuirecordercracker)    | [ZQDesigned](https://github.com/ZQDesigned)     |
 | [Fuck AD](https://github.com/hujiayucc/Fuck-AD)                                 | [hujiayucc](https://github.com/hujiayucc)       |
 | [最右强力去广告](https://github.com/kazutoiris/zuiyou-adfree)                          | [kazutoiris](https://github.com/kazutoiris)     |
+| [叮嗒出行强力去广告](https://github.com/kazutoiris/dingda-adfree)                          | [kazutoiris](https://github.com/kazutoiris)     |
+| [无限幻境](https://github.com/kazutoiris/infinite-illusion)                          | [kazutoiris](https://github.com/kazutoiris)     |
+| [HookGG](https://github.com/HdShare/HookGG)                                     | [HdShare](https://github.com/HdShare)           |
 
 你也在使用 `YukiHookAPI` 吗？快来 **PR** 将你的存储仓库添加到上方的列表 (私有仓库可以不需要注明网页链接)。
 
 ## 项目推广
 
-如果你正在寻找一个可以自动管理 Gradle 项目依赖的 Gradle 插件，你可以了解一下 [SweetDependency](https://github.com/HighCapable/SweetDependency) 项目。
-
-如果你正在寻找一个可以自动生成属性键值的 Gradle 插件，你可以了解一下 [SweetProperty](https://github.com/HighCapable/SweetProperty) 项目。
-
-本项目同样使用了 **SweetDependency** 和 **SweetProperty**。
-
-## 捐赠支持
-
-工作不易，无意外情况此项目将继续维护下去，提供更多可能，欢迎打赏。
-
-<img src="https://github.com/fankes/fankes/blob/main/img-src/payment_code.jpg?raw=true" width = "500" alt="Payment Code"/>
+<!--suppress HtmlDeprecatedAttribute -->
+<div align="center">
+    <h2>嘿，还请君留步！👋</h2>
+    <h3>这里有 Android 开发工具、UI 设计、Gradle 插件、Xposed 模块和实用软件等相关项目。</h3>
+    <h3>如果下方的项目能为你提供帮助，不妨为我点个 star 吧！</h3>
+    <h3>所有项目免费、开源，遵循对应开源许可协议。</h3>
+    <h1><a href="https://github.com/fankes/fankes/blob/main/project-promote/README-zh-CN.md">→ 查看更多关于我的项目，请点击这里 ←</a></h1>
+</div>
 
 ## Star History
 
-![Star History Chart](https://api.star-history.com/svg?repos=fankes/YukiHookAPI&type=Date)
+![Star History Chart](https://api.star-history.com/svg?repos=HighCapable/YukiHookAPI&type=Date)
 
 ## 第三方开源使用声明
 
@@ -78,30 +85,24 @@
 
 ## 许可证
 
-- [MIT](https://choosealicense.com/licenses/mit)
+- [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
 ```
-MIT License
+Apache License Version 2.0
 
-Copyright (C) 2019-2023 HighCapable
+Copyright (C) 2019 HighCapable
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+    https://www.apache.org/licenses/LICENSE-2.0
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 ```
 
-版权所有 © 2019-2023 HighCapable
+版权所有 © 2019 HighCapable

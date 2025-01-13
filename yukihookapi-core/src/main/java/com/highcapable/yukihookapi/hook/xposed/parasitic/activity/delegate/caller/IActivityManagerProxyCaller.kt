@@ -1,27 +1,21 @@
 /*
  * YukiHookAPI - An efficient Hook API and Xposed Module solution built in Kotlin.
- * Copyright (C) 2019-2023 HighCapable
- * https://github.com/fankes/YukiHookAPI
+ * Copyright (C) 2019 HighCapable
+ * https://github.com/HighCapable/YukiHookAPI
  *
- * MIT License
+ * Apache License Version 2.0
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  * This file is created by fankes on 2023/4/8.
  * Thanks for providing https://github.com/cinit/QAuxiliary/blob/main/app/src/main/java/io/github/qauxv/lifecycle/Parasitics.java
@@ -33,7 +27,6 @@ package com.highcapable.yukihookapi.hook.xposed.parasitic.activity.delegate.call
 import android.app.Activity
 import android.app.ActivityManager
 import android.content.Intent
-import com.highcapable.yukihookapi.annotation.YukiGenerateApi
 import com.highcapable.yukihookapi.hook.factory.buildOf
 import com.highcapable.yukihookapi.hook.factory.classOf
 import com.highcapable.yukihookapi.hook.factory.extends
@@ -48,32 +41,23 @@ import java.lang.reflect.Method
 
 /**
  * 代理当前 [ActivityManager] 调用类
- *
- * - ❗装载代码将自动生成 - 请勿手动调用
  */
-@YukiGenerateApi
-object IActivityManagerProxyCaller {
+internal object IActivityManagerProxyCaller {
 
     /**
      * 获取当前使用的 [ClassLoader]
-     *
-     * - ❗装载代码将自动生成 - 请勿手动调用
      * @return [ClassLoader]
      */
-    @YukiGenerateApi
-    val currentClassLoader get() = AppParasitics.baseClassLoader
+    internal val currentClassLoader get() = AppParasitics.baseClassLoader
 
     /**
      * 调用代理的 [InvocationHandler.invoke] 方法
-     *
-     * - ❗装载代码将自动生成 - 请勿手动调用
      * @param baseInstance 原始实例
      * @param method 被调用方法
      * @param args 被调用方法参数
      * @return [Any] or null
      */
-    @YukiGenerateApi
-    fun callInvoke(baseInstance: Any, method: Method?, args: Array<Any>?): Any? {
+    internal fun callInvoke(baseInstance: Any, method: Method?, args: Array<Any>?): Any? {
         if (method?.name == "startActivity") args?.indexOfFirst { it is Intent }?.also { index ->
             val argsInstance = (args[index] as? Intent) ?: return@also
             val component = argsInstance.component

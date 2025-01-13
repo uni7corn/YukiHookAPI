@@ -1,27 +1,21 @@
 /*
  * YukiHookAPI - An efficient Hook API and Xposed Module solution built in Kotlin.
- * Copyright (C) 2019-2023 HighCapable
- * https://github.com/fankes/YukiHookAPI
+ * Copyright (C) 2019 HighCapable
+ * https://github.com/HighCapable/YukiHookAPI
  *
- * MIT License
+ * Apache License Version 2.0
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  * This file is created by fankes on 2022/2/2.
  */
@@ -137,7 +131,7 @@ val ActivityManagerNativeClass get() = "android.app.ActivityManagerNative".toCla
 /**
  * 获得 [IActivityTaskManager] 类型
  *
- * - ❗在 Android O (26) 及以上系统加入
+ * - 在 Android O (26) 及以上系统加入
  * @return [Class] or null
  */
 val IActivityTaskManagerClass get() = "android.app.IActivityTaskManager".toClassOrNull()
@@ -145,7 +139,7 @@ val IActivityTaskManagerClass get() = "android.app.IActivityTaskManager".toClass
 /**
  * 获得 [ActivityTaskManager] 类型
  *
- * - ❗在 Android O (26) 及以上系统加入
+ * - 在 Android O (26) 及以上系统加入
  * @return [Class] or null
  */
 val ActivityTaskManagerClass get() = "android.app.ActivityTaskManager".toClassOrNull()
@@ -351,7 +345,7 @@ val ArrayMapClass get() = classOf<ArrayMap<*, *>>()
 /**
  * 获得 [ArraySet] 类型
  *
- * - ❗在 Android M (23) 及以上系统加入
+ * - 在 Android M (23) 及以上系统加入
  * @return [Class]<[ArraySet]> or null
  */
 val ArraySetClass get() = if (Build.VERSION.SDK_INT >= 23) classOf<ArraySet<*>>() else null
@@ -395,7 +389,7 @@ val AsyncTaskClass get() = classOf<AsyncTask<*, *, *>>()
 /**
  * 获得 [SimpleDateFormat] 类型
  *
- * - ❗在 Android N (24) 及以上系统加入
+ * - 在 Android N (24) 及以上系统加入
  * @return [Class]<[SimpleDateFormat]> or null
  */
 val SimpleDateFormatClass_Android get() = if (Build.VERSION.SDK_INT >= 24) classOf<SimpleDateFormat>() else null
@@ -415,7 +409,7 @@ val WindowClass get() = classOf<Window>()
 /**
  * 获得 [WindowMetrics] 类型
  *
- * - ❗在 Android R (30) 及以上系统加入
+ * - 在 Android R (30) 及以上系统加入
  * @return [Class]<[WindowMetrics]> or null
  */
 val WindowMetricsClass get() = if (Build.VERSION.SDK_INT >= 30) classOf<WindowMetrics>() else null
@@ -429,7 +423,7 @@ val WindowInsetsClass get() = classOf<WindowInsets>()
 /**
  * 获得 [WindowInsets.Type] 类型
  *
- * - ❗在 Android R (30) 及以上系统加入
+ * - 在 Android R (30) 及以上系统加入
  * @return [Class]<[WindowInsets.Type]> or null
  */
 val WindowInsets_TypeClass get() = if (Build.VERSION.SDK_INT >= 30) classOf<WindowInsets.Type>() else null
@@ -647,7 +641,7 @@ val VibratorClass get() = classOf<Vibrator>()
 /**
  * 获得 [VibrationEffect] 类型
  *
- * - ❗在 Android O (26) 及以上系统加入
+ * - 在 Android O (26) 及以上系统加入
  * @return [Class]<[VibrationEffect]> or null
  */
 val VibrationEffectClass get() = if (Build.VERSION.SDK_INT >= 26) classOf<VibrationEffect>() else null
@@ -655,7 +649,7 @@ val VibrationEffectClass get() = if (Build.VERSION.SDK_INT >= 26) classOf<Vibrat
 /**
  * 获得 [VibrationAttributes] 类型
  *
- * - ❗在 Android R (30) 及以上系统加入
+ * - 在 Android R (30) 及以上系统加入
  * @return [Class]<[VibrationAttributes]> or null
  */
 val VibrationAttributesClass get() = if (Build.VERSION.SDK_INT >= 30) classOf<VibrationAttributes>() else null
@@ -687,7 +681,7 @@ val UserHandleClass get() = classOf<UserHandle>()
 /**
  * 获得 [ShortcutInfo] 类型
  *
- * - ❗在 Android N_MR1 (25) 及以上系统加入
+ * - 在 Android N_MR1 (25) 及以上系统加入
  * @return [Class]<[ShortcutInfo]> or null
  */
 val ShortcutInfoClass get() = if (Build.VERSION.SDK_INT >= 25) classOf<ShortcutInfo>() else null
@@ -695,7 +689,7 @@ val ShortcutInfoClass get() = if (Build.VERSION.SDK_INT >= 25) classOf<ShortcutI
 /**
  * 获得 [ShortcutManager] 类型
  *
- * - ❗在 Android R (30) 及以上系统加入
+ * - 在 Android R (30) 及以上系统加入
  * @return [Class]<[ShortcutManager]> or null
  */
 val ShortcutManagerClass get() = if (Build.VERSION.SDK_INT >= 30) classOf<ShortcutManager>() else null
@@ -703,7 +697,7 @@ val ShortcutManagerClass get() = if (Build.VERSION.SDK_INT >= 30) classOf<Shortc
 /**
  * 获得 [ShortcutQuery] 类型
  *
- * - ❗在 Android N_MR1 (25) 及以上系统加入
+ * - 在 Android N_MR1 (25) 及以上系统加入
  * @return [Class]<[ShortcutQuery]> or null
  */
 val ShortcutQueryClass get() = if (Build.VERSION.SDK_INT >= 25) classOf<ShortcutQuery>() else null

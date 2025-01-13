@@ -1,31 +1,25 @@
 /*
  * YukiHookAPI - An efficient Hook API and Xposed Module solution built in Kotlin.
- * Copyright (C) 2019-2023 HighCapable
- * https://github.com/fankes/YukiHookAPI
+ * Copyright (C) 2019 HighCapable
+ * https://github.com/HighCapable/YukiHookAPI
  *
- * MIT License
+ * Apache License Version 2.0
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  * This file is created by fankes on 2022/9/4.
  */
-@file:Suppress("unused", "MemberVisibilityCanBePrivate")
+@file:Suppress("unused", "MemberVisibilityCanBePrivate", "NON_PUBLIC_CALL_FROM_PUBLIC_INLINE")
 
 package com.highcapable.yukihookapi.hook.core.finder.classes
 
@@ -34,7 +28,6 @@ import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.SystemClock
 import androidx.core.content.pm.PackageInfoCompat
-import com.highcapable.yukihookapi.annotation.YukiPrivateApi
 import com.highcapable.yukihookapi.hook.core.finder.base.ClassBaseFinder
 import com.highcapable.yukihookapi.hook.core.finder.classes.data.ClassRulesData
 import com.highcapable.yukihookapi.hook.core.finder.classes.rules.ConstructorRules
@@ -49,10 +42,10 @@ import com.highcapable.yukihookapi.hook.core.finder.type.factory.NameConditions
 import com.highcapable.yukihookapi.hook.factory.hasClass
 import com.highcapable.yukihookapi.hook.factory.searchClass
 import com.highcapable.yukihookapi.hook.factory.toClass
-import com.highcapable.yukihookapi.hook.log.yLoggerW
+import com.highcapable.yukihookapi.hook.log.YLog
 import com.highcapable.yukihookapi.hook.param.PackageParam
-import com.highcapable.yukihookapi.hook.utils.await
-import com.highcapable.yukihookapi.hook.utils.runBlocking
+import com.highcapable.yukihookapi.hook.utils.factory.await
+import com.highcapable.yukihookapi.hook.utils.factory.runBlocking
 import com.highcapable.yukihookapi.hook.xposed.parasitic.AppParasitics
 import dalvik.system.BaseDexClassLoader
 import java.lang.reflect.Constructor
@@ -65,12 +58,12 @@ import java.lang.reflect.Method
  *
  * 可使用 [BaseDexClassLoader] 通过指定条件查找指定 [Class] 或一组 [Class]
  *
- * - ❗此功能尚在试验阶段 - 性能与稳定性可能仍然存在问题 - 使用过程遇到问题请向我们报告并帮助我们改进
+ * - 此功能尚在实验阶段 - 性能与稳定性可能仍然存在问题 - 使用过程遇到问题请向我们报告并帮助我们改进
  * @param name 标识当前 [Class] 缓存的名称 - 不设置将不启用缓存 - 启用缓存必须启用 [async]
  * @param async 是否启用异步
  * @param loaderSet 当前使用的 [ClassLoader] 实例
  */
-class DexClassFinder @PublishedApi internal constructor(
+class DexClassFinder internal constructor(
     internal var name: String,
     internal var async: Boolean,
     override val loaderSet: ClassLoader?
@@ -110,11 +103,10 @@ class DexClassFinder @PublishedApi internal constructor(
          */
         fun clearCache(context: Context? = currentContext, versionName: String? = null, versionCode: Long? = null) {
             context?.currentSp(versionName, versionCode)?.edit()?.clear()?.apply()
-                ?: yLoggerW(msg = "Cannot clear cache for DexClassFinder because got null context instance")
+                ?: YLog.innerW("Cannot clear cache for DexClassFinder because got null context instance")
         }
     }
 
-    @PublishedApi
     override var rulesData = ClassRulesData()
 
     /**
@@ -174,11 +166,11 @@ class DexClassFinder @PublishedApi internal constructor(
      *
      * com.demo.test.demo
      *
-     * - ❗建议设置此参数指定查找范围 - 否则 [Class] 过多时将会非常慢
+     * - 建议设置此参数指定查找范围 - 否则 [Class] 过多时将会非常慢
      * @param name 指定包名
      * @return [FromPackageRules] 可设置 [FromPackageRules.absolute] 标识包名绝对匹配
      */
-    fun from(vararg name: String) = FromPackageRules(arrayListOf<ClassRulesData.PackageRulesData>().also {
+    fun from(vararg name: String) = FromPackageRules(mutableListOf<ClassRulesData.PackageRulesData>().also {
         name.takeIf { e -> e.isNotEmpty() }?.forEach { e -> it.add(rulesData.createPackageRulesData(e)) }
         if (it.isNotEmpty()) rulesData.fromPackages.addAll(it)
     })
@@ -315,7 +307,7 @@ class DexClassFinder @PublishedApi internal constructor(
      *
      * 此时 [Class] 只应该继承于 [Any]
      *
-     * - ❗设置此条件后 [extends] 将失效
+     * - 设置此条件后 [extends] 将失效
      */
     fun noExtends() {
         rulesData.isNoExtendsClass = true
@@ -324,7 +316,7 @@ class DexClassFinder @PublishedApi internal constructor(
     /**
      * 设置 [Class] 没有任何接口
      *
-     * - ❗设置此条件后 [implements] 将失效
+     * - 设置此条件后 [implements] 将失效
      */
     fun noImplements() {
         rulesData.isNoImplementsClass = true
@@ -335,7 +327,7 @@ class DexClassFinder @PublishedApi internal constructor(
      *
      * 此时 [Class] 只应该继承于 [Any]
      *
-     * - ❗设置此条件后 [extends] 与 [implements] 将失效
+     * - 设置此条件后 [extends] 与 [implements] 将失效
      */
     fun noSuper() {
         noExtends()
@@ -361,7 +353,7 @@ class DexClassFinder @PublishedApi internal constructor(
      * 包名范围名称过滤匹配条件实现类
      * @param packages 包名数组
      */
-    inner class FromPackageRules internal constructor(private val packages: ArrayList<ClassRulesData.PackageRulesData>) {
+    inner class FromPackageRules internal constructor(private val packages: MutableList<ClassRulesData.PackageRulesData>) {
 
         /**
          * 设置包名绝对匹配
@@ -437,29 +429,29 @@ class DexClassFinder @PublishedApi internal constructor(
 
     /**
      * 得到 [Class] 或一组 [Class]
-     * @return [HashSet]<[Class]>
+     * @return [MutableList]<[Class]>
      * @throws NoClassDefFoundError 如果找不到 [Class]
      */
     private val result get() = ReflectionTool.findClasses(loaderSet, rulesData)
 
     /**
      * 从本地缓存读取 [Class] 数据
-     * @return [HashSet]<[Class]>
+     * @return [MutableList]<[Class]>
      */
-    private fun readFromCache(): HashSet<Class<*>> =
+    private fun readFromCache(): MutableList<Class<*>> =
         if (async && name.isNotBlank()) currentContext?.let {
-            hashSetOf<Class<*>>().also { classes ->
+            mutableListOf<Class<*>>().also { classes ->
                 it.currentSp().getStringSet(name, emptySet())?.takeIf { it.isNotEmpty() }
                     ?.forEach { className -> if (className.hasClass(loaderSet)) classes.add(className.toClass(loaderSet)) }
             }
-        } ?: let { SystemClock.sleep(1); readFromCache() } else hashSetOf()
+        } ?: let { SystemClock.sleep(1); readFromCache() } else mutableListOf()
 
     /**
      * 将当前 [Class] 数组名称保存到本地缓存
      * @throws IllegalStateException 如果当前包名为 "android"
      */
-    private fun HashSet<Class<*>>.saveToCache() {
-        if (name.isNotBlank() && isNotEmpty()) hashSetOf<String>().also { names ->
+    private fun MutableList<Class<*>>.saveToCache() {
+        if (name.isNotBlank() && isNotEmpty()) mutableSetOf<String>().also { names ->
             takeIf { it.isNotEmpty() }?.forEach { names.add(it.name) }
             currentContext?.also {
                 if (it.packageName == "android") error("Cannot create classes cache for \"android\", please remove \"name\" param")
@@ -472,19 +464,18 @@ class DexClassFinder @PublishedApi internal constructor(
      * 设置实例
      * @param classes 当前找到的 [Class] 数组
      */
-    private fun setInstance(classes: HashSet<Class<*>>) {
+    private fun setInstance(classes: MutableList<Class<*>>) {
         classInstances.clear()
         classes.takeIf { it.isNotEmpty() }?.forEach { classInstances.add(it) }
     }
 
-    @YukiPrivateApi
     override fun build() = runCatching {
         if (loaderSet != null) {
             /** 开始任务 */
             fun startProcess() {
                 runBlocking {
                     setInstance(readFromCache().takeIf { it.isNotEmpty() } ?: result)
-                }.result { ms -> classInstances.takeIf { it.isNotEmpty() }?.forEach { onDebuggingMsg(msg = "Find Class [$it] takes ${ms}ms") } }
+                }.result { ms -> classInstances.takeIf { it.isNotEmpty() }?.forEach { debugMsg(msg = "Find Class [$it] takes ${ms}ms") } }
             }
             Result().also { e ->
                 if (async) e.await {
@@ -497,12 +488,12 @@ class DexClassFinder @PublishedApi internal constructor(
                         it.isNotFound = true
                         it.throwable = e
                         it.noClassDefFoundErrorCallback?.invoke()
-                        onFailureMsg(throwable = e)
+                        errorMsg(e = e)
                     }
                 } else startProcess()
             }
-        } else Result(isNotFound = true, Throwable(LOADERSET_IS_NULL)).await { onFailureMsg() }
-    }.getOrElse { e -> Result(isNotFound = true, e).await { onFailureMsg(throwable = e) } }
+        } else Result(isNotFound = true, Throwable(LOADERSET_IS_NULL)).await { errorMsg() }
+    }.getOrElse { e -> Result(isNotFound = true, e).await { errorMsg(e = e) } }
 
     /**
      * [Class] 查找结果实现类
@@ -510,15 +501,15 @@ class DexClassFinder @PublishedApi internal constructor(
      * @param throwable 错误信息
      */
     inner class Result internal constructor(
-        @PublishedApi internal var isNotFound: Boolean = false,
-        @PublishedApi internal var throwable: Throwable? = null
+        internal var isNotFound: Boolean = false,
+        internal var throwable: Throwable? = null
     ) : BaseResult {
 
         /** 异步方法体回调结果 */
         internal var waitResultCallback: ((Class<*>?) -> Unit)? = null
 
         /** 异步方法体回调数组结果 */
-        internal var waitAllResultCallback: ((HashSet<Class<*>>) -> Unit)? = null
+        internal var waitAllResultCallback: ((MutableList<Class<*>>) -> Unit)? = null
 
         /** 异常结果重新回调方法体 */
         internal var noClassDefFoundErrorCallback: (() -> Unit)? = null
@@ -537,7 +528,7 @@ class DexClassFinder @PublishedApi internal constructor(
          *
          * - 在查找条件找不到任何结果的时候将返回 null
          *
-         * - ❗若你设置了 [async] 请使用 [wait] 方法
+         * - 若你设置了 [async] 请使用 [wait] 方法
          * @return [Class] or null
          */
         fun get() = all().takeIf { it.isNotEmpty() }?.first()
@@ -547,10 +538,10 @@ class DexClassFinder @PublishedApi internal constructor(
          *
          * - 返回全部查找条件匹配的多个 [Class] 实例
          *
-         * - 在查找条件找不到任何结果的时候将返回空的 [HashSet]
+         * - 在查找条件找不到任何结果的时候将返回空的 [MutableList]
          *
-         * - ❗若你设置了 [async] 请使用 [waitAll] 方法
-         * @return [HashSet]<[Class]>
+         * - 若你设置了 [async] 请使用 [waitAll] 方法
+         * @return [MutableList]<[Class]>
          */
         fun all() = classInstances
 
@@ -561,7 +552,7 @@ class DexClassFinder @PublishedApi internal constructor(
          *
          * - 在查找条件找不到任何结果的时候将不会执行
          *
-         * - ❗若你设置了 [async] 请使用 [waitAll] 方法
+         * - 若你设置了 [async] 请使用 [waitAll] 方法
          * @param result 回调每个结果
          * @return [Result] 可继续向下监听
          */
@@ -577,7 +568,7 @@ class DexClassFinder @PublishedApi internal constructor(
          *
          * - 在查找条件找不到任何结果的时候将回调 null
          *
-         * - ❗你需要设置 [async] 后此方法才会被回调 - 否则请使用 [get] 方法
+         * - 你需要设置 [async] 后此方法才会被回调 - 否则请使用 [get] 方法
          * @param result 回调 - ([Class] or null)
          * @return [Result] 可继续向下监听
          */
@@ -591,13 +582,13 @@ class DexClassFinder @PublishedApi internal constructor(
          *
          * - 回调全部查找条件匹配的多个 [Class] 实例
          *
-         * - 在查找条件找不到任何结果的时候将回调空的 [HashSet]
+         * - 在查找条件找不到任何结果的时候将回调空的 [MutableList]
          *
-         * - ❗你需要设置 [async] 后此方法才会被回调 - 否则请使用 [all] 方法
-         * @param result 回调 - ([HashSet]<[Class]>)
+         * - 你需要设置 [async] 后此方法才会被回调 - 否则请使用 [all] 方法
+         * @param result 回调 - ([MutableList]<[Class]>)
          * @return [Result] 可继续向下监听
          */
-        fun waitAll(result: (HashSet<Class<*>>) -> Unit): Result {
+        fun waitAll(result: (MutableList<Class<*>>) -> Unit): Result {
             waitAllResultCallback = result
             return this
         }
@@ -616,11 +607,11 @@ class DexClassFinder @PublishedApi internal constructor(
         /**
          * 忽略异常并停止打印任何错误日志
          *
-         * - ❗此时若要监听异常结果 - 你需要手动实现 [onNoClassDefFoundError] 方法
+         * - 此时若要监听异常结果 - 你需要手动实现 [onNoClassDefFoundError] 方法
          * @return [Result] 可继续向下监听
          */
         fun ignored(): Result {
-            isShutErrorPrinting = true
+            isIgnoreErrorLogs = true
             return this
         }
     }

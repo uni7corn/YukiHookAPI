@@ -18,6 +18,8 @@
 
 - Java 11 及以上 (Since API `1.0.80`)
 
+- Java 17 及以上 (Since API `1.2.0`)
+
 ## 自动构建项目
 
 `YukiHookAPI` 提供了一个自动化构建工具，它可以帮助你快速构建一个拥有 Xposed 模块依赖的 Android 标准项目模板，使用构建好的模板即可直接开始下一步工作。
@@ -30,13 +32,13 @@
 
 ### 创建项目
 
-使用 `Android Studio` 或 `IntelliJ IDEA` 创建新的 Android 项目，并在 `Language` 一栏选择 `Kotlin` 以自动添加基础依赖。
+使用 `Android Studio` 或 `IntelliJ IDEA` 创建新的 Android 项目，并在 `Language` 一栏选择 Kotlin 以自动添加基础依赖。
 
 ### 集成依赖
 
 我们推荐使用 Kotlin DSL 作为 Gradle 构建脚本语言并推荐使用 [SweetDependency](https://github.com/HighCapable/SweetDependency) 来管理依赖。
 
-#### SweetDependency 方式
+#### SweetDependency (推荐)
 
 在你的项目 `SweetDependency` 配置文件中添加存储库和依赖。
 
@@ -44,20 +46,20 @@
 
 ```yaml
 repositories:
-  #❗作为 Xposed 模块使用务必添加，其它情况可选
+  # 作为 Xposed 模块使用务必添加，其它情况可选
   rovo89-xposed-api:
     url: https://api.xposed.info/
   # MavenCentral 有 2 小时缓存，若无法集成最新版本请添加
   sonatype-oss-releases:
 
 plugins:
-  #❗作为 Xposed 模块使用务必添加，其它情况可选
+  # 作为 Xposed 模块使用务必添加，其它情况可选
   com.google.devtools.ksp:
     version: +
   ...
 
 libraries:
-  #❗作为 Xposed 模块使用务必添加，其它情况可选
+  # 作为 Xposed 模块使用务必添加，其它情况可选
   de.robv.android.xposed:
     api:
       version: 82
@@ -66,7 +68,7 @@ libraries:
   com.highcapable.yukihookapi:
     api:
       version: +
-    #❗作为 Xposed 模块使用务必添加，其它情况可选
+    # 作为 Xposed 模块使用务必添加，其它情况可选
     ksp-xposed:
       version-ref: <this>::api
   ...
@@ -80,7 +82,7 @@ libraries:
 
 ```kotlin
 plugins {
-    // ❗作为 Xposed 模块使用务必添加，其它情况可选
+    // 作为 Xposed 模块使用务必添加，其它情况可选
     autowire(libs.plugins.com.google.devtools.ksp)
     // ...
 }
@@ -94,14 +96,14 @@ plugins {
 dependencies {
     // 基础依赖
     implementation(com.highcapable.yukihookapi.api)
-    // ❗作为 Xposed 模块使用务必添加，其它情况可选
+    // 作为 Xposed 模块使用务必添加，其它情况可选
     compileOnly(de.robv.android.xposed.api)
-    // ❗作为 Xposed 模块使用务必添加，其它情况可选
+    // 作为 Xposed 模块使用务必添加，其它情况可选
     ksp(com.highcapable.yukihookapi.ksp.xposed)
 }
 ```
 
-#### 传统方式 (不推荐)
+#### 传统方式
 
 在你的项目 `build.gradle.kts` 或 `build.gradle` 中添加存储库。
 
@@ -111,7 +113,7 @@ dependencies {
 repositories {
     google()
     mavenCentral()
-    // ❗作为 Xposed 模块使用务必添加，其它情况可选
+    // 作为 Xposed 模块使用务必添加，其它情况可选
     maven { url("https://api.xposed.info/") }
     // MavenCentral 有 2 小时缓存，若无法集成最新版本请添加此地址
     maven { url("https://s01.oss.sonatype.org/content/repositories/releases/") }
@@ -124,7 +126,7 @@ repositories {
 repositories {
     google()
     mavenCentral()
-    // ❗作为 Xposed 模块使用务必添加，其它情况可选
+    // 作为 Xposed 模块使用务必添加，其它情况可选
     maven { url 'https://api.xposed.info/' }
     // MavenCentral 有 2 小时缓存，若无法集成最新版本请添加此地址
     maven { url 'https://s01.oss.sonatype.org/content/repositories/releases/' }
@@ -137,7 +139,7 @@ repositories {
 
 ```kotlin
 plugins {
-    // ❗作为 Xposed 模块使用务必添加，其它情况可选
+    // 作为 Xposed 模块使用务必添加，其它情况可选
     id("com.google.devtools.ksp") version "<ksp-version>"
 }
 ```
@@ -146,7 +148,7 @@ plugins {
 
 ```groovy
 plugins {
-    // ❗作为 Xposed 模块使用务必添加，其它情况可选
+    // 作为 Xposed 模块使用务必添加，其它情况可选
     id 'com.google.devtools.ksp' version '<ksp-version>'
 }
 ```
@@ -159,9 +161,9 @@ plugins {
 dependencies {
     // 基础依赖
     implementation("com.highcapable.yukihookapi:api:<yuki-version>")
-    // ❗作为 Xposed 模块使用务必添加，其它情况可选
+    // 作为 Xposed 模块使用务必添加，其它情况可选
     compileOnly("de.robv.android.xposed:api:82")
-    // ❗作为 Xposed 模块使用务必添加，其它情况可选
+    // 作为 Xposed 模块使用务必添加，其它情况可选
     ksp("com.highcapable.yukihookapi:ksp-xposed:<yuki-version>")
 }
 ```
@@ -172,9 +174,9 @@ dependencies {
 dependencies {
     // 基础依赖
     implementation 'com.highcapable.yukihookapi:api:<yuki-version>'
-    // ❗作为 Xposed 模块使用务必添加，其它情况可选
+    // 作为 Xposed 模块使用务必添加，其它情况可选
     compileOnly 'de.robv.android.xposed:api:82'
-    // ❗作为 Xposed 模块使用务必添加，其它情况可选
+    // 作为 Xposed 模块使用务必添加，其它情况可选
     ksp 'com.highcapable.yukihookapi:ksp-xposed:<yuki-version>'
 }
 ```
@@ -193,18 +195,18 @@ dependencies {
 
 #### 配置 Java 版本
 
-在你的项目 `build.gradle.kts` 或 `build.gradle` 中修改 Kotlin 的 Java 版本为 11 及以上。
+在你的项目 `build.gradle.kts` 或 `build.gradle` 中修改 Kotlin 的 Java 版本为 17 及以上。
 
 > Kotlin DSL
 
 ```kt
 android {
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "17"
     }
 }
 ```
@@ -214,11 +216,11 @@ android {
 ```groovy
 android {
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_11
-        targetCompatibility JavaVersion.VERSION_11
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = '11'
+        jvmTarget = '17'
     }
 }
 ```
@@ -226,6 +228,8 @@ android {
 ::: warning
 
 自 API **1.0.80** 版本后 Kotlin 使用的 Java 版本默认为 11，不再支持 1.8 及以下版本。
+
+自 API **1.2.0** 版本后 Kotlin 使用的 Java 版本默认为 17，不再支持 11 及以下版本。
 
 :::
 
@@ -282,8 +286,6 @@ override fun onInit() = configs {
     isDebug = BuildConfig.DEBUG
 }
 ```
-
-**YukiHookAPI** 默认会打印所有用于调试的日志，若作为发布版本请务必关闭调试功能防止对用户设备造成大量日志填充。
 
 你还可以将你的模块 APP 的 **Application** 继承于 **ModuleApplication** 以实现完整使用体验。
 
